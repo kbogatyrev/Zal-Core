@@ -23,15 +23,15 @@ else()
     add_compile_options(-Wall -Wextra -pedantic -Werror)
 endif()
 
-add_library (MainLib SHARED)
+add_library (ZalMainLib SHARED)
 
-target_include_directories (MainLib PUBLIC
+target_include_directories (ZalMainLib PUBLIC
 	../HLib
 	../ThirdParty/Sqlite
 	../ThirdParty/sha1
 )
 
-target_sources (MainLib PRIVATE
+target_sources (ZalMainLib PRIVATE
 	MainLib/Analytics.cpp
 	MainLib/Dictionary.cpp
 #	MainLib/dllmain.cpp
