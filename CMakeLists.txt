@@ -59,3 +59,7 @@ target_sources (ZalMainLib PRIVATE
 	MainLib/WordForm.cpp
 	../ThirdParty/Sqlite/sqlite3.c
 )
+
+add_custom_command(TARGET ZalMainLib POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ZalMainLib> ../../../../Zal-Windows/TestApp/bin/debug
+)
