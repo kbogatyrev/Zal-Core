@@ -166,14 +166,14 @@ namespace Hlib
         virtual void SetInfinitive(const CEString&) = 0;
         virtual CEString sInfStem() = 0;
         virtual void SetInfStem(const CEString&) = 0;
-//        virtual int iInflectedParts() = 0;
-//        virtual void SetInflectedParts(int) = 0;
         virtual bool bHasPresPassParticiple() = 0;
         virtual void SetHasPresPassParticiple(bool) = 0;
         virtual bool bSpryazhSm() = 0;
         virtual CEString sSpryazhSmRefSource() = 0;
         virtual ET_Subparadigm eSubparadigm() = 0;
         virtual void SetSubparadigm(ET_Subparadigm) = 0;    // currently only used with numerals
+        virtual bool bIsSecondPart() = 0;
+        virtual void SetIsSecondPart(bool) = 0;
 
         virtual ET_ReturnCode eAddCommonDeviation(int iValue, bool bIsOptional) = 0;
         virtual void ClearCommonDeviations() = 0;

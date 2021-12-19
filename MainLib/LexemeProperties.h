@@ -53,14 +53,12 @@ namespace Hlib
             bNoPassivePastParticiple(false),
             bFleetingVowel(false),
             iStemAugment(-1),
-            iInflectedParts(-1),
-            bIsSecondPart(false),
+            bSecondPart(false),
             iSpryazhSmRefPrefixLength(-1),
             bSpryazhSmNoAspectPair(false)
         {
                 sSourceForm.SetVowels(g_szRusVowels);
                 sGraphicStem.SetVowels(g_szRusVowels);
-//                sGraphicStem2.SetVowels(g_szRusVowels);
         }
 
         long long llDescriptorId;
@@ -81,7 +79,6 @@ namespace Hlib
         bool bSpryazhSm;
         long long llSourceEntryId;
         CEString sGraphicStem;
-//        CEString sGraphicStem2;
         bool bIsVariant;
         CEString sMainSymbol;
         bool bIsPluralOf;
@@ -139,8 +136,7 @@ namespace Hlib
         bool bNoPassivePastParticiple;
         bool bFleetingVowel;
         int iStemAugment;
-        int iInflectedParts;
-        bool bIsSecondPart;
+        bool bSecondPart;
         bool bSpryazhSmNoAspectPair;
 
         //
