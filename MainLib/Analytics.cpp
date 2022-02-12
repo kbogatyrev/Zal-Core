@@ -43,7 +43,14 @@ ET_ReturnCode CAnalytics::eParseText(const CEString& sTextName, const CEString& 
     m_sTextMetaData = sMetadata;
     m_sText = sText;                // used to split text into lines
 
-    const_cast<CEString&>(sText).SetBreakChars(L".");
+    if (bIsProse)
+    {
+        const_cast<CEString&>(sText).SetBreakChars(L".");
+    }
+    else
+    {
+        const_cast<CEString&>(sText).SetBreakChars(L"\r\n");
+    }
     const_cast<CEString&>(sText).SetTabs(L"");
     const_cast<CEString&>(sText).SetPunctuation(L"");
     const_cast<CEString&>(sText).SetEscapeChars(L"");
