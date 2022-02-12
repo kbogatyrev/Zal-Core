@@ -106,7 +106,7 @@ namespace Hlib
         CAnalytics(shared_ptr<CSqlite>, shared_ptr<CParser>);
         ~CAnalytics();
 
-        virtual ET_ReturnCode eParseText(const CEString& sTextName, const CEString& sMetadata, const CEString& sText, long long& llParsedTextId);
+        virtual ET_ReturnCode eParseText(const CEString& sTextName, const CEString& sMetadata, const CEString& sText, long long& llParsedTextId, bool bIsProse = false);
 //        virtual void ClearResults();
 
     private:

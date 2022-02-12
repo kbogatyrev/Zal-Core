@@ -35,7 +35,7 @@ ET_ReturnCode CAnalytics::eInit()
     return H_NO_ERROR;
 }
 
-ET_ReturnCode CAnalytics::eParseText(const CEString& sTextName, const CEString& sMetadata, const CEString& sText, long long& llParsedTextId)
+ET_ReturnCode CAnalytics::eParseText(const CEString& sTextName, const CEString& sMetadata, const CEString& sText, long long& llParsedTextId, bool bIsProse)
 {
     ET_ReturnCode eRet = H_NO_ERROR;
 
@@ -43,7 +43,7 @@ ET_ReturnCode CAnalytics::eParseText(const CEString& sTextName, const CEString& 
     m_sTextMetaData = sMetadata;
     m_sText = sText;                // used to split text into lines
 
-    const_cast<CEString&>(sText).SetBreakChars(L"\r\n");
+    const_cast<CEString&>(sText).SetBreakChars(L".");
     const_cast<CEString&>(sText).SetTabs(L"");
     const_cast<CEString&>(sText).SetPunctuation(L"");
     const_cast<CEString&>(sText).SetEscapeChars(L"");
@@ -975,10 +975,30 @@ ET_ReturnCode CAnalytics::eSaveTactGroup(StTactGroup& stTg)
         return H_ERROR_POINTER;
     }
 
+    m_pDb->PrepareForInsert(L"tact_group", 10);
+
+    m_pDb->Bind(1, stTg.llLineId);
+    m_pDb->Bind(2, stTg.iFirstWordNum);
+    m_pDb->Bind(3, stTg.iMainWordPos);
+    m_pDb->Bind(4, stTg.iNumOfWords);
+    m_pDb->Bind(5, stTg.sSource);
+    //            m_pDb->Bind(6, wordParse.WordForm.sGramHash());
+    m_pDb->Bind(6, stTg.sTranscription);
+    m_pDb->Bind(7, stTg.iNumOfSyllables);
+    m_pDb->Bind(8, stTg.iStressedSyllable);
+    m_pDb->Bind(9, stTg.iReverseStressedSyllable);
+    m_pDb->Bind(10, stTg.iSecondaryStressedSyllable);
+
+    m_pDb->InsertRow();
+    m_pDb->Finalize();
+
+    long long llTactGroupId = m_pDb->llGetLastKey();
+
     for (auto wordParse : stTg.vecWords)
     {
         try
         {
+/*
             m_pDb->PrepareForInsert(L"tact_group", 10);
 
             m_pDb->Bind(1, stTg.llLineId);
@@ -997,6 +1017,7 @@ ET_ReturnCode CAnalytics::eSaveTactGroup(StTactGroup& stTg)
             m_pDb->Finalize();
 
             long long llTactGroupId = m_pDb->llGetLastKey();
+*/
 
             // CREATE TABLE word_to_tact_group(id INTEGER PRIMARY KEY ASC, word_to_wordform_id INTEGER, 
             // tact_group_id INTEGER, position_in_tact_group INTEGER, FOREIGN KEY(word_to_wordform_id) 
