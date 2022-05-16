@@ -38,7 +38,7 @@ namespace Hlib
                                            const CEString& sEnding,
                                            ET_Number eNumber, 
                                            ET_Gender eGender, 
-                                           __int64 llEndingKey,
+                                           int64_t llEndingKey,
                                            CWordForm *& pWordForm);
 
         ET_ReturnCode eAssemble (CWordForm * pWordForm, int iStressPos, CEString& sLemma, CEString& sEnding);

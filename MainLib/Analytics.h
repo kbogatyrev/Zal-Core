@@ -38,14 +38,14 @@ namespace Hlib
 
         void Reset()
         {
-            int iNumber = -1;
-            int iLineOffset = -1;
-            int iLength = -1;
-            int iPosInTactGroup = -1;
-            long long llLineDbId = -1;
+            iNumber = -1;
+            iLineOffset = -1;
+            iLength = -1;
+            iPosInTactGroup = -1;
+            llLineDbId = -1;
             eStressType = WORD_STRESS_TYPE_UNDEFINED;
-            long long llWordInLineDbId = -1;
-            long long llWordToWordFormId = -1;
+            llWordInLineDbId = -1;
+            llWordToWordFormId = -1;
 //            CWordForm WordForm;
         }
 
@@ -112,20 +112,20 @@ namespace Hlib
     private:
         ET_ReturnCode eInit();
         ET_ReturnCode eParseMetadata(const CEString& sMetadata);
-        ET_ReturnCode eRegisterText(const CEString& sTextName, const CEString sTextMetadata, const CEString& sText);
-        ET_ReturnCode eParseWord(const CEString& sWord, const CEString& sLine, int iLine, int iNumInLine, int iWordsInLine, long long llLineDbKey);
+        ET_ReturnCode eRegisterText();
+        ET_ReturnCode eParseWord(const CEString& sWord, const CEString& sLine, int iNumInLine, int iWordsInLine, long long llLineDbKey);
         ET_ReturnCode eFindEquivalencies(CEString& sLine);
 //        ET_ReturnCode eCountSyllables(StTactGroup&);
         ET_ReturnCode eGetStress(StTactGroup&);
         ET_ReturnCode eTranscribe(StTactGroup&);
         ET_ReturnCode eAssembleTactGroups(CEString& sLine);
-        ET_ReturnCode eSaveLine(long long llTextId, int iLineNum, int iTextOffset, int iLength, int iNumOfWords, const CEString& sText, long long& llDbKey);
-        ET_ReturnCode eSaveWord(long long llLineDbId, int iLine, int iWord, int iWordsInLine, int iLineOffset, int iSegmentLength, const CEString& sWord, long long& llWordDbKey);
+        ET_ReturnCode eSaveLine(int iLineNum, int iTextOffset, int iLength, int iNumOfWords, const CEString& sText, long long& llDbKey);
+        ET_ReturnCode eSaveWord(long long llLineDbId, int iWord, int iWordsInLine, int iLineOffset, int iSegmentLength, const CEString& sWord, long long& llWordDbKey);
         ET_ReturnCode eSaveWordParse(long long llSegmentId, long long llWordFormId, long long& llWordToWordFormId);
         ET_ReturnCode eSaveTactGroup(StTactGroup&);
         ET_ReturnCode eClearTextData(long long llText);
-        bool bIsProclitic(const CWordForm&);
-        bool bIsEnclitic(const CWordForm&);
+        bool bIsProclitic(CWordForm&);
+        bool bIsEnclitic(CWordForm&);
         bool bArePhoneticallyIdentical(CWordForm& wf1, CWordForm& wf2);
 
     private:

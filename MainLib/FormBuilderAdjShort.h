@@ -25,7 +25,7 @@ public:
                           ET_Subparadigm eSubparadigm,
                           ET_AccentType eAccentType1,
                           ET_AccentType eAccentType2,
-                          vector<int>& vecStressPos,
+                          vector<int>&& vecStressPos,
                           bool bFleetingVowel,
                           int iDeviation = -1,
                           ET_Status eStatus = STATUS_COMMON);
@@ -38,7 +38,7 @@ public:
 
     ET_ReturnCode eCreateFormTemplate (const CEString& sStem,
                                        const CEString& sEnding,
-                                       __int64 llEndingKey,
+                                       int64_t llEndingKey,
                                        ET_Gender eGender,
                                        ET_Number eNumber,
                                        CWordForm *& pWordForm);

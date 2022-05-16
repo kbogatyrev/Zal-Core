@@ -3,7 +3,7 @@
 
 #include "Enums.h"
 #include "LexemeProperties.h"
-#include "Estring.h"
+#include "EString.h"
 
 namespace Hlib
 {
@@ -19,7 +19,7 @@ namespace Hlib
         virtual void SetWordForm(const CEString&) = 0;
         virtual CEString sStem() = 0;
         virtual void SetStem(const CEString&) = 0;
-        virtual __int64 llLexemeId() = 0;
+        virtual long long llLexemeId() = 0;
         virtual ET_PartOfSpeech ePos() = 0;
         virtual void SetPos(ET_PartOfSpeech) = 0;
         virtual ET_Case eCase() = 0;

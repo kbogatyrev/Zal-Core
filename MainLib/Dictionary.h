@@ -79,8 +79,8 @@ public:
     virtual ET_ReturnCode eGetAnalytics(IAnalytics*& p);
     virtual ET_ReturnCode eGetVerifier(IVerifier *& pVerifier);
 
-    virtual ET_ReturnCode eExportTestData(const CEString& sPath, PROGRESS_CALLBACK_CLR);
-    virtual ET_ReturnCode eImportTestData(const CEString& sPath, PROGRESS_CALLBACK_CLR);
+    virtual ET_ReturnCode eExportTestData(CEString& sPath, PROGRESS_CALLBACK_CLR);
+    virtual ET_ReturnCode eImportTestData(CEString& sPath, PROGRESS_CALLBACK_CLR);
 
     virtual ET_ReturnCode eDeleteLexeme(ILexeme * pLexeme);
     virtual ET_ReturnCode eUpdateHeadword(ILexeme* pLexeme);
@@ -124,11 +124,11 @@ private:
     ET_ReturnCode eQueryDb(const CEString& sSelect, uint64_t& uiQuertHandle);
     ET_ReturnCode eGetSingleRow(StLexemeProperties&, uint64_t uiQuertHandle, bool bIsSpryazhSm = false);
 
-    ET_ReturnCode eReadFromDb(__int64 llLexemeId);
+    ET_ReturnCode eReadFromDb(int64_t llLexemeId);
     ET_ReturnCode eReadFromDb(const CEString& sStem);
 
-    ET_ReturnCode eGetP2Data(__int64 llLexemeId, StLexemeProperties& properties);
-    ET_ReturnCode eGetWordIdFromLemexeId(__int64 llLexemeId, __int64& llWordId);
+    ET_ReturnCode eGetP2Data(int64_t llLexemeId, StLexemeProperties& properties);
+    ET_ReturnCode eGetWordIdFromLemexeId(int64_t llLexemeId, int64_t& llWordId);
 
     ET_ReturnCode eMarkLexemeAsEdited(ILexeme * pLexeme);
 

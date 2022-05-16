@@ -18,7 +18,7 @@ class CFormBuilderImperative : public CFormBuilderConj
 {
 public:
     CFormBuilderImperative (CLexeme * pLexeme) : 
-        m_bIrregularFormsOptional(false), CFormBuilderConj (pLexeme, SUBPARADIGM_IMPERATIVE)
+        CFormBuilderConj (pLexeme, SUBPARADIGM_IMPERATIVE), m_bIrregularFormsOptional(false)
     {}
 
 public:
@@ -31,7 +31,7 @@ public:
                                        vector<int>& vecStressPositions);
     ET_ReturnCode eCreateFormTemplate (const CEString& sStem,
                                        CEString& sEnding,
-                                       __int64 llEndingDataId,
+                                       int64_t llEndingDataId,
                                        ET_Number eNumber,
                                        CWordForm *& pWordForm);
     ET_ReturnCode eHandleCommonDeviations (const CEString& sStem, int& iVariantEndingType);

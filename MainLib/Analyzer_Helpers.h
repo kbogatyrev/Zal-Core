@@ -8,7 +8,7 @@ struct stStemLinks
 {
 public:
     int iStemId;
-    __int64 llLexemeId;
+    int64_t llLexemeId;
     int iEndingsLink;
     int iStressPos;
     CEString sLemma;

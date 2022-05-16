@@ -1,4 +1,4 @@
-﻿#define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
+#define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
 
 #include <memory>
 #include <cassert>
@@ -123,7 +123,7 @@ ET_ReturnCode CTranscriber::eParseBoundaries(CEString& sSource, vector<ET_Bounda
             continue;
         }
 
-        if (eBoundary != ET_PhonemicContext::PHONEMIC_CONTEXT_UNDEFINED)
+        if (eBoundary != ET_Boundary::BOUNDARY_UNDEFINED)
         {
             vecTarget.emplace_back(eBoundary);
         }
@@ -483,7 +483,7 @@ ET_ReturnCode CTranscriber::eLoadTranscriptionRules()
 
 ET_ReturnCode CTranscriber::eTranscribeTactGroup(StTactGroup& stTactGroup)
 {
-    stTactGroup.sSource.SetVowels(g_szRusVowels);
+    stTactGroup.sSource.SetVowels(CEString::g_szRusVowels);
     m_vecTranscription.clear();
 
     int iAt = 0;
@@ -491,12 +491,12 @@ ET_ReturnCode CTranscriber::eTranscribeTactGroup(StTactGroup& stTactGroup)
     {
         if (CEString::bIsVowel(stTactGroup.sSource[iAt]))
         {
-            auto eRet = eHandleVowel(stTactGroup, iAt);
+            eHandleVowel(stTactGroup, iAt);
         }
 
         if (CEString::bIsConsonant(stTactGroup.sSource[iAt]))
         {
-            auto eRet = eHandleConsonant(stTactGroup, iAt);
+            eHandleConsonant(stTactGroup, iAt);
         }
         ++iAt;
     }
@@ -517,7 +517,7 @@ ET_ReturnCode CTranscriber::eTranscribeTactGroup(StTactGroup& stTactGroup)
 
     auto eRet = eAddStressMark(stTactGroup);
 
-    return H_NO_ERROR;
+    return eRet;
 }
 
 ET_ReturnCode CTranscriber::eHandleVowel(StTactGroup& stTg, int& iPos)
@@ -552,7 +552,7 @@ ET_ReturnCode CTranscriber::eHandleVowel(StTactGroup& stTg, int& iPos)
     auto bFound = false;
 
     auto eStressStatus = ET_VowelStressRelation::VOWEL_STRESS_RELATION_UNDEFINED;
-    auto eRet = eGetStressStatus(stTg, iPos, eStressStatus);
+    eGetStressStatus(stTg, iPos, eStressStatus);
     for (auto& stRule : itRules->second)
     { 
         if (!stRule.sFollowedBy.bIsEmpty())
@@ -822,7 +822,7 @@ ET_ReturnCode CTranscriber::eHandleConsonant(StTactGroup& stTg, int& iPos)
             {
                 for (auto eTransform : stRule.m_vecTransforms)
                 {
-                    auto eRet = eApplyTransform(stConsonant, eTransform);
+                    eApplyTransform(stConsonant, eTransform);
                     m_vecTranscription.push_back(m_mapConsonantToSound[stConsonant]);
                     bTranscribed = true;
                 }
@@ -915,10 +915,10 @@ ET_ReturnCode CTranscriber::eContextMatch(StTactGroup& stTg, PhonemicContextAtom
 
     struct StMatchTypes
     {
-        ET_ReturnCode m_eRet;
         StTactGroup* m_pStTg;
         ET_ContextDirection m_eType;
         int m_iPos;
+        ET_ReturnCode m_eRet;
 
         StMatchTypes(StTactGroup* pStTg, ET_ContextDirection eType, int iPos, ET_ReturnCode eRet) 
             : m_pStTg(pStTg), m_eType(eType), m_iPos(iPos), m_eRet(eRet) {};
@@ -993,9 +993,9 @@ ET_ReturnCode CTranscriber::eContextMatch(StTactGroup& stTg, PhonemicContextAtom
             return bMatch; 
         }
         
-        bool operator()(ET_Sound& eContext)
+        bool operator()([[maybe_unused]]ET_Sound& eContext)
         {
-            wchar_t chrAdjacent = L'\0';
+            [[maybe_unused]]wchar_t chrAdjacent = L'\0';
             if (ET_ContextDirection::LEFT_CONTEXT == m_eType && m_iPos > 0)
             {
                 chrAdjacent = m_pStTg->sSource[m_iPos - 1];
@@ -1015,7 +1015,7 @@ ET_ReturnCode CTranscriber::eContextMatch(StTactGroup& stTg, PhonemicContextAtom
         // string match
         bool operator()(CEString& sContext) 
         {            
-            wchar_t chrAdjacent = L'\0';
+            //wchar_t chrAdjacent = L'\0';
             if (ET_ContextDirection::LEFT_CONTEXT == m_eType)
             {
                 if (m_iPos > 0 && CEString::bIn(m_pStTg->sSource[m_iPos-1], sContext))
@@ -1052,9 +1052,9 @@ ET_ReturnCode CTranscriber::eMorphemeMatch(StTactGroup& stTg, MorphemicContextAt
 
     struct StMatchTypes
     {
-        ET_ReturnCode m_eRet;
         StTactGroup* m_pStTg = nullptr;
         int m_iPos = -1;
+        ET_ReturnCode m_eRet;
 
         StMatchTypes(StTactGroup* pStTg, int iPos, ET_ReturnCode eRet) : m_pStTg(pStTg), m_iPos(iPos), m_eRet(eRet) {};
 
@@ -1104,8 +1104,8 @@ ET_ReturnCode CTranscriber::eMorphemeMatch(StTactGroup& stTg, MorphemicContextAt
                 for (auto& stWordParse : m_pStTg->vecWords)
                 {
                     CWordForm& wf = stWordParse.WordForm;
-                    auto iStemLength = wf.sWordForm().uiLength() - wf.sEnding().uiLength();
-                    if (m_iPos == iStemLength-1)
+                    auto uiStemLength = wf.sWordForm().uiLength() - wf.sEnding().uiLength();
+                    if (m_iPos == (int)uiStemLength-1)
                     {
                         return true;
                     }
@@ -1148,7 +1148,6 @@ ET_ReturnCode CTranscriber::eMorphemeMatch(StTactGroup& stTg, MorphemicContextAt
 
 ET_ReturnCode CTranscriber::eBoundaryMatch(StTactGroup& stTg, ET_Boundary eBoundary, ET_ContextDirection eDirection, int iPos)
 {
-    auto eRet = H_NO_ERROR;
     switch (eBoundary)
     {
         case ET_Boundary::BOUNDARY_WORD:
@@ -1167,7 +1166,7 @@ ET_ReturnCode CTranscriber::eBoundaryMatch(StTactGroup& stTg, ET_Boundary eBound
             if (ET_ContextDirection::RIGHT_CONTEXT == eDirection)
             {
                 auto uiLength = stTg.sSource.uiLength();
-                if (stTg.sSource.uiLength()-2 == iPos && L'ь' == stTg.sSource[uiLength-1])
+                if ((int)stTg.sSource.uiLength()-2 == iPos && L'ь' == stTg.sSource[uiLength-1])
                 {
                     if (CEString::bIsConsonant(stTg.sSource[uiLength-2]))
                     {
@@ -1175,7 +1174,7 @@ ET_ReturnCode CTranscriber::eBoundaryMatch(StTactGroup& stTg, ET_Boundary eBound
                     }
                 }
 
-                if (iPos == stTg.sSource.uiLength()-1)
+                if (iPos == (int)stTg.sSource.uiLength()-1)
                 {
                     return H_TRUE;
                 }
@@ -1258,8 +1257,6 @@ ET_ReturnCode CTranscriber::eBoundaryMatch(StTactGroup& stTg, ET_Boundary eBound
 
 ET_ReturnCode CTranscriber::eSubparadigmMatch(StTactGroup& stTg, const vector<ET_Subparadigm>& vecSp)
 {
-    auto eRet = H_NO_ERROR;
-
     for (auto& stWordParse : stTg.vecWords)
     {
         auto itRet = find(vecSp.begin(), vecSp.end(), stWordParse.WordForm.eSubparadigm());
@@ -1271,8 +1268,6 @@ ET_ReturnCode CTranscriber::eSubparadigmMatch(StTactGroup& stTg, const vector<ET
 
 ET_ReturnCode CTranscriber::eGenderMatch(StTactGroup& stTg, const vector<ET_Gender>& vecGenders)
 {
-    auto eRet = H_NO_ERROR;
-
     for (auto& stWordParse : stTg.vecWords)
     {
         auto itRet = find(vecGenders.begin(), vecGenders.end(), stWordParse.WordForm.eGender());
@@ -1284,8 +1279,6 @@ ET_ReturnCode CTranscriber::eGenderMatch(StTactGroup& stTg, const vector<ET_Gend
 
 ET_ReturnCode CTranscriber::eNumberMatch(StTactGroup& stTg, const vector<ET_Number>& vecNumbers)
 {
-    auto eRet = H_NO_ERROR;
-
     for (auto& stWordParse : stTg.vecWords)
     {
         auto itRet = find(vecNumbers.begin(), vecNumbers.end(), stWordParse.WordForm.eNumber());
@@ -1297,8 +1290,6 @@ ET_ReturnCode CTranscriber::eNumberMatch(StTactGroup& stTg, const vector<ET_Numb
 
 ET_ReturnCode CTranscriber::eCaseMatch(StTactGroup& stTg, const vector<ET_Case>& vecCases)
 {
-    auto eRet = H_NO_ERROR;
-
     for (auto& stWordParse : stTg.vecWords)
     {
         auto itRet = find(vecCases.begin(), vecCases.end(), stWordParse.WordForm.eCase());
@@ -1364,7 +1355,7 @@ ET_ReturnCode CTranscriber::eAddStressMark(StTactGroup& stTactGroup)
         return H_ERROR_UNEXPECTED;
     }
 
-    stTactGroup.sTranscription.sInsert(iStressPos+1, g_chrCombiningAcuteAccent);
+    stTactGroup.sTranscription.sInsert(iStressPos+1, CEString::g_chrCombiningAcuteAccent);
 
     return H_NO_ERROR;
 }

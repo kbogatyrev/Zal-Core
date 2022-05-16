@@ -30,7 +30,7 @@ public:
           m_eStatus (eStatus),
           m_bIrregular (bIrregular)
     {
-        m_sStem.SetVowels(g_szRusVowels);
+        m_sStem.SetVowels(CEString::g_szRusVowels);
     }
 
 protected:
@@ -39,7 +39,7 @@ protected:
                         ET_Reflexivity eRefl);
     CEString sGramHashNSgMLong();
     ET_ReturnCode eGetStressPositions (const CEString&, ET_StressLocation, vector<int>& vecStressPos);
-    ET_ReturnCode eCreateFormTemplate (ET_Gender, ET_Number, ET_Case, ET_Animacy, const CEString& sEnding, __int64 llEndingKey, CWordForm *&);
+    ET_ReturnCode eCreateFormTemplate (ET_Gender, ET_Number, ET_Case, ET_Animacy, const CEString& sEnding, int64_t llEndingKey, CWordForm *&);
     ET_ReturnCode eCheckIrregularForms(const CEString& sHash, bool& bHandled);
     ET_ReturnCode eHandleCommonDeviations (CWordForm *);
 

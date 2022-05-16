@@ -13,11 +13,12 @@
 
 namespace Hlib
 {
-    typedef void(__stdcall* PROGRESS_CALLBACK_CLR) (int iPercentDone, bool bOperationComplete);
-    typedef void(__cdecl* PROGRESS_CALLBACK_PYTHON) (int iPercentDone, bool bOperationComplete, int iRecord, double dDuration);
+    typedef void(* PROGRESS_CALLBACK_CLR) (int iPercentDone, bool bOperationComplete);
+    typedef void(* PROGRESS_CALLBACK_PYTHON) (int iPercentDone, bool bOperationComplete, int iRecord, double dDuration);
 
     struct  ILexemeEnumerator
     {
+        virtual ~ILexemeEnumerator() = 0;
         virtual ET_ReturnCode eReset() = 0;
 
         virtual ET_ReturnCode eGetFirstLexeme(ILexeme*& pLexemeItf) = 0;
@@ -50,8 +51,8 @@ namespace Hlib
         virtual ET_ReturnCode eGetParser(IParser *& p) = 0;
         virtual ET_ReturnCode eGetAnalytics(IAnalytics*& p) = 0;
         virtual ET_ReturnCode eGetVerifier(IVerifier *& pVerifier) = 0;
-        virtual ET_ReturnCode eExportTestData(const CEString& sPath, PROGRESS_CALLBACK_CLR) = 0;
-        virtual ET_ReturnCode eImportTestData(const CEString& sPath, PROGRESS_CALLBACK_CLR) = 0;
+//        virtual ET_ReturnCode eExportTestData(const CEString& sPath, PROGRESS_CALLBACK_CLR) = 0;
+//        virtual ET_ReturnCode eImportTestData(const CEString& sPath, PROGRESS_CALLBACK_CLR) = 0;
 
         virtual ET_ReturnCode ePopulateHashToDescriptorTable(PROGRESS_CALLBACK_CLR, PROGRESS_CALLBACK_PYTHON=nullptr) = 0;
 

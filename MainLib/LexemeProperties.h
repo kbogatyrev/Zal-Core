@@ -19,9 +19,9 @@ namespace Hlib
             llSecondPartId(0),
             bIsUnstressed(false),
             bSpryazhSm(false),
+            llSourceEntryId(-1),
             bIsVariant(false),
             bIsPluralOf(false),
-            llSourceEntryId(-1),
             bTransitive(false),
             eReflexive(REFL_UNDEFINED),
             ePartOfSpeech(POS_UNDEFINED),
@@ -57,8 +57,8 @@ namespace Hlib
             iSpryazhSmRefPrefixLength(-1),
             bSpryazhSmNoAspectPair(false)
         {
-                sSourceForm.SetVowels(g_szRusVowels);
-                sGraphicStem.SetVowels(g_szRusVowels);
+                sSourceForm.SetVowels(CEString::g_szRusVowels);
+                sGraphicStem.SetVowels(CEString::g_szRusVowels);
         }
 
         long long llDescriptorId;
@@ -93,8 +93,8 @@ namespace Hlib
         CEString sAltMainSymbolComment;
         CEString sAltInflectionComment;
         CEString sVerbStemAlternation;
-        bool bPartPastPassZhd;
         int iSection;
+        bool bPartPastPassZhd;
         bool bNoComparative;
         bool bAssumedForms;
         bool bYoAlternation;
@@ -137,6 +137,7 @@ namespace Hlib
         bool bFleetingVowel;
         int iStemAugment;
         bool bSecondPart;
+        int iSpryazhSmRefPrefixLength;
         bool bSpryazhSmNoAspectPair;
 
         //
@@ -153,7 +154,6 @@ namespace Hlib
         // Spryazh sm. 
         CEString sSpryazhSmRefSource;
         CEString sSpryazhSmPrefix;
-        int iSpryazhSmRefPrefixLength;
     };
 
 }       //  namespace Hlib

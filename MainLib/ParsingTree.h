@@ -21,7 +21,7 @@ namespace Hlib
     struct StSplit
     {
         unsigned int uiEndingLength;
-        vector<__int64> vecEndingKeys;
+        vector<int64_t> vecEndingKeys;
     };
 
     //
@@ -97,22 +97,22 @@ namespace Hlib
         void eSplit(const CEString& sWord);
         ET_ReturnCode eGetFirstMatch(int& iEndingLength);
         ET_ReturnCode eGetNextMatch(int& iEndingLength);
-        ET_ReturnCode eIsEmptyEnding(__int64 llEndingId);
+        ET_ReturnCode eIsEmptyEnding(int64_t llEndingId);
 
     private:
-        typedef std::map<CEString, vector<__int64>, StReverseComparisonFunctor> MapEndingToDescriptors;
+        typedef std::map<CEString, vector<int64_t>, StReverseComparisonFunctor> MapEndingToDescriptors;
 
         MapEndingToDescriptors m_mapSortedEndingsList;
         StNode * m_pRoot;
         vector<int> m_vecMatches;    // length of ending
         vector<int>::iterator m_itCurrentMatch;
         set<CEString, StReverseComparisonFunctor> m_setEndingStrings;
-        set<__int64> m_setEmptyEndingIds;
+        set<int64_t> m_setEmptyEndingIds;
 
     protected:
         CParsingTree() {};
         ET_ReturnCode eLoad(shared_ptr<CSqlite> pDb);
-        void CParsingTree::AddLevel(unsigned int uiOffset, StNode * pParent, vector<CEString> vecEndings);
+        void AddLevel(unsigned int uiOffset, StNode * pParent, vector<CEString> vecEndings);
         void Traverse(StNode * pRoot, const CEString& sWord);
         ET_ReturnCode eTraverseAndDelete(StNode * pRoot);
 

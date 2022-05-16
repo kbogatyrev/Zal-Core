@@ -49,10 +49,10 @@ protected:
                                         ET_Case eEndingsCase,
                                         ET_Number eNumber, 
                                         bool& bHandled);
-    void CreateWordForm(vector<int> vecStressPositions, 
+    void CreateWordForm(vector<int>& vecStressPositions, 
                         ET_StressLocation eStressType, 
-                        const CEString sStem, 
-                        const CEString sEnding, 
+                        const CEString& sStem, 
+                        const CEString& sEnding, 
                         long long llEndingKey, 
                         CWordForm * pWordForm);
 

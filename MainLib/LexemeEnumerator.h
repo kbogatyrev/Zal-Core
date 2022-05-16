@@ -11,6 +11,7 @@ namespace Hlib
     public:
         CLexemeEnumerator() = delete;
         CLexemeEnumerator(CDictionary* dict) : m_pDictionary(dict) {}
+        ~CLexemeEnumerator() {}
 
         virtual ET_ReturnCode eReset();
 

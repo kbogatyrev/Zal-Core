@@ -19,7 +19,7 @@ class CEndings
 public:
     CEndings(CLexeme * pLexeme) : m_pLexeme(pLexeme), m_ullDbKey(0)
     {
-        m_sEnding.SetVowels(g_szRusVowels);
+        m_sEnding.SetVowels(CEString::g_szRusVowels);
     }
 
     virtual ~CEndings()
@@ -43,10 +43,10 @@ public:
 
 protected:
     void ReportDbError();
-    std::vector<pair<unsigned __int64, CEString> > m_vecEndings;
+    std::vector<pair<uint64_t, CEString> > m_vecEndings;
 
     CLexeme * m_pLexeme;
-    unsigned __int64 m_ullDbKey;
+    uint64_t m_ullDbKey;
     CEString m_sEnding;
 
     ET_Gender m_eGender;

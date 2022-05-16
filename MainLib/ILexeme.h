@@ -14,8 +14,8 @@ namespace Hlib
     struct ILexeme
     {
         virtual ~ILexeme() {};
-        virtual __int64 llLexemeId() = 0;
-        virtual __int64 llHeadwordId() = 0;
+        virtual int64_t llLexemeId() = 0;
+        virtual int64_t llHeadwordId() = 0;
         virtual void SetDictionary(CDictionary *) = 0;
         virtual const StLexemeProperties& stGetProperties() = 0;
         virtual StLexemeProperties& stGetPropertiesForWriteAccess() = 0;

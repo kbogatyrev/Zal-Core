@@ -1,4 +1,4 @@
-﻿#define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
+#define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
 
 #include <vector>
 #include "EString.h"
@@ -93,7 +93,7 @@ ET_ReturnCode CParsingTree::eGetNextMatch(int& iEndingLength)
     return H_NO_ERROR;
 }
 
-ET_ReturnCode CParsingTree::eIsEmptyEnding(__int64 llEndingId)
+ET_ReturnCode CParsingTree::eIsEmptyEnding(int64_t llEndingId)
 {
     if (m_setEmptyEndingIds.empty())
     {
@@ -130,8 +130,8 @@ ET_ReturnCode CParsingTree::eLoad(shared_ptr<CSqlite> pDb)
         while (pDb->bGetRow())
         {
             CEString sEnding;
-            __int64 llDbKey = 0;
-            pDb->GetData(0, (__int64)llDbKey);
+            int64_t llDbKey = 0;
+            pDb->GetData(0, llDbKey);
             pDb->GetData(1, sEnding);
             m_mapSortedEndingsList[sEnding].push_back(llDbKey);
             m_setEndingStrings.insert(sEnding);
@@ -196,7 +196,7 @@ ET_ReturnCode CParsingTree::eLoad(shared_ptr<CSqlite> pDb)
 
     while ((*itEnding).first.uiLength() < 1)
     {
-        vector<__int64>::iterator itEndingDataKey = (*itEnding).second.begin();
+        vector<int64_t>::iterator itEndingDataKey = (*itEnding).second.begin();
         for (; itEndingDataKey != (*itEnding).second.end(); ++itEndingDataKey)
         {
             m_setEmptyEndingIds.insert(*itEndingDataKey);
