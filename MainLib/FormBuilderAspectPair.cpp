@@ -760,7 +760,7 @@ ET_ReturnCode CFormBuilderAspectPair::eApplySvVowelModification(bool bIsVariant)
     bool bFound = false;
     try
     {
-        for (auto sEnd : vecEndSegments)
+        for (auto& sEnd : vecEndSegments)
         {
             if (sAspectPair.bEndsWith(sEnd))
             {
@@ -850,7 +850,7 @@ ET_ReturnCode CFormBuilderAspectPair::eApplySvSuffix(bool bIsVariant)
                                         CEString(L"б/ить"), CEString(L"п/ить"), CEString(L"в/ить"), CEString(L"ф/ить"), CEString(L"м/ить") };
 
     bool bFound = false;
-    for (auto sEnd : vecEndSegments)
+    for (auto& sEnd : vecEndSegments)
     {
         if (sData.bEndsWith(sEnd))
         {

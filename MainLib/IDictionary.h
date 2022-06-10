@@ -18,7 +18,7 @@ namespace Hlib
 
     struct  ILexemeEnumerator
     {
-        virtual ~ILexemeEnumerator() = 0;
+        virtual ~ILexemeEnumerator() {};
         virtual ET_ReturnCode eReset() = 0;
 
         virtual ET_ReturnCode eGetFirstLexeme(ILexeme*& pLexemeItf) = 0;
