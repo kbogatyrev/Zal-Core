@@ -59,9 +59,9 @@ endif()
 add_library (ZalMainLib SHARED)
 
 target_include_directories (ZalMainLib PUBLIC
-	../HLib
-	../ThirdParty/Sqlite
-	../ThirdParty/sha1
+	HLib
+	ThirdParty/Sqlite
+	ThirdParty/sha1
 )
 
 target_sources (ZalMainLib PRIVATE
@@ -111,7 +111,7 @@ target_sources (ZalMainLib PRIVATE
 	MainLib/Verifier.cpp
 	MainLib/WordForm.h
 	MainLib/WordForm.cpp
-	../ThirdParty/Sqlite/sqlite3.c
+	ThirdParty/Sqlite/sqlite3.c
 )
 
 add_executable (ZalMainTest)
@@ -121,9 +121,9 @@ target_sources (ZalMainTest PRIVATE
 )
 
 target_include_directories (ZalMainTest PUBLIC
-	../HLib
-	../ThirdParty/Sqlite
-	../ThirdParty/sha1
+	HLib
+	ThirdParty/Sqlite
+	ThirdParty/sha1
 )
 
 if (MSVC)

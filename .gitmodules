@@ -1,0 +1,6 @@
+[submodule "HLib"]
+	path = HLib
+	url = git@github.com:kbogatyrev/HLib.git
+[submodule "ThirdParty"]
+	path = ThirdParty
+	url = git@github.com:kbogatyrev/ThirdParty.git
