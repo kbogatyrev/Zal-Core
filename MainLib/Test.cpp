@@ -20,7 +20,7 @@ int main() {
     d->eSetDbPath(L"/home/konstantin/dev/Zal-Data/ZalData/ZalData_Master.db3");
 #endif
     rc = d->eGetLexemesByInitialForm(L"мама");
-    if (rc != H_NO_ERROR) {
+    if (rc != H_NO_ERROR && rc != H_NO_MORE) {
         std::cout << "Error " << rc << std::endl;
     }
 
