@@ -2,6 +2,10 @@ cmake_minimum_required (VERSION 3.16)
 
 project (Zal-Core VERSION 5.0.0)
 
+#
+#	Main library
+#
+
 if (MSVC)
 	if (CMAKE_BUILD_TYPE MATCHES "Debug")
 		message (STATUS "Windows debug mode")
@@ -113,6 +117,40 @@ target_sources (ZalMainLib PRIVATE
 	MainLib/WordForm.cpp
 	ThirdParty/Sqlite/sqlite3.c
 )
+
+# ---------------------------------------------------------------
+
+
+#
+#	Python wrapper
+#
+
+add_library (ZalPythonItf SHARED)
+
+target_include_directories (ZalPythonItf PUBLIC
+	HLib
+	ThirdParty/Sqlite
+	ThirdParty/sha1
+	MainLib
+)
+
+target_sources (ZalPythonItf PRIVATE
+#	dllmain.cpp
+	Zal-CPP/MainLibCTypes/ZalPythonItf.cpp
+)
+
+#target_link_directories (ZalPythonItf PRIVATE
+#	../../Zal-Core/out/build/x64-debug
+#)
+
+target_link_libraries (ZalPythonItf 
+	ZalMainLib)
+
+# ---------------------------------------------------------------
+
+#
+#	Test
+#
 
 add_executable (ZalMainTest)
 
