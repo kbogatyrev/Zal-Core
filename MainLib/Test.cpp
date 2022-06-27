@@ -17,7 +17,7 @@ int main() {
 #ifdef WIN32
     d->eSetDbPath(L"C:\\dev_win\\Zal\\Zal-Data\\ZalData\\ZalData_Master.db3");
 #else
-    d->eSetDbPath(L"/home/konstantin/dev/Zal-Data/ZalData/ZalData_Master.db3");
+    d->eSetDbPath(L"/home/konstantin/zal/ZalData_demo.db3");
 #endif
     rc = d->eGetLexemesByInitialForm(L"мама");
     if (rc != H_NO_ERROR && rc != H_NO_MORE) {

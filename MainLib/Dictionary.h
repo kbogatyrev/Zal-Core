@@ -79,8 +79,10 @@ public:
     virtual ET_ReturnCode eGetAnalytics(IAnalytics*& p);
     virtual ET_ReturnCode eGetVerifier(IVerifier *& pVerifier);
 
+#ifdef WIN32
     virtual ET_ReturnCode eExportTestData(CEString& sPath, PROGRESS_CALLBACK_CLR);
     virtual ET_ReturnCode eImportTestData(CEString& sPath, PROGRESS_CALLBACK_CLR);
+#endif
 
     virtual ET_ReturnCode eDeleteLexeme(ILexeme * pLexeme);
     virtual ET_ReturnCode eUpdateHeadword(ILexeme* pLexeme);

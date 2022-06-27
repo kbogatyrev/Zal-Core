@@ -1599,7 +1599,9 @@ ET_ReturnCode CLexeme::eAssignStemIds()
                 pDbHandle->PrepareForSelect(sQuery);
                 if (pDbHandle->bGetRow())
                 {
-                    pDbHandle->GetData(0, (int64_t&)(*itWf).second->m_llStemId);
+                    int64_t iStemId = 0;
+                    pDbHandle->GetData(0, iStemId);
+                    (*itWf).second->m_llStemId = iStemId;
                 }
                 else
                 {
@@ -1991,8 +1993,9 @@ ET_ReturnCode CLexeme::eSaveIrregularForms(long long llDescriptorDbKey)
     {
         pDb->BeginTransaction();
 
-        long long llInsertHandle = 0;
-        pDb->uiPrepareForInsert(L"irregular_forms", 7, (sqlite3_stmt *&)llInsertHandle, false);
+        sqlite3_stmt* pStmt = nullptr;
+        pDb->uiPrepareForInsert(L"irregular_forms", 7, pStmt, false);
+        auto llInsertHandle = (long long)pStmt;
 
         for (auto& pairIf : m_mmapIrregularForms)
         {
@@ -2004,7 +2007,7 @@ ET_ReturnCode CLexeme::eSaveIrregularForms(long long llDescriptorDbKey)
             pDb->Bind(6, pairIf.second.pWordForm->sTrailingComment(), llInsertHandle);  //  trailing comment
             pDb->Bind(7, true, llInsertHandle);     //  is_edited
 
-            pDb->uiPrepareForInsert(L"irregular_stress", 4, (sqlite3_stmt *&)llInsertHandle, false);
+            pDb->uiPrepareForInsert(L"irregular_stress", 4, pStmt, false);
             pDb->InsertRow();
             pDb->Finalize();
 
@@ -2304,13 +2307,13 @@ ET_ReturnCode CLexeme::eSaveTestData()
         sSelectQuery += sHash();
         sSelectQuery += L"\'; ";
 
-        long long llTestDataId = -1;
+        int64_t iTestDataId = -1;
         pDbHandle->PrepareForSelect(sSelectQuery);
         vector <long long> vecTestDataIds;
         while (pDbHandle->bGetRow())
         {
-            pDbHandle->GetData(0, (int64_t&)llTestDataId);
-            vecTestDataIds.push_back(llTestDataId);
+            pDbHandle->GetData(0, iTestDataId);
+            vecTestDataIds.push_back(iTestDataId);
 
         }
 
@@ -2460,17 +2463,17 @@ ET_ReturnCode CLexeme::eDeleteIrregularForm(const CEString& sFormHash)
 
             pDbHandle = pGetDb();
             pDbHandle->PrepareForSelect(sSelectIrregularForms);
-            long long llDbKey = 0;
+            int64_t iDbKey = 0;
             while (pDbHandle->bGetRow())
             {
-                pDbHandle->GetData(0, (int64_t&)llDbKey);
+                pDbHandle->GetData(0, iDbKey);
                 CEString sDeleteForms(L"DELETE FROM irregular_forms WHERE id = \"");
-                sDeleteForms += CEString::sToString(llDbKey);
+                sDeleteForms += CEString::sToString(iDbKey);
                 sDeleteForms += L"\"";
                 pDbHandle->Exec(sDeleteForms);
 
                 CEString sDeleteStress(L"DELETE FROM irregular_stress WHERE form_id = \"");
-                sDeleteStress += CEString::sToString(llDbKey);
+                sDeleteStress += CEString::sToString(iDbKey);
                 sDeleteStress += L"\"";
                 pDbHandle->Exec(sDeleteStress);
             }
@@ -2678,8 +2681,9 @@ ET_ReturnCode CLexeme::eSaveIrregularForms(const CEString& sGramHash)
         sDelQuery += sGramHash + L"'";
         pDb->Delete(sDelQuery);
 
-        long long llFormInsertHandle = 0;
-        pDb->uiPrepareForInsert(L"irregular_forms", 7, (sqlite3_stmt*&)llFormInsertHandle, false);
+        sqlite3_stmt* pStmt = nullptr;
+        pDb->uiPrepareForInsert(L"irregular_forms", 7, pStmt, false);
+        auto llFormInsertHandle = (long long)pStmt;
 
         auto pairFormsForHash = m_mmapIrregularForms.equal_range(sGramHash);
         for (auto& it = pairFormsForHash.first; it != pairFormsForHash.second; ++it)
@@ -2695,8 +2699,9 @@ ET_ReturnCode CLexeme::eSaveIrregularForms(const CEString& sGramHash)
             pDb->InsertRow(llFormInsertHandle);
             long long llFormId = pDb->llGetLastKey(llFormInsertHandle);
 
-            long long llStressInsertHandle = 0;
-            pDb->uiPrepareForInsert(L"irregular_stress", 4, (sqlite3_stmt*&)llStressInsertHandle, false);
+            pStmt = nullptr;
+            pDb->uiPrepareForInsert(L"irregular_stress", 4, pStmt, false);
+            auto llStressInsertHandle = (long long)pStmt;
 
             for (auto pairPosToType : it->second.pWordForm->m_mapStress)
             {
@@ -2710,9 +2715,7 @@ ET_ReturnCode CLexeme::eSaveIrregularForms(const CEString& sGramHash)
 
             pDb->Finalize(llStressInsertHandle);
         }
-
         pDb->Finalize(llFormInsertHandle);
-
 
         m_stProperties.bHasIrregularForms = true;
         vector<CEString> vecColumns = { L"has_irregular_forms", L"is_edited" };

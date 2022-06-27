@@ -61,7 +61,7 @@ CWordForm::CWordForm(const CEString& sHash) : m_pLexeme(0),
     ET_ReturnCode rc = eInitFromHash(sHash);
     if (rc != H_NO_ERROR)
     {
-        assert(0);
+//        assert(0);
         CEString sMsg(L"eInitFromHash() failed, hash value =");
         sMsg += sHash + L".";
         ERROR_LOG(sMsg);
@@ -417,7 +417,9 @@ bool CWordForm::bSaveToDb()
 
         if (0 == m_ullDbInsertHandle)
         {
-            pDbHandle->uiPrepareForInsert(L"stem_data", 3, (sqlite3_stmt *&)m_ullDbInsertHandle, false);
+            sqlite3_stmt* pStmt = nullptr;
+            pDbHandle->uiPrepareForInsert(L"stem_data", 3, pStmt, false);
+            m_ullDbInsertHandle = (unsigned long long)pStmt;
         }
         pDbHandle->Bind(1, (int64_t)m_llStemId, m_ullDbInsertHandle);
         pDbHandle->Bind(2, sGramHash(), m_ullDbInsertHandle);
@@ -486,8 +488,9 @@ bool CWordForm::bSaveIrregularForm() // currently intended for spryazh. sm verbs
             return false;
         }
 
-        unsigned long long ullInsertHandle = 0;
-        pDbHandle->uiPrepareForInsert(L"irregular_forms_spryazh_sm", 7, (sqlite3_stmt*&)ullInsertHandle, false);
+        sqlite3_stmt* pStmt = nullptr;
+        pDbHandle->uiPrepareForInsert(L"irregular_forms_spryazh_sm", 7, pStmt, false);
+        auto ullInsertHandle = (unsigned long long)pStmt;
 
         pDbHandle->Bind(1, (int64_t)stLexemeProperties.llDescriptorId, ullInsertHandle);
         pDbHandle->Bind(2, sGramHash(), ullInsertHandle);
@@ -500,10 +503,10 @@ bool CWordForm::bSaveIrregularForm() // currently intended for spryazh. sm verbs
         pDbHandle->Finalize(ullInsertHandle);
         long long llFormId = pDbHandle->llGetLastKey();
 
-        unsigned long long ullStressInsertHandle = 0;
         for (auto&& pairStressPos : m_mapStress)
         {
-            pDbHandle->uiPrepareForInsert(L"irregular_stress_spryazh_sm", 4, (sqlite3_stmt*&)ullStressInsertHandle, false);
+            pDbHandle->uiPrepareForInsert(L"irregular_stress_spryazh_sm", 4, pStmt, false);
+            auto ullStressInsertHandle = (unsigned long long)pStmt;
 
             pDbHandle->Bind(1, (int64_t)llFormId, ullStressInsertHandle);
             int iPos = m_sWordForm.uiGetVowelPos(pairStressPos.first);

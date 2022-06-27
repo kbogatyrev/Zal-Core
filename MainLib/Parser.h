@@ -42,8 +42,8 @@ private:
     CDictionary * m_pDictionary;
     shared_ptr<CSqlite> m_pDb;
     CParsingTree * m_pEndingsTree;
-    vector<CWordForm *> m_vecWordForms;
-    vector<CWordForm *>::iterator m_itCurrentWordForm;
+    vector<unique_ptr<CWordForm>> m_vecWordForms;
+    vector<unique_ptr<CWordForm>>::iterator m_itCurrentWordForm;
 
     ET_ReturnCode eIrregularFormLookup(const CEString&, bool bIsSpryazgSm = false);
     ET_ReturnCode eWholeWordLookup(const CEString&);

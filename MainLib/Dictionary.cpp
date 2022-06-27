@@ -612,13 +612,13 @@ ET_ReturnCode CDictionary::eGetAnalytics(IAnalytics*& pAnalytics)
 
     if (NULL == m_pParser)
     {
-        m_pParser = make_shared<CParser>(this);
+        m_pParser = make_unique<CParser>(this);
         m_pParser->SetDb(m_pDb);
     }
 
     if (NULL == m_pAnalytics)
     {
-        m_pAnalytics = make_shared<CAnalytics>(m_pDb, m_pParser);
+        m_pAnalytics = make_unique<CAnalytics>(m_pDb, m_pParser);
         pAnalytics = m_pAnalytics.get();
     }
 
@@ -644,6 +644,7 @@ ET_ReturnCode CDictionary::eGetVerifier(IVerifier*& pVerifier)
     return H_NO_ERROR;
 }
 
+#ifdef WIN32
 ET_ReturnCode CDictionary::eExportTestData(CEString& sPath, PROGRESS_CALLBACK_CLR pProgressCallback)
 {
     if (NULL == m_pDb)
@@ -714,6 +715,7 @@ ET_ReturnCode CDictionary::eImportTestData(CEString& sPath, PROGRESS_CALLBACK_CL
     return H_NO_ERROR;
 
 }       //  eImportTestData()
+#endif
 
 CSqlite * CDictionary::pGetDbHandle()
 {
@@ -1292,7 +1294,9 @@ ET_ReturnCode CDictionary::ePopulateHashToDescriptorTable(PROGRESS_CALLBACK_CLR 
                     {
                         if (0 == uiInsertHandle)
                         {
-                            m_pDb->uiPrepareForInsert(L"lexeme_hash_to_descriptor", 3, (sqlite3_stmt *&)uiInsertHandle, false);
+                            sqlite3_stmt* pStmt = nullptr;
+                            m_pDb->uiPrepareForInsert(L"lexeme_hash_to_descriptor", 3, pStmt, false);
+                            uiInsertHandle = (uint64_t)pStmt;
                         }
                         m_pDb->Bind(1, (*itLex).first, uiInsertHandle);
                         m_pDb->Bind(2, (uint64_t)(*itLex).second.llDescriptorId, uiInsertHandle);
@@ -1497,8 +1501,9 @@ ET_ReturnCode CDictionary::eGetSingleRow(StLexemeProperties& stProperties, uint6
 */
 
             m_pDb->GetData(0, stProperties.sSourceForm, uiQueryHandle);                         //  0 source
-            stProperties.llHeadwordId = -1;
-            m_pDb->GetData(1, (uint64_t&)stProperties.llHeadwordId, uiQueryHandle);             //  1 id [headword]
+            uint64_t uiHeadwordId = 0;
+            m_pDb->GetData(1, uiHeadwordId, uiQueryHandle);
+            stProperties.llHeadwordId = uiHeadwordId;                                           //  1 id [headword]
             m_pDb->GetData(2, stProperties.sHeadwordComment, uiQueryHandle);                    //  2 comment
             m_pDb->GetData(3, stProperties.sHeadwordVariantComment, uiQueryHandle);             //  3 variant_comment
             m_pDb->GetData(4, stProperties.sPluralOf, uiQueryHandle);                           //  4 plural_of
@@ -1506,15 +1511,23 @@ ET_ReturnCode CDictionary::eGetSingleRow(StLexemeProperties& stProperties, uint6
             m_pDb->GetData(6, stProperties.sHeadwordVariant, uiQueryHandle);                    //  6 variant
             m_pDb->GetData(7, stProperties.sSeeRef, uiQueryHandle);                             //  7 see_ref
             m_pDb->GetData(8, stProperties.sBackRef, uiQueryHandle);                            //  8 back_ref
-            m_pDb->GetData(9, (uint64_t&)stProperties.llSourceEntryId, uiQueryHandle);          //  9 source_entry_id
+            uint64_t uiSourceEntryId = 0;
+            m_pDb->GetData(9, uiSourceEntryId, uiQueryHandle);                                  //  9 source_entry_id
+            stProperties.llSourceEntryId = uiSourceEntryId;
             m_pDb->GetData(10, stProperties.bSpryazhSm, uiQueryHandle);                         // 10 spryazh_sm
             m_pDb->GetData(11, stProperties.bSecondPart, uiQueryHandle);                        // 11 second_part
-            m_pDb->GetData(12, (uint64_t&)stProperties.llDescriptorId, uiQueryHandle);                     // 12 id [descriptor]
+            uint64_t uiDescriptorId = 0;
+            m_pDb->GetData(12, uiDescriptorId, uiQueryHandle);                                  // 12 id [descriptor]
+            stProperties.llDescriptorId = uiDescriptorId;
             m_pDb->GetData(13, stProperties.sGraphicStem, uiQueryHandle);                       // 13 graphic_stem
-            m_pDb->GetData(14, (uint64_t&)stProperties.llSecondPartId, uiQueryHandle);                     // 14 second_part_id
+            uint64_t uiSecondPartId = 0;
+            m_pDb->GetData(14, uiSecondPartId, uiQueryHandle);                                  // 14 second_part_id
+            stProperties.llSecondPartId = uiSecondPartId;
             m_pDb->GetData(15, stProperties.bIsVariant, uiQueryHandle);                         // 15 is_variant
             m_pDb->GetData(16, stProperties.sMainSymbol, uiQueryHandle);                        // 16 main_symbol
-            m_pDb->GetData(17, (int&)stProperties.ePartOfSpeech, uiQueryHandle);                // 17 part_of_speech
+            int iPartOfSpeech = 0;
+            m_pDb->GetData(17, iPartOfSpeech, uiQueryHandle);                                   // 17 part_of_speech
+            stProperties.ePartOfSpeech = (ET_PartOfSpeech)iPartOfSpeech;
             m_pDb->GetData(18, stProperties.bIsPluralOf, uiQueryHandle);                        // 18 is_plural_of
             bool bIntransitive = false;
             m_pDb->GetData(19, bIntransitive, uiQueryHandle);                                   // 19 is_intransitive; "нп" == !bTransitive
@@ -1555,12 +1568,17 @@ ET_ReturnCode CDictionary::eGetSingleRow(StLexemeProperties& stProperties, uint6
             m_pDb->GetData(44, stProperties.sContexts, uiQueryHandle);                          // 44 contexts
             m_pDb->GetData(45, stProperties.sCognate, uiQueryHandle);                           // 45 cognate
             m_pDb->GetData(46, stProperties.sTrailingComment, uiQueryHandle);                   // 46 trailing_comment
-            stProperties.llInflectionId = -1;
-            m_pDb->GetData(47, (uint64_t&)stProperties.llInflectionId, uiQueryHandle);          // 47 inflection.id
+            uint64_t uiInflectionId = -1;
+            m_pDb->GetData(47, uiInflectionId, uiQueryHandle);                                  // 47 inflection.id
+            stProperties.llInflectionId = uiInflectionId;
             m_pDb->GetData(48, stProperties.bPrimaryInflectionGroup, uiQueryHandle);            // 48 is_primary
             m_pDb->GetData(49, stProperties.iType, uiQueryHandle);                              // 49 inflection_type
-            m_pDb->GetData(50, (int&)stProperties.eAccentType1, uiQueryHandle);                 // 50 accent_type1
-            m_pDb->GetData(51, (int&)stProperties.eAccentType2, uiQueryHandle);                 // 51 accent_type2
+            int iAccentType1 = 0;
+            m_pDb->GetData(50, iAccentType1, uiQueryHandle);                                    // 50 accent_type1
+            stProperties.eAccentType1 = (ET_AccentType)iAccentType1;
+            int iAccentType2 = 0;
+            m_pDb->GetData(51, iAccentType2, uiQueryHandle);                                    // 51 accent_type2
+            stProperties.eAccentType2 = (ET_AccentType)iAccentType2;
             m_pDb->GetData(52, stProperties.bShortFormsRestricted, uiQueryHandle);              // 52 short_form_restrictions
             if (L"м" == stProperties.sMainSymbol)
             {
@@ -1816,9 +1834,9 @@ ET_ReturnCode CDictionary::eDeleteLexeme(ILexeme * pLexeme)
         vector<long long> vecInflectionIds;
         while (m_pDb->bGetRow())
         {
-            long long llInflectionId = -1;
-            m_pDb->GetData(0, (int64_t&)llInflectionId);
-            vecInflectionIds.push_back(llInflectionId);
+            int64_t uiInflectionId = -1;
+            m_pDb->GetData(0, uiInflectionId);
+            vecInflectionIds.push_back((long long)uiInflectionId);
         }
         m_pDb->Finalize();
 
@@ -1926,7 +1944,9 @@ ET_ReturnCode CDictionary::eUpdateHeadword(ILexeme* pLexeme)
         m_pDb->Bind(6, stProperties.sHeadwordVariantComment, llUpdateHandle);
         m_pDb->Bind(7, stProperties.sSeeRef, llUpdateHandle);
         m_pDb->Bind(8, stProperties.sBackRef, llUpdateHandle);
-        m_pDb->Bind(9, (int64_t&)stProperties.llSourceEntryId, llUpdateHandle);
+        uint64_t uiSourceEntryId = 0;
+        m_pDb->Bind(9, uiSourceEntryId, llUpdateHandle);
+        stProperties.llSourceEntryId = uiSourceEntryId;
         m_pDb->Bind(10, stProperties.bSpryazhSm, llUpdateHandle);
         m_pDb->Bind(11, stProperties.bSecondPart, llUpdateHandle);
         m_pDb->Bind(12, true, llUpdateHandle);                   // is_edited
@@ -1963,8 +1983,9 @@ ET_ReturnCode CDictionary::eSaveNewHeadword(ILexeme* pLexeme)
     {
         m_pDb->BeginTransaction();
 
-        unsigned long long llInsertHandle = 0;
-        m_pDb->uiPrepareForInsert(L"headword", 12, (sqlite3_stmt*&)llInsertHandle);
+        sqlite3_stmt* pStmt = nullptr;
+        m_pDb->uiPrepareForInsert(L"headword", 12, pStmt);
+        auto llInsertHandle = (unsigned long long)pStmt;
 
         m_pDb->Bind(1, stProperties.sSourceForm, llInsertHandle);
         m_pDb->Bind(2, stProperties.sPluralOf, llInsertHandle);
@@ -1974,7 +1995,9 @@ ET_ReturnCode CDictionary::eSaveNewHeadword(ILexeme* pLexeme)
         m_pDb->Bind(6, stProperties.sHeadwordVariantComment, llInsertHandle);
         m_pDb->Bind(7, stProperties.sSeeRef, llInsertHandle);
         m_pDb->Bind(8, stProperties.sBackRef, llInsertHandle);
-        m_pDb->Bind(9, (int64_t&)stProperties.llSourceEntryId, llInsertHandle);
+        uint64_t uiSourceEntryId = 0;
+        m_pDb->Bind(9, uiSourceEntryId, llInsertHandle);
+        stProperties.llSourceEntryId = uiSourceEntryId;
         m_pDb->Bind(10, stProperties.bSpryazhSm, llInsertHandle);
         m_pDb->Bind(11, stProperties.bSecondPart, llInsertHandle);
         m_pDb->Bind(12, true, llInsertHandle);                   // is_edited
@@ -1987,12 +2010,13 @@ ET_ReturnCode CDictionary::eSaveNewHeadword(ILexeme* pLexeme)
 
         if (stProperties.vecHomonyms.size() > 0)
         {
-            llInsertHandle = 0;
-            m_pDb->uiPrepareForInsertOrReplace(L"homonyms", 4, (sqlite3_stmt*&)llInsertHandle);
-
+            sqlite3_stmt* pStmt = nullptr;
+            m_pDb->uiPrepareForInsertOrReplace(L"homonyms", 4, pStmt);
+            llInsertHandle = (unsigned long long)pStmt;
             for (auto iHomonym : stProperties.vecHomonyms)
             {
-                m_pDb->Bind(1, (int64_t&)stProperties.llHeadwordId, llInsertHandle);
+                int64_t iHeadwordId = stProperties.llHeadwordId;
+                m_pDb->Bind(1, iHeadwordId, llInsertHandle);
                 m_pDb->Bind(2, iHomonym, llInsertHandle);
                 m_pDb->Bind(3, false, llInsertHandle);      // is_variant
                 m_pDb->Bind(4, true, llInsertHandle);       // is_edited
@@ -2007,11 +2031,14 @@ ET_ReturnCode CDictionary::eSaveNewHeadword(ILexeme* pLexeme)
         llInsertHandle = 0;
         if (stProperties.vecSourceStressPos.size() > 0)
         {
-            m_pDb->uiPrepareForInsert(L"stress", 5, (sqlite3_stmt*&)llInsertHandle);
+            pStmt = nullptr;
+            m_pDb->uiPrepareForInsert(L"stress", 5, pStmt);
+            llInsertHandle = (unsigned long long)pStmt;
 
             for (auto iStressPos : stProperties.vecSourceStressPos)
             {
-                m_pDb->Bind(1, (int64_t&)stProperties.llHeadwordId, llInsertHandle);
+                int64_t iHeadwordId = stProperties.llHeadwordId;
+                m_pDb->Bind(1, iHeadwordId, llInsertHandle);
                 m_pDb->Bind(2, iStressPos, llInsertHandle);
                 m_pDb->Bind(3, true, llInsertHandle);       // primary
                 m_pDb->Bind(4, false, llInsertHandle);      // not a variant
@@ -2021,7 +2048,8 @@ ET_ReturnCode CDictionary::eSaveNewHeadword(ILexeme* pLexeme)
 
             for (auto iStressPos : stProperties.vecSecondaryStressPos)
             {
-                m_pDb->Bind(1, (int64_t&)stProperties.llHeadwordId, llInsertHandle);
+                int64_t iHeadwordId = stProperties.llHeadwordId;
+                m_pDb->Bind(1, iHeadwordId, llInsertHandle);
                 m_pDb->Bind(2, iStressPos, llInsertHandle);
                 m_pDb->Bind(3, false, llInsertHandle);       // secondary
                 m_pDb->Bind(4, false, llInsertHandle);       // not a variant
@@ -2031,7 +2059,8 @@ ET_ReturnCode CDictionary::eSaveNewHeadword(ILexeme* pLexeme)
 
             for (auto iStressPos : stProperties.vecSourceVariantStressPos)
             {
-                m_pDb->Bind(1, (int64_t&)stProperties.llHeadwordId, llInsertHandle);
+                int64_t iHeadwordId = stProperties.llHeadwordId;
+                m_pDb->Bind(1, iHeadwordId, llInsertHandle);
                 m_pDb->Bind(2, iStressPos, llInsertHandle);
                 m_pDb->Bind(3, true, llInsertHandle);       // primary
                 m_pDb->Bind(4, true, llInsertHandle);       // variant
@@ -2041,8 +2070,10 @@ ET_ReturnCode CDictionary::eSaveNewHeadword(ILexeme* pLexeme)
 
             for (auto iStressPos : stProperties.vecSecondaryVariantStressPos)
             {
-                m_pDb->Bind(1, (int64_t&)stProperties.llHeadwordId, llInsertHandle);
-                m_pDb->Bind(2, (int64_t&)iStressPos, llInsertHandle);
+                int64_t iHeadwordId = stProperties.llHeadwordId;
+                m_pDb->Bind(1, iHeadwordId, llInsertHandle);
+
+                m_pDb->Bind(2, iStressPos, llInsertHandle);
                 m_pDb->Bind(3, false, llInsertHandle);       // primary
                 m_pDb->Bind(4, true, llInsertHandle);        // variant
                 m_pDb->Bind(5, true, llInsertHandle);        // is_edited
@@ -2074,8 +2105,6 @@ ET_ReturnCode CDictionary::eSaveNewHeadword(ILexeme* pLexeme)
 
 ET_ReturnCode CDictionary::eSaveHeadwordStress(ILexeme* pLexeme)
 {
-//    ET_ReturnCode eRet = H_NO_ERROR;
-
     StLexemeProperties& stProperties = pLexeme->stGetPropertiesForWriteAccess();
     if (stProperties.llHeadwordId < 0)
     {
@@ -2083,24 +2112,27 @@ ET_ReturnCode CDictionary::eSaveHeadwordStress(ILexeme* pLexeme)
         return H_ERROR_UNEXPECTED;
     }
 
-    auto llHeadwordId = stProperties.llHeadwordId;
+    int64_t iHeadwordId = stProperties.llHeadwordId;
 
     try
     {
         m_pDb->BeginTransaction();
 
         CEString sDeleteStressQuery(L"DELETE FROM stress WHERE headword_id = ");
-        sDeleteStressQuery += CEString::sToString(llHeadwordId);
+        sDeleteStressQuery += CEString::sToString(iHeadwordId);
         m_pDb->Exec(sDeleteStressQuery);
 
         if (stProperties.vecSourceStressPos.size() > 0)
         {
-            long long llInsertHandle = 0;
-            m_pDb->uiPrepareForInsert(L"stress", 5, (sqlite3_stmt*&)llInsertHandle);
+            sqlite3_stmt* pStmt = nullptr;
+            m_pDb->uiPrepareForInsert(L"stress", 5, pStmt);
+            auto llInsertHandle = (long long)pStmt;
+
 
             for (auto iStressPos : stProperties.vecSourceStressPos)
             {
-                m_pDb->Bind(1, (int64_t&)llHeadwordId, llInsertHandle);
+
+                m_pDb->Bind(1, iHeadwordId, llInsertHandle);
                 m_pDb->Bind(2, iStressPos, llInsertHandle);
                 m_pDb->Bind(3, true, llInsertHandle);       // primary
                 m_pDb->Bind(4, false, llInsertHandle);      // not a variant
@@ -2110,7 +2142,7 @@ ET_ReturnCode CDictionary::eSaveHeadwordStress(ILexeme* pLexeme)
 
             for (auto iStressPos : stProperties.vecSecondaryStressPos)
             {
-                m_pDb->Bind(1, (int64_t&)llHeadwordId, llInsertHandle);
+                m_pDb->Bind(1, iHeadwordId, llInsertHandle);
                 m_pDb->Bind(2, iStressPos, llInsertHandle);
                 m_pDb->Bind(3, false, llInsertHandle);       // secondary
                 m_pDb->Bind(4, false, llInsertHandle);       // not a variant
@@ -2120,7 +2152,7 @@ ET_ReturnCode CDictionary::eSaveHeadwordStress(ILexeme* pLexeme)
 
             for (auto iStressPos : stProperties.vecSourceVariantStressPos)
             {
-                m_pDb->Bind(1, (int64_t&)llHeadwordId, llInsertHandle);
+                m_pDb->Bind(1, iHeadwordId, llInsertHandle);
                 m_pDb->Bind(2, iStressPos, llInsertHandle);
                 m_pDb->Bind(3, true, llInsertHandle);       // primary
                 m_pDb->Bind(4, true, llInsertHandle);       // variant
@@ -2130,7 +2162,7 @@ ET_ReturnCode CDictionary::eSaveHeadwordStress(ILexeme* pLexeme)
 
             for (auto iStressPos : stProperties.vecSecondaryVariantStressPos)
             {
-                m_pDb->Bind(1, (int64_t&)llHeadwordId, llInsertHandle);
+                m_pDb->Bind(1, iHeadwordId, llInsertHandle);
                 m_pDb->Bind(2, iStressPos, llInsertHandle);
                 m_pDb->Bind(3, false, llInsertHandle);       // primary
                 m_pDb->Bind(4, true, llInsertHandle);        // variant
@@ -2166,24 +2198,25 @@ ET_ReturnCode CDictionary::eSaveHomonyms(ILexeme* pLexeme)
         return H_ERROR_UNEXPECTED;
     }
 
-    auto llHeadwordId = stProperties.llHeadwordId;
+    int64_t iHeadwordId = stProperties.llHeadwordId;
 
     try
     {
         m_pDb->BeginTransaction();
 
         CEString sDeleteStressQuery(L"DELETE FROM stress WHERE headword_id = ");
-        sDeleteStressQuery += CEString::sToString(llHeadwordId);
+        sDeleteStressQuery += CEString::sToString(iHeadwordId);
         m_pDb->Exec(sDeleteStressQuery);
 
         if (stProperties.vecHomonyms.size() > 0)
         {
-            long long llInsertHandle = 0;
-            m_pDb->uiPrepareForInsertOrReplace(L"homonyms", 4, (sqlite3_stmt*&)llInsertHandle);
+            sqlite3_stmt* pStmt = nullptr;
+            m_pDb->uiPrepareForInsertOrReplace(L"homonyms", 4, pStmt);
+            auto llInsertHandle = (long long)pStmt;
 
             for (auto iHomonym : stProperties.vecHomonyms)
             {
-                m_pDb->Bind(1, (int64_t&)llHeadwordId, llInsertHandle);
+                m_pDb->Bind(1, iHeadwordId, llInsertHandle);
                 m_pDb->Bind(2, iHomonym, llInsertHandle);
                 m_pDb->Bind(3, false, llInsertHandle);      // is_variant
                 m_pDb->Bind(4, true, llInsertHandle);       // is_edited
@@ -2220,10 +2253,12 @@ ET_ReturnCode CDictionary::eSaveAspectPairInfo(ILexeme * pLexeme)
         sDeleteAspectPairQuery += CEString::sToString(stProperties.llDescriptorId);
         m_pDb->Exec(sDeleteAspectPairQuery);
 
-        unsigned long long llInsertHandle = 0;
-        m_pDb->uiPrepareForInsert(L"aspect_pair", 6, (sqlite3_stmt *&)llInsertHandle);
+        sqlite3_stmt* pStmt = nullptr;
+        m_pDb->uiPrepareForInsert(L"aspect_pair", 6, pStmt);
+        auto llInsertHandle = (unsigned long long)pStmt;
 
-        m_pDb->Bind(1, (int64_t&)stProperties.llDescriptorId, llInsertHandle);
+        auto iDescriptorId = (int64_t)stProperties.llDescriptorId;
+        m_pDb->Bind(1, iDescriptorId, llInsertHandle);
         m_pDb->Bind(2, stProperties.iAspectPairType, llInsertHandle);
         m_pDb->Bind(3, stProperties.sAltAspectPairData, llInsertHandle);
         m_pDb->Bind(4, stProperties.sAltAspectPairComment, llInsertHandle);                          
@@ -2258,10 +2293,12 @@ ET_ReturnCode CDictionary::eSaveP2Info(ILexeme * pLexeme)
         sDeleteAspectPairQuery += CEString::sToString(stProperties.llDescriptorId);
         m_pDb->Exec(sDeleteAspectPairQuery);
 
-        unsigned long long llInsertHandle = 0;
-        m_pDb->uiPrepareForInsert(L"second_locative", 4, (sqlite3_stmt *&)llInsertHandle);
+        sqlite3_stmt* pStmt = nullptr;
+        m_pDb->uiPrepareForInsert(L"second_locative", 4, pStmt);
+        auto llInsertHandle = (unsigned long long)pStmt;
 
-        m_pDb->Bind(1, (int64_t&)stProperties.llDescriptorId, llInsertHandle);
+        int64_t iDescriptorId = stProperties.llDescriptorId;
+        m_pDb->Bind(1, iDescriptorId, llInsertHandle);
         m_pDb->Bind(2, stProperties.bSecondPrepositionalOptional, llInsertHandle);
         m_pDb->Bind(3, stProperties.sP2Preposition, llInsertHandle);
         m_pDb->Bind(4, true, llInsertHandle);                   // is_edited
@@ -2301,10 +2338,12 @@ ET_ReturnCode CDictionary::eSaveCommonDeviation(ILexeme * pLexeme)
 
         for (auto& pairDeviation : stProperties.mapCommonDeviations)
         {
-            unsigned long long llInsertHandle = 0;
-            m_pDb->uiPrepareForInsert(L"common_deviation", 4, (sqlite3_stmt *&)llInsertHandle);
+            sqlite3_stmt* pStmt = nullptr;
+            m_pDb->uiPrepareForInsert(L"common_deviation", 4, pStmt);
+            auto llInsertHandle = (unsigned long long)pStmt;
 
-            m_pDb->Bind(1, (int64_t&)stProperties.llInflectionId, llInsertHandle);
+            int64_t iInflectionId = stProperties.llInflectionId;
+            m_pDb->Bind(1, iInflectionId, llInsertHandle);
             m_pDb->Bind(2, pairDeviation.first, llInsertHandle);
             m_pDb->Bind(3, pairDeviation.second, llInsertHandle);
             m_pDb->Bind(4, true, llInsertHandle);                   // is_edited
@@ -2354,10 +2393,12 @@ ET_ReturnCode CDictionary::eSaveInflectionInfo(ILexeme * pLexeme)
             m_pDb->Exec(sDeleteInflectionQuery);
         }
 
-        unsigned long long llInsertHandle = 0;
-        m_pDb->uiPrepareForInsert(L"inflection", 12, (sqlite3_stmt *&)llInsertHandle);
+        sqlite3_stmt* pStmt = nullptr;
+        m_pDb->uiPrepareForInsert(L"inflection", 12, pStmt);
+        auto llInsertHandle = (unsigned long long)pStmt;
 
-        m_pDb->Bind(1, (int64_t&)stProperties.llDescriptorId, llInsertHandle);
+        int64_t iDescriptorId = stProperties.llDescriptorId;
+        m_pDb->Bind(1, iDescriptorId, llInsertHandle);
         m_pDb->Bind(2, stProperties.bPrimaryInflectionGroup, llInsertHandle);
         m_pDb->Bind(3, stProperties.iType, llInsertHandle);
         m_pDb->Bind(4, stProperties.eAccentType1, llInsertHandle);
@@ -2438,14 +2479,16 @@ ET_ReturnCode CDictionary::eUpdateDescriptorInfo(ILexeme * pLexeme)
         sqlite3_stmt* pStmt = nullptr;
         auto llUpdateHandle = m_pDb->uiPrepareForUpdate(L"descriptor", vecColumns, stProperties.llDescriptorId, pStmt);
 
-        m_pDb->Bind(1, (int64_t&)stProperties.llHeadwordId, llUpdateHandle);          //  1 word_id
-        m_pDb->Bind(2, stProperties.sGraphicStem, llUpdateHandle);          //  2 graphic_stem
-        m_pDb->Bind(3, (int64_t&)stProperties.llSecondPartId, llUpdateHandle);        //  3 second_part_id
-        m_pDb->Bind(4, stProperties.bIsVariant, llUpdateHandle);            //  4 is_variant
-        m_pDb->Bind(5, stProperties.sMainSymbol, llUpdateHandle);           //  5 main_symbol
-        m_pDb->Bind(6, stProperties.ePartOfSpeech, llUpdateHandle);         //  6 part_of_speech
-        m_pDb->Bind(7, stProperties.bIsPluralOf, llUpdateHandle);           //  7 is_plural_of
-        m_pDb->Bind(8, !stProperties.bTransitive, llUpdateHandle);          //  8 inflection_type
+        int64_t iHeadwordId = stProperties.llHeadwordId;
+        m_pDb->Bind(1, iHeadwordId, llUpdateHandle);                            //  1 word_id
+        m_pDb->Bind(2, stProperties.sGraphicStem, llUpdateHandle);              //  2 graphic_stem
+        int64_t iSecondPartId = stProperties.llSecondPartId;
+        m_pDb->Bind(3, iSecondPartId, llUpdateHandle);                          //  3 second_part_id
+        m_pDb->Bind(4, stProperties.bIsVariant, llUpdateHandle);                //  4 is_variant
+        m_pDb->Bind(5, stProperties.sMainSymbol, llUpdateHandle);               //  5 main_symbol
+        m_pDb->Bind(6, stProperties.ePartOfSpeech, llUpdateHandle);             //  6 part_of_speech
+        m_pDb->Bind(7, stProperties.bIsPluralOf, llUpdateHandle);               //  7 is_plural_of
+        m_pDb->Bind(8, !stProperties.bTransitive, llUpdateHandle);              //  8 inflection_type
         bool bIsRefexive = (REFL_YES == stProperties.eReflexive) ? true : false;
         m_pDb->Bind(9, bIsRefexive, llUpdateHandle);                            //  9 is_reflexive
         m_pDb->Bind(10, stProperties.sMainSymbolPluralOf, llUpdateHandle);      // 10 main_symbol_plural_of
@@ -2533,18 +2576,20 @@ ET_ReturnCode CDictionary::eSaveDescriptorInfo(ILexeme* pLexeme)
                         L"irregular_forms_lead_comment", L"restricted_contexts", L"contexts", L"cognate", L"trailing_comment", L"is_edited" };
             //                  31                                32                  33           34          35                   36   
 
-//        sqlite3_stmt* pStmt = nullptr;
-        unsigned long long llInsertHandle = 0;
-        m_pDb->uiPrepareForInsert(L"descriptor", 36, (sqlite3_stmt*&)llInsertHandle, true);
+        sqlite3_stmt* pStmt = nullptr;
+        m_pDb->uiPrepareForInsert(L"descriptor", 36, pStmt, true);
+        auto llInsertHandle = (unsigned long long)pStmt;
 
-        m_pDb->Bind(1, (int64_t&)stProperties.llHeadwordId, llInsertHandle);          //  1 word_id
-        m_pDb->Bind(2, stProperties.sGraphicStem, llInsertHandle);          //  2 graphic_stem
-        m_pDb->Bind(3, (int64_t&)stProperties.llSecondPartId, llInsertHandle);        //  3 second_part_id
-        m_pDb->Bind(4, stProperties.bIsVariant, llInsertHandle);            //  4 is_variant
-        m_pDb->Bind(5, stProperties.sMainSymbol, llInsertHandle);           //  5 main_symbol
-        m_pDb->Bind(6, stProperties.ePartOfSpeech, llInsertHandle);         //  6 part_of_speech
-        m_pDb->Bind(7, stProperties.bIsPluralOf, llInsertHandle);           //  7 is_plural_of
-        m_pDb->Bind(8, !stProperties.bTransitive, llInsertHandle);          //  8 inflection_type
+        int64_t iHeadwordId = stProperties.llHeadwordId;
+        m_pDb->Bind(1, iHeadwordId, llInsertHandle);                                //  1 word_id
+        m_pDb->Bind(2, stProperties.sGraphicStem, llInsertHandle);                  //  2 graphic_stem
+        int64_t iSecondPartId = stProperties.llSecondPartId;
+        m_pDb->Bind(3, iSecondPartId, llInsertHandle);                              //  3 second_part_id
+        m_pDb->Bind(4, stProperties.bIsVariant, llInsertHandle);                    //  4 is_variant
+        m_pDb->Bind(5, stProperties.sMainSymbol, llInsertHandle);                   //  5 main_symbol
+        m_pDb->Bind(6, stProperties.ePartOfSpeech, llInsertHandle);                 //  6 part_of_speech
+        m_pDb->Bind(7, stProperties.bIsPluralOf, llInsertHandle);                   //  7 is_plural_of
+        m_pDb->Bind(8, !stProperties.bTransitive, llInsertHandle);                  //  8 inflection_type
         bool bIsRefexive = (REFL_YES == stProperties.eReflexive) ? true : false;
         m_pDb->Bind(9, bIsRefexive, llInsertHandle);                            //  9 is_reflexive
         m_pDb->Bind(10, stProperties.sMainSymbolPluralOf, llInsertHandle);      // 10 main_symbol_plural_of
@@ -2751,14 +2796,14 @@ ET_ReturnCode CDictionary::eMarkLexemeAsEdited(ILexeme * pLexeme)
         return H_ERROR_DB;
     }
 
-    uint64_t uiInsertHandle = 0;
-
     try
     {
-        m_pDb->uiPrepareForInsert(L"edited_lexemes", 1, (sqlite3_stmt *&)uiInsertHandle, false);
-        m_pDb->Bind(1, sLexemeHash, uiInsertHandle);
-        m_pDb->InsertRow(uiInsertHandle);
-        m_pDb->Finalize(uiInsertHandle);
+        sqlite3_stmt* pStmt = nullptr;
+        m_pDb->uiPrepareForInsert(L"edited_lexemes", 1, pStmt, false);
+        auto iInsertHandle = (int64_t)pStmt;
+        m_pDb->Bind(1, sLexemeHash, iInsertHandle);
+        m_pDb->InsertRow(iInsertHandle);
+        m_pDb->Finalize(iInsertHandle);
     }
     catch (CException& exc)
     {

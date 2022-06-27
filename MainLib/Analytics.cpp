@@ -1,4 +1,4 @@
-#define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
+﻿#define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
 
 #include <set>
 #include <vector>
@@ -134,8 +134,21 @@ ET_ReturnCode CAnalytics::eParseText(const CEString& sTextName, const CEString& 
             CEString sWord = sLine.sGetField(iField);
             sWord.ToLower();
             eRet = eParseWord(sWord, sLine, iField, (int)sLine.uiNFields(), llLineDbId);
-
-        }       //  for (int iField = 0; iField < (int)sLine.uiNFields(); ++iField)
+            unsigned int uiStartPos = 0;
+            auto uiAt = sWord.uiFind(L"е", uiStartPos);
+            while (uiAt != Hlib::ecNotFound)
+            {
+                sWord[uiAt] = L'ё';
+                eRet = eParseWord(sWord, sLine, iField, (int)sLine.uiNFields(), llLineDbId);
+                sWord[uiAt] = L'е';
+                uiStartPos = uiAt + 1;
+                if (uiStartPos >= sWord.uiLength())
+                {
+                    break;
+                }
+                uiAt = sWord.uiFind(L"е", uiStartPos);
+            }
+        }
 
         eRet = eFindEquivalencies(sLine);
         if (eRet != H_NO_ERROR)
@@ -352,6 +365,8 @@ ET_ReturnCode CAnalytics::eRegisterText()
             return H_ERROR_DB;
         }
 
+        m_vecMetadataKeyValPairs.clear();
+
     }
 
     return eRet;
@@ -443,7 +458,7 @@ ET_ReturnCode CAnalytics::eFindEquivalencies(CEString& sLine)
         auto it = m_mmapWordParses.find(iField);
         if (m_mmapWordParses.end() == it)
         {
-            CEString sMsg(L"Cant's find parse for the word number ");
+            CEString sMsg(L"Can't find parse for the word number ");
             sMsg += CEString::sToString(iField);
             sMsg += L" in '" + sLine;
             sMsg += L"'";
@@ -484,7 +499,7 @@ ET_ReturnCode CAnalytics::eFindEquivalencies(CEString& sLine)
                     bIsInvariant = true;
                     break;
                 }
-            }               //  for (auto itEquivalency...
+            }               //  for (auto itEquivalency...)
 
             if (!bIsInvariant)
             {
@@ -883,15 +898,15 @@ ET_ReturnCode CAnalytics::eSaveWordParse(long long llWordId, long long llWordFor
 
 }       // eSaveWordParse()
 
-bool CAnalytics::bIsProclitic(CWordForm& wordForm)
+bool CAnalytics::bIsProclitic([[maybe_unused]]CWordForm& wordForm)
 {
-    MESSAGE_LOG(wordForm.sWordForm());
+//    MESSAGE_LOG(wordForm.sWordForm());
     return false;       // TODO: implement
 }
 
-bool CAnalytics::bIsEnclitic(CWordForm& wordForm)
+bool CAnalytics::bIsEnclitic([[maybe_unused]]CWordForm& wordForm)
 {
-    MESSAGE_LOG(wordForm.sWordForm());
+//    MESSAGE_LOG(wordForm.sWordForm());
     return false;       // TODO: implement
 }
 
@@ -911,18 +926,18 @@ bool CAnalytics::bArePhoneticallyIdentical(CWordForm& wf1, CWordForm& wf2)
         return true;
     }
 
-    if (eRet1 != H_NO_ERROR)
+    if (eRet1 != H_NO_ERROR && eRet1 != H_FALSE)
     {
-        assert(0);
+//        assert(0);
         CEString sMsg(L"Error getting 1st stress position, words: ");
         sMsg += wf1.sWordForm();
         ERROR_LOG(sMsg);
         return false;
     }
 
-    if (eRet2 != H_NO_ERROR)
+    if (eRet2 != H_NO_ERROR && eRet2 != H_FALSE)
     {
-        assert(0);
+//        assert(0);
         CEString sMsg(L"Error getting 2nd stress position, words: ");
         sMsg += wf2.sWordForm();
         ERROR_LOG(sMsg);
@@ -947,7 +962,7 @@ bool CAnalytics::bArePhoneticallyIdentical(CWordForm& wf1, CWordForm& wf2)
 
         if ((eRet1 != H_NO_ERROR && eRet1 != H_NO_MORE) || (eRet2 != H_NO_ERROR && eRet2 != H_NO_MORE))
         {
-            assert(0);
+//            assert(0);
             CEString sMsg(L"Error getting 1st stress position: '");
             sMsg += wf1.sWordForm() + L"', '";
             sMsg += wf2.sWordForm() + L"'.";
@@ -966,7 +981,7 @@ bool CAnalytics::bArePhoneticallyIdentical(CWordForm& wf1, CWordForm& wf2)
         }
     }
 
-    assert(0);
+//    assert(0);
     ERROR_LOG(L"Error getting next stress position.");
 
     return false;
@@ -1034,8 +1049,10 @@ ET_ReturnCode CAnalytics::eSaveTactGroup(StTactGroup& stTg)
             // tact_group_id INTEGER, position_in_tact_group INTEGER, FOREIGN KEY(word_to_wordform_id) 
             // REFERENCES word_to_word_form(id));
 
-            unsigned long long llInsertHandle = 0;
-            m_pDb->uiPrepareForInsert(L"word_to_tact_group", 3, (sqlite3_stmt*&)llInsertHandle);
+            sqlite3_stmt* pStmt = nullptr;
+            m_pDb->uiPrepareForInsert(L"word_to_tact_group", 3, pStmt);
+            auto llInsertHandle = (unsigned long long)pStmt;
+
             for (StWordParse& stWordParse : stTg.vecWords)
             {
                 m_pDb->Bind(1, (int64_t)stWordParse.llWordToWordFormId, (int64_t)llInsertHandle);
@@ -1046,8 +1063,9 @@ ET_ReturnCode CAnalytics::eSaveTactGroup(StTactGroup& stTg)
             m_pDb->Finalize((int64_t)llInsertHandle);
 
             // CREATE TABLE tact_group_to_gram_hash(id INTEGER PRIMARY KEY ASC, tact_group_id INTEGER, gram_hash TEXT)
-            llInsertHandle = 0;
-            m_pDb->uiPrepareForInsert(L"tact_group_to_gram_hash", 2, (sqlite3_stmt*&)llInsertHandle);
+            pStmt = nullptr;
+            m_pDb->uiPrepareForInsert(L"tact_group_to_gram_hash", 2, pStmt);
+            llInsertHandle = (unsigned long long)pStmt;
             for (StWordParse& stWordParse : stTg.vecWords)
             {
                 m_pDb->Bind(1, (int64_t)llTactGroupId, (int64_t)llInsertHandle);
@@ -1103,9 +1121,9 @@ ET_ReturnCode CAnalytics::eClearTextData(long long llTextId)
         m_pDb->PrepareForSelect(sQuery);
         while (m_pDb->bGetRow())
         {
-            long long llLineId = -1;
-            m_pDb->GetData(0, (int64_t&)llLineId);
-            vecLineIds.push_back(llLineId);
+            int64_t iLineId = -1;
+            m_pDb->GetData(0, iLineId);
+            vecLineIds.push_back(iLineId);
         }
         m_pDb->Finalize();
 
@@ -1117,9 +1135,9 @@ ET_ReturnCode CAnalytics::eClearTextData(long long llTextId)
             m_pDb->PrepareForSelect(sQuery);
             while (m_pDb->bGetRow())
             {
-                long long llWordInLineId = -1;
-                m_pDb->GetData(0, (int64_t&)llWordInLineId);
-                vecWordsInLineIds.push_back(llWordInLineId);
+                int64_t iWordInLineId = -1;
+                m_pDb->GetData(0, iWordInLineId);
+                vecWordsInLineIds.push_back(iWordInLineId);
             }
             m_pDb->Finalize();
         }
@@ -1132,9 +1150,9 @@ ET_ReturnCode CAnalytics::eClearTextData(long long llTextId)
             m_pDb->PrepareForSelect(sQuery);
             while (m_pDb->bGetRow())
             {
-                long long llWordToWordFormId = -1;
-                m_pDb->GetData(0, (int64_t&)llWordToWordFormId);
-                vecWordToWordFormIds.push_back(llWordToWordFormId);
+                int64_t iWordToWordFormId = -1;
+                m_pDb->GetData(0, iWordToWordFormId);
+                vecWordToWordFormIds.push_back(iWordToWordFormId);
             }
             m_pDb->Finalize();
         }
@@ -1147,9 +1165,9 @@ ET_ReturnCode CAnalytics::eClearTextData(long long llTextId)
             m_pDb->PrepareForSelect(sQuery);
             while (m_pDb->bGetRow())
             {
-                long long llTactGroupId = -1;
-                m_pDb->GetData(0, (int64_t&)llTactGroupId);
-                vecTactGroupIds.push_back(llTactGroupId);
+                int64_t iTactGroupId = -1;
+                m_pDb->GetData(0, iTactGroupId);
+                vecTactGroupIds.push_back(iTactGroupId);
             }
             m_pDb->Finalize();
         }
@@ -1162,9 +1180,9 @@ ET_ReturnCode CAnalytics::eClearTextData(long long llTextId)
             m_pDb->PrepareForSelect(sQuery);
             while (m_pDb->bGetRow())
             {
-                long long llWordToTactGroupId = -1;
-                m_pDb->GetData(0, (int64_t&)llWordToTactGroupId);
-                vecWordToTactGroupIds.push_back(llWordToTactGroupId);
+                int64_t iWordToTactGroupId = -1;
+                m_pDb->GetData(0, iWordToTactGroupId);
+                vecWordToTactGroupIds.push_back(iWordToTactGroupId);
             }
             m_pDb->Finalize();
         }

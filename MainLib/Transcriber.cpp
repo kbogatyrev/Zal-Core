@@ -470,6 +470,8 @@ ET_ReturnCode CTranscriber::eLoadTranscriptionRules()
                 m_mapCharToRules[sKeys[iAt]].push_back(stRule);
             }
         }
+
+        m_pDb->Finalize();
     }
     catch (CException& ex)
     {

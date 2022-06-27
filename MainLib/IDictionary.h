@@ -51,8 +51,10 @@ namespace Hlib
         virtual ET_ReturnCode eGetParser(IParser *& p) = 0;
         virtual ET_ReturnCode eGetAnalytics(IAnalytics*& p) = 0;
         virtual ET_ReturnCode eGetVerifier(IVerifier *& pVerifier) = 0;
-//        virtual ET_ReturnCode eExportTestData(const CEString& sPath, PROGRESS_CALLBACK_CLR) = 0;
-//        virtual ET_ReturnCode eImportTestData(const CEString& sPath, PROGRESS_CALLBACK_CLR) = 0;
+#ifdef WIN32
+        virtual ET_ReturnCode eExportTestData(CEString& sPath, PROGRESS_CALLBACK_CLR) = 0;
+        virtual ET_ReturnCode eImportTestData(CEString& sPath, PROGRESS_CALLBACK_CLR) = 0;
+#endif
 
         virtual ET_ReturnCode ePopulateHashToDescriptorTable(PROGRESS_CALLBACK_CLR, PROGRESS_CALLBACK_PYTHON=nullptr) = 0;
 

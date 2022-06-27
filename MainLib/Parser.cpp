@@ -18,6 +18,7 @@ CParser::CParser(CDictionary * pDictionary) : m_pDictionary(pDictionary), m_pEnd
 CParser::~CParser()
 {
     ClearResults();
+    delete m_pEndingsTree;
 }
 
 ET_ReturnCode CParser::eParseWord(const CEString& sWord)
@@ -80,6 +81,8 @@ ET_ReturnCode CParser::eParseWord(const CEString& sWord)
         }
         pWf->SetPos(pLexeme->ePartOfSpeech());
         pWf->m_pLexeme = pLexeme.get();
+//        m_pDictionary->Clear(pLexeme.get());
+        m_pDictionary->Clear();
     }
 
     return m_vecWordForms.empty() ? H_FALSE : H_NO_ERROR;
@@ -93,10 +96,10 @@ ET_ReturnCode CParser::eParseWord(const CEString& sWord)
 // TODO: variants!
 ET_ReturnCode CParser::eRemoveFalsePositives()
 {
-    using pwfIterator = vector<CWordForm*>::iterator;
+    using pwfIterator = vector<unique_ptr<CWordForm>>::iterator;
 
     set<pwfIterator> setFalsePositives;
-    for (auto pMe : m_vecWordForms)
+    for (auto& pMe : m_vecWordForms)
     {
         if (!pMe->bIrregular())
         {
@@ -135,7 +138,7 @@ ET_ReturnCode CParser::eGetFirstWordForm(IWordForm *& pWordForm)
         return H_FALSE;
     }
 
-    pWordForm = *m_itCurrentWordForm;
+    pWordForm = (*m_itCurrentWordForm).get();
 
     return H_NO_ERROR;
 }
@@ -152,7 +155,7 @@ ET_ReturnCode CParser::eGetNextWordForm(IWordForm *& pWordForm)
         return H_NO_MORE;
     }
 
-    pWordForm = *m_itCurrentWordForm;
+    pWordForm = (*m_itCurrentWordForm).get();
 
     return H_NO_ERROR;
 }
@@ -166,7 +169,7 @@ ET_ReturnCode CParser::eGetFirstWordForm(CWordForm *& wordForm)
         return H_FALSE;
     }
 
-    wordForm = *m_itCurrentWordForm;
+    wordForm = (*m_itCurrentWordForm).get();
 
     return H_NO_ERROR;
 }
@@ -183,17 +186,17 @@ ET_ReturnCode CParser::eGetNextWordForm(CWordForm *& pWordForm)
         return H_NO_MORE;
     }
 
-    pWordForm = *m_itCurrentWordForm;
+    pWordForm = (*m_itCurrentWordForm).get();
 
     return H_NO_ERROR;
 }
 
 void CParser::ClearResults()
 {
-    vector<CWordForm *>::iterator itWf = m_vecWordForms.begin();
+    vector<unique_ptr<CWordForm>>::iterator itWf = m_vecWordForms.begin();
     for (; itWf != m_vecWordForms.end(); ++itWf)
     {
-        delete *itWf;
+//        delete *itWf;
     }
 }
 
@@ -267,7 +270,7 @@ ET_ReturnCode CParser::eIrregularFormLookup(const CEString& sWord, bool bSpryazh
             bool bIsAlternative = false;
             m_pDb->GetData(4, bIsAlternative, uiFormQueryHandle);       // what to do with this one?
 
-            CWordForm * pWf = new CWordForm(sGramHash);
+            unique_ptr<CWordForm> pWf = make_unique<CWordForm>(sGramHash);
             pWf->m_bIrregular = true;
             pWf->m_llLexemeId = llDescriptorId;
             pWf->m_llIrregularFormId = llFormId;
@@ -291,13 +294,14 @@ ET_ReturnCode CParser::eIrregularFormLookup(const CEString& sWord, bool bSpryazh
                 m_pDb->GetData(0, iPosition, uiStressHandle);
 
                 ET_StressType eType = STRESS_TYPE_UNDEFINED;
-                m_pDb->GetData(1, (int&)eType, uiStressHandle);
+                int iType = (int)eType;
+                m_pDb->GetData(1, iType, uiStressHandle);
                 int iStressedSyll = sWordForm.uiGetSyllableFromVowelPos(iPosition);
-                pWf->m_mapStress[iStressedSyll] = eType;
+                pWf->m_mapStress[iStressedSyll] = (ET_StressType)iType;
             }
             m_pDb->Finalize(uiStressHandle);
 
-            m_vecWordForms.push_back(pWf);
+            m_vecWordForms.push_back(move(pWf));
         }
         m_pDb->Finalize(uiFormQueryHandle);
     }
@@ -340,11 +344,10 @@ ET_ReturnCode CParser::eWholeWordLookup(const CEString& sWord)
 
         if (llEndingId < 0 || H_TRUE == m_pEndingsTree->eIsEmptyEnding(llEndingId))
         {
-            CWordForm * pWf = NULL;
-            
+            unique_ptr<CWordForm> pWf = nullptr;
             try
             {
-                pWf = new CWordForm(sGramHash);
+                pWf = make_unique<CWordForm>(sGramHash);
             }
             catch (CException& ex)
             {
@@ -384,7 +387,7 @@ ET_ReturnCode CParser::eWholeWordLookup(const CEString& sWord)
             }
             m_pDb->Finalize(uiStressHandle);
 
-            m_vecWordForms.push_back(pWf);
+            m_vecWordForms.push_back(move(pWf));
         }
     }       //  while (m_pDb->bGetRow(...)) 
     m_pDb->Finalize(uiFormQueryHandle);
@@ -438,7 +441,7 @@ ET_ReturnCode CParser::eFormLookup(const CEString& sWord)
                     int64_t llLexemeId = -1;
                     m_pDb->GetData(2, llLexemeId, uiFormQueryHandle);
 
-                    CWordForm * pWf = new CWordForm(sGramHash);
+                    unique_ptr<CWordForm> pWf = make_unique<CWordForm>(sGramHash);
                     pWf->m_llDbKey = llFormId;
                     pWf->m_bIrregular = false;
                     pWf->m_llLexemeId = llLexemeId;
@@ -460,7 +463,7 @@ ET_ReturnCode CParser::eFormLookup(const CEString& sWord)
                         pWf->m_mapStress[iPosition] = bIsPrimary ? STRESS_PRIMARY : STRESS_SECONDARY;
                     }
                     m_pDb->Finalize(uiStressHandle);
-                    m_vecWordForms.push_back(pWf);
+                    m_vecWordForms.push_back(move(pWf));
 
                 }       //  while (m_pDb->bGetRow(...))
 
