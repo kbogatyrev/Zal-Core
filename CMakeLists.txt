@@ -120,6 +120,30 @@ target_sources (ZalMainLib PRIVATE
 
 # ---------------------------------------------------------------
 
+#
+#	Test
+#
+
+add_executable (ZalAnalytics)
+
+target_sources (ZalAnalytics PRIVATE
+	Zal-CPP/StandaloneAnalytics/StandaloneAnalytics.cpp
+)
+
+target_include_directories (ZalAnalytics PUBLIC
+	HLib
+	MainLib
+	ThirdParty/Sqlite
+	ThirdParty/sha1
+)
+
+if (MSVC)
+	target_link_libraries(ZalAnalytics ZalMainLib)
+else()
+	target_link_libraries(ZalAnalytics ZalMainLib pthread dl)
+endif()
+
+# ---------------------------------------------------------------
 
 #
 #	Python wrapper
