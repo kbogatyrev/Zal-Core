@@ -121,7 +121,7 @@ target_sources (ZalMainLib PRIVATE
 # ---------------------------------------------------------------
 
 #
-#	Test
+#	Standalone analytics
 #
 
 add_executable (ZalAnalytics)
