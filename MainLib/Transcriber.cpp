@@ -246,8 +246,8 @@ ET_ReturnCode CTranscriber::eLoadTranscriptionRules()
     ET_ReturnCode eRet = H_NO_ERROR;
 
     static const CEString sQuery
-        (L"SELECT ti.input_chars, tr.stress, tr.left_contexts, tr.left_boundary, tr.right_contexts, right_boundary, tr.morpheme_type, \
-        tr.subparadigm, tr.gramm_gender, tr.gramm_number, tr.gramm_case, tr.strength, tr.target, tr.transform, tr.comment \
+        (L"SELECT ti.id, ti.input_chars, tr.stress, tr.left_contexts, tr.left_boundary, tr.right_contexts, right_boundary, \
+        tr.morpheme_type, tr.subparadigm, tr.gramm_gender, tr.gramm_number, tr.gramm_case, tr.strength, tr.target, tr.transform \
         FROM transcription_inputs AS ti INNER JOIN transcription_rules as tr ON ti.id = tr.input_id");
 
     try
@@ -256,10 +256,11 @@ ET_ReturnCode CTranscriber::eLoadTranscriptionRules()
         while (m_pDb->bGetRow())
         {
             StRule stRule;
-            m_pDb->GetData(14, stRule.m_sComment);
+//            m_pDb->GetData(14, stRule.m_sComment);
+            m_pDb->GetData(0, stRule.m_llRuleId);
 
             CEString sInputs, sKeys;
-            m_pDb->GetData(0, sInputs);
+            m_pDb->GetData(1, sInputs);
 
             //
             //  E.g., "a+b" --> "ab" = 'these two characters together, "ab" --> vector of chars = 'any of the chars in the vector
@@ -273,7 +274,7 @@ ET_ReturnCode CTranscriber::eLoadTranscriptionRules()
                 }
 
                 sKeys = sInputs.sGetRegexMatch(0);
-                stRule.sFollowedBy = sInputs.sGetRegexMatch(1);
+                stRule.m_sFollowedBy = sInputs.sGetRegexMatch(1);
             }
             else
             {
@@ -294,7 +295,7 @@ ET_ReturnCode CTranscriber::eLoadTranscriptionRules()
 
             // Stress (a string)
             CEString sStressType;
-            m_pDb->GetData(1, sStressType);
+            m_pDb->GetData(2, sStressType);
             if (!sStressType.bIsEmpty())
             {
                 auto itStressType = m_mapStringToStressRelation.find(sStressType);
@@ -309,7 +310,7 @@ ET_ReturnCode CTranscriber::eLoadTranscriptionRules()
 
             // Left contexts
             CEString sLeftContexts;
-            m_pDb->GetData(2, sLeftContexts);
+            m_pDb->GetData(3, sLeftContexts);
             if (!sLeftContexts.bIsEmpty())
             {
                 eRet = eParseContexts(sLeftContexts, stRule.m_vecLeftContexts);
@@ -317,7 +318,7 @@ ET_ReturnCode CTranscriber::eLoadTranscriptionRules()
 
             // Left boundaries
             CEString sLeftBoundaries;
-            m_pDb->GetData(3, sLeftBoundaries);
+            m_pDb->GetData(4, sLeftBoundaries);
             if (!sLeftBoundaries.bIsEmpty())
             {
                 eRet = eParseBoundaries(sLeftBoundaries, stRule.m_vecLeftBoundaries);
@@ -325,7 +326,7 @@ ET_ReturnCode CTranscriber::eLoadTranscriptionRules()
 
             // Right contexts
             CEString sRightContexts;
-            m_pDb->GetData(4, sRightContexts);
+            m_pDb->GetData(5, sRightContexts);
             if (!sRightContexts.bIsEmpty())
             {
                 eRet = eParseContexts(sRightContexts, stRule.m_vecRightContexts);
@@ -333,7 +334,7 @@ ET_ReturnCode CTranscriber::eLoadTranscriptionRules()
 
             // Right boundaries
             CEString sRightBoundaries;
-            m_pDb->GetData(5, sRightBoundaries);
+            m_pDb->GetData(6, sRightBoundaries);
             if (!sRightBoundaries.bIsEmpty())
             {
                 eRet = eParseBoundaries(sRightBoundaries, stRule.m_vecRightBoundaries);
@@ -341,7 +342,7 @@ ET_ReturnCode CTranscriber::eLoadTranscriptionRules()
 
             // Morphemic context
             CEString sMorphemeType;
-            m_pDb->GetData(6, sMorphemeType);
+            m_pDb->GetData(7, sMorphemeType);
             if (!sMorphemeType.bIsEmpty())
             {
                 vector<CEString> vecMorphemeTypeStrings;
@@ -378,7 +379,7 @@ ET_ReturnCode CTranscriber::eLoadTranscriptionRules()
 
             // Subparadigm (a string)
             CEString sSubparadigm;
-            m_pDb->GetData(7, sSubparadigm);
+            m_pDb->GetData(8, sSubparadigm);
             if (!sSubparadigm.bIsEmpty())
             {
                 auto itSubparadigm = m_mapStringToSubparadigm.find(sSubparadigm);
@@ -392,7 +393,7 @@ ET_ReturnCode CTranscriber::eLoadTranscriptionRules()
 
             // Gender
             CEString sGender;
-            m_pDb->GetData(8, sGender);
+            m_pDb->GetData(9, sGender);
             if (!sGender.bIsEmpty())
             {
                 auto itGender = m_mapStringToGender.find(sGender);
@@ -406,7 +407,7 @@ ET_ReturnCode CTranscriber::eLoadTranscriptionRules()
 
             // Number 
             CEString sNumber;
-            m_pDb->GetData(9, sNumber);
+            m_pDb->GetData(10, sNumber);
             if (!sNumber.bIsEmpty())
             {
                 auto itNumber = m_mapStringToNumber.find(sNumber);
@@ -420,7 +421,7 @@ ET_ReturnCode CTranscriber::eLoadTranscriptionRules()
 
             // Case 
             CEString sCase;
-            m_pDb->GetData(10, sCase);
+            m_pDb->GetData(11, sCase);
             if (!sCase.bIsEmpty())
             {
                 auto itCase = m_mapStringToCase.find(sCase);
@@ -434,7 +435,7 @@ ET_ReturnCode CTranscriber::eLoadTranscriptionRules()
 
             // Strength
             CEString sStrength;
-            m_pDb->GetData(11, sStrength);
+            m_pDb->GetData(12, sStrength);
             if (!sStrength.bIsEmpty())
             {
                 auto itStrength = m_mapStringToRuleStrength.find(sStrength);
@@ -451,7 +452,7 @@ ET_ReturnCode CTranscriber::eLoadTranscriptionRules()
 
             // Targets
             CEString sTargets;
-            m_pDb->GetData(12, sTargets);
+            m_pDb->GetData(13, sTargets);
             if (!sTargets.bIsEmpty())
             {
                 eRet = eParseTargets(sTargets, stRule.m_vecTargets);
@@ -459,7 +460,7 @@ ET_ReturnCode CTranscriber::eLoadTranscriptionRules()
 
             // Transforms
             CEString sTransforms;
-            m_pDb->GetData(13, sTransforms);
+            m_pDb->GetData(14, sTransforms);
             if (!sTransforms.bIsEmpty())
             {
                 eRet = eParseTransforms(sTransforms, stRule.m_vecTransforms);
@@ -557,9 +558,9 @@ ET_ReturnCode CTranscriber::eHandleVowel(StTactGroup& stTg, int& iPos)
     eGetStressStatus(stTg, iPos, eStressStatus);
     for (auto& stRule : itRules->second)
     { 
-        if (!stRule.sFollowedBy.bIsEmpty())
+        if (!stRule.m_sFollowedBy.bIsEmpty())
         {
-            if (chrNext != stRule.sFollowedBy)
+            if (chrNext != stRule.m_sFollowedBy)
             {
                 continue;
             }
@@ -671,7 +672,7 @@ ET_ReturnCode CTranscriber::eHandleVowel(StTactGroup& stTg, int& iPos)
             m_vecTranscription.push_back(eSound);
         }
 
-        if (!stRule.sFollowedBy.bIsEmpty())
+        if (!stRule.m_sFollowedBy.bIsEmpty())
         {
             ++iPos;
         }
@@ -817,7 +818,7 @@ ET_ReturnCode CTranscriber::eHandleConsonant(StTactGroup& stTg, int& iPos)
             if (bTranscribed)
             {
                 CEString sMsg(L"Redundant rule match: rule ");
-                sMsg += stRule.m_sComment;
+                sMsg += CEString::sToString(stRule.m_llRuleId);
                 ERROR_LOG(sMsg);
             }
             else
@@ -829,7 +830,7 @@ ET_ReturnCode CTranscriber::eHandleConsonant(StTactGroup& stTg, int& iPos)
                     bTranscribed = true;
                 }
 
-                if (!stRule.sFollowedBy.bIsEmpty())
+                if (!stRule.m_sFollowedBy.bIsEmpty())
                 {
                     ++iPos;
                 }

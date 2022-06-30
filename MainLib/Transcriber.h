@@ -38,7 +38,8 @@ namespace Hlib
 
     struct StRule
     {
-        CEString sFollowedBy;       // after "+", e.g., a+o
+        int64_t m_llRuleId;
+        CEString m_sFollowedBy;       // after "+", e.g., a+o
         vector<ET_VowelStressRelation> m_vecStressContexts;
         vector<PhonemicContextAtom> m_vecLeftContexts;
         vector<PhonemicContextAtom> m_vecRightContexts;
@@ -51,7 +52,7 @@ namespace Hlib
         vector<ET_Case> m_vecCases;  
         ET_RuleStrength m_eStrength;
         bool m_bIsVariant;
-        CEString m_sComment;
+//        CEString m_sComment;
         vector<ET_Sound> m_vecTargets;
         vector<ET_Transform> m_vecTransforms;
     };
@@ -550,7 +551,7 @@ namespace Hlib
             { StConsonant(ET_Place::PLACE_BILABIAL, ET_Manner::MANNER_STOP, ET_Voicedness::VOICEDNESS_VOICELESS, ET_Palatalization::PALATALIZATION_HARD, ET_Nasality::NASALITY_NON_NASAL), P_HARD },
             { StConsonant(ET_Place::PLACE_BILABIAL, ET_Manner::MANNER_STOP, ET_Voicedness::VOICEDNESS_VOICELESS, ET_Palatalization::PALATALIZATION_SOFT, ET_Nasality::NASALITY_NON_NASAL), P_SOFT },
             { StConsonant(ET_Place::PLACE_BILABIAL, ET_Manner::MANNER_STOP, ET_Voicedness::VOICEDNESS_VOICED, ET_Palatalization::PALATALIZATION_HARD, ET_Nasality::NASALITY_NON_NASAL), B_HARD },
-            { StConsonant(ET_Place::PLACE_BILABIAL, ET_Manner::MANNER_STOP, ET_Voicedness::VOICEDNESS_VOICED, ET_Palatalization::PALATALIZATION_HARD, ET_Nasality::NASALITY_NON_NASAL), B_SOFT },
+            { StConsonant(ET_Place::PLACE_BILABIAL, ET_Manner::MANNER_STOP, ET_Voicedness::VOICEDNESS_VOICED, ET_Palatalization::PALATALIZATION_SOFT, ET_Nasality::NASALITY_NON_NASAL), B_SOFT },
             { StConsonant(ET_Place::PLACE_BILABIAL, ET_Manner::MANNER_STOP, ET_Voicedness::VOICEDNESS_VOICED, ET_Palatalization::PALATALIZATION_HARD, ET_Nasality::NASALITY_NASAL), M_HARD },
             { StConsonant(ET_Place::PLACE_BILABIAL, ET_Manner::MANNER_STOP, ET_Voicedness::VOICEDNESS_VOICED, ET_Palatalization::PALATALIZATION_SOFT, ET_Nasality::NASALITY_NASAL), M_SOFT },
             { StConsonant(ET_Place::PLACE_LABIODENTAL, ET_Manner::MANNER_FRICATIVE, ET_Voicedness::VOICEDNESS_VOICELESS, ET_Palatalization::PALATALIZATION_HARD, ET_Nasality::NASALITY_NON_NASAL), F_HARD },

@@ -225,10 +225,8 @@ ET_ReturnCode CAnalytics::eRegisterText()
         return H_ERROR_UNEXPECTED;
     }
 
-
-    CEString sQuery = L"SELECT id FROM text WHERE name = '#NAME#' AND metadata = '#METADATA#';";
+    CEString sQuery = L"SELECT id FROM text WHERE name = '#NAME#';";
     sQuery = sQuery.sReplace(L"#NAME#", m_sTextName);
-    sQuery = sQuery.sReplace(L"#METADATA#", m_sTextMetaData);
 
     vector<long long> vecTextIds;
     try
@@ -255,6 +253,9 @@ ET_ReturnCode CAnalytics::eRegisterText()
         for (long long llId : vecTextIds)
         {
             eRet = eClearTextData(llId);
+            sQuery = L"DELETE FROM text_metadata WHERE text_id = ";
+            sQuery += CEString::sToString(llId);
+            m_pDb->Delete(sQuery);
             sQuery = L"DELETE FROM text WHERE id = ";
             sQuery += CEString::sToString(llId);
             m_pDb->Delete(sQuery);
@@ -275,7 +276,7 @@ ET_ReturnCode CAnalytics::eRegisterText()
             sMsg = L"Apparent DB error ";
         }
 
-        sMsg += CEString::sToString(m_pDb->iGetLastError());
+//        sMsg += CEString::sToString(m_pDb->iGetLastError());
         ERROR_LOG(sMsg);
     }
 
@@ -364,10 +365,9 @@ ET_ReturnCode CAnalytics::eRegisterText()
 
             return H_ERROR_DB;
         }
-
-        m_vecMetadataKeyValPairs.clear();
-
     }
+
+    m_vecMetadataKeyValPairs.clear();
 
     return eRet;
 
