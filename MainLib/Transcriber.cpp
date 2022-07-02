@@ -246,8 +246,9 @@ ET_ReturnCode CTranscriber::eLoadTranscriptionRules()
     ET_ReturnCode eRet = H_NO_ERROR;
 
     static const CEString sQuery
-        (L"SELECT ti.id, ti.input_chars, tr.stress, tr.left_contexts, tr.left_boundary, tr.right_contexts, right_boundary, \
-        tr.morpheme_type, tr.subparadigm, tr.gramm_gender, tr.gramm_number, tr.gramm_case, tr.strength, tr.target, tr.transform \
+        (L"SELECT tr.id, ti.input_chars, tr.stress, tr.left_contexts, tr.left_boundary, tr.right_contexts, right_boundary, \
+        tr.morpheme_type, tr.subparadigm, tr.gramm_gender, tr.gramm_number, tr.gramm_case, tr.strength, tr.target, \
+        tr.transform, tr.comment \
         FROM transcription_inputs AS ti INNER JOIN transcription_rules as tr ON ti.id = tr.input_id");
 
     try
@@ -256,7 +257,6 @@ ET_ReturnCode CTranscriber::eLoadTranscriptionRules()
         while (m_pDb->bGetRow())
         {
             StRule stRule;
-//            m_pDb->GetData(14, stRule.m_sComment);
             m_pDb->GetData(0, stRule.m_llRuleId);
 
             CEString sInputs, sKeys;
@@ -465,6 +465,8 @@ ET_ReturnCode CTranscriber::eLoadTranscriptionRules()
             {
                 eRet = eParseTransforms(sTransforms, stRule.m_vecTransforms);
             }
+
+            m_pDb->GetData(15, stRule.m_sComment);
 
             for (int iAt = 0; iAt < (int)sKeys.uiLength(); ++iAt)
             {

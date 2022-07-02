@@ -52,7 +52,7 @@ namespace Hlib
         vector<ET_Case> m_vecCases;  
         ET_RuleStrength m_eStrength;
         bool m_bIsVariant;
-//        CEString m_sComment;
+        CEString m_sComment;
         vector<ET_Sound> m_vecTargets;
         vector<ET_Transform> m_vecTransforms;
     };
@@ -243,7 +243,7 @@ namespace Hlib
             { L"FIRST_PRETONIC", ET_VowelStressRelation::FIRST_PRETONIC },
             { L"OTHER_PRETONIC", ET_VowelStressRelation::OTHER_PRETONIC },
             { L"POSTTONIC", ET_VowelStressRelation::POSTTONIC },
-            { L"POSTTONIC", ET_VowelStressRelation::VOWEL_STRESS_RELATION_COUNT }
+            { L"UNSTRESSED", ET_VowelStressRelation::UNSTRESSED }
         };
 
         map<CEString, ET_PhonemicContext> m_mapStringToContext =
@@ -462,9 +462,10 @@ namespace Hlib
 
         map<CEString, ET_RuleStrength> m_mapStringToRuleStrength =
         {
-            { L"RULE_STRENGTH_DEFAULT", ET_RuleStrength::RULE_STRENGTH_DEFAULT },
-            { L"RULE_STRENGTH_VARIATION", ET_RuleStrength::RULE_STRENGTH_VARIATION },
-            { L"RULE_STRENGTH_OPTIONAL", ET_RuleStrength::RULE_STRENGTH_OPTIONAL }
+            { L"DEFAULT", ET_RuleStrength::RULE_STRENGTH_DEFAULT },
+            { L"VARIATION", ET_RuleStrength::RULE_STRENGTH_VARIATION },
+            { L"RECOMMENDED", ET_RuleStrength::RULE_STRENGTH_RECOMMENDED },
+            { L"OPTIONAL", ET_RuleStrength::RULE_STRENGTH_OPTIONAL }
         };
 
         unordered_map<ET_Sound, StVowel> m_mapSoundToVowel =
