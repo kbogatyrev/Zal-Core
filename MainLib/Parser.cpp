@@ -193,11 +193,12 @@ ET_ReturnCode CParser::eGetNextWordForm(CWordForm *& pWordForm)
 
 void CParser::ClearResults()
 {
-    vector<unique_ptr<CWordForm>>::iterator itWf = m_vecWordForms.begin();
-    for (; itWf != m_vecWordForms.end(); ++itWf)
-    {
+//    vector<unique_ptr<CWordForm>>::iterator itWf = m_vecWordForms.begin();
+//    for (; itWf != m_vecWordForms.end(); ++itWf)
+//    {
 //        delete *itWf;
-    }
+//    }
+    m_vecWordForms.clear();
 }
 
 void CParser::SetDb(shared_ptr<CSqlite> pDb)
