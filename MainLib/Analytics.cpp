@@ -1025,6 +1025,13 @@ ET_ReturnCode CAnalytics::eAddParsesToTactGroup(shared_ptr<StTactGroup> pCurrent
                 pCurrentTactGroup->m_vecParses.push_back(itInvariantSet->second);
                 pCurrentTactGroup->sSource += L" " + pNextWordParse->WordForm.sWordForm();
                 auto eRc = eAddParsesToTactGroup(pCurrentTactGroup, iWordPos+1);
+                if (eRc != H_NO_ERROR)
+                {
+                    CEString sMsg(L"Unable to add parse to the tact group, word position is ");
+                    sMsg += CEString::sToString(iWordPos) + L".";
+                    ERROR_LOG(sMsg);
+                    continue;
+                }
             }
             else
             {
@@ -1037,6 +1044,13 @@ ET_ReturnCode CAnalytics::eAddParsesToTactGroup(shared_ptr<StTactGroup> pCurrent
                 auto& setParses = *pCurrentTactGroup->m_vecParses.begin();
                 pCurrentTactGroup->m_vecNext.push_back(pNextTactGroup);
                 auto eRc = eAddParsesToTactGroup(pNextTactGroup, iWordPos + 1);
+                if (eRc != H_NO_ERROR)
+                {
+                    CEString sMsg(L"Unable to add parse to the tact group, word position is ");
+                    sMsg += CEString::sToString(iWordPos) + L".";
+                    ERROR_LOG(sMsg);
+                    continue;
+                }
             }
         }
         else if (ET_WordStressType::WORD_STRESS_TYPE_AUTONOMOUS == pNextWordParse->eStressType)
@@ -1049,6 +1063,13 @@ ET_ReturnCode CAnalytics::eAddParsesToTactGroup(shared_ptr<StTactGroup> pCurrent
                 pCurrentTactGroup->m_vecParses.push_back(itInvariantSet->second);
                 pCurrentTactGroup->sSource += L" " + pNextWordParse->WordForm.sWordForm();
                 auto eRc = eAddParsesToTactGroup(pCurrentTactGroup, iWordPos+1);
+                if (eRc != H_NO_ERROR)
+                {
+                    CEString sMsg(L"Unable to add parse to the tact group, word position is ");
+                    sMsg += CEString::sToString(iWordPos) + L".";
+                    ERROR_LOG(sMsg);
+                    continue;
+                }
             }
             else
             {
