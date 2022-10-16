@@ -11,6 +11,8 @@
 #include "IAnalytics.h"
 #include "WordForm.h"
 
+using namespace std;
+
 namespace Hlib
 {
     class CSqlite;
@@ -21,10 +23,10 @@ namespace Hlib
 
     struct StWordParse
     {
-        int iNumber;
+        int iPosInLine;
         int iLineOffset;
         int iLength;
-        int iPosInTactGroup;
+//        int iPosInTactGroup;        &&&& This doesn't work!!'
         ET_WordStressType eStressType;
         long long llLineDbId;
         long long llWordInLineDbId;
@@ -38,10 +40,10 @@ namespace Hlib
 
         void Reset()
         {
-            iNumber = -1;
+            iPosInLine = -1;
             iLineOffset = -1;
             iLength = -1;
-            iPosInTactGroup = -1;
+//            iPosInTactGroup = -1;
             llLineDbId = -1;
             eStressType = WORD_STRESS_TYPE_UNDEFINED;
             llWordInLineDbId = -1;
@@ -52,10 +54,11 @@ namespace Hlib
         // Needed to be used with STL set
         bool operator < (const StWordParse& stRhs) const
         {
-            return iNumber < stRhs.iNumber;
+            return iPosInLine < stRhs.iPosInLine;
         }
-
     };      // StWordParse
+
+    using InvariantParses = set<shared_ptr<StWordParse>>;
 
     //  CREATE TABLE tact_group(id INTEGER PRIMARY KEY ASC, line_id INTEGER, first_word_position INTEGER, num_of_words INTEGER, 
     //  source TEXT, transcription TEXT, stressed_syllable INTEGER, reverse_stressed_syllable INTEGER, FOREIGN KEY(line_id) REFERENCES lines_in_text(id));
@@ -71,26 +74,26 @@ namespace Hlib
         int iSecondaryStressedSyllable;
         CEString sSource;
         CEString sTranscription;
-        vector<StWordParse> vecWords;
+        vector<InvariantParses> m_vecParses;
+        vector<shared_ptr<StTactGroup>> m_vecNext;
 
-        StTactGroup()
-        {
-            Reset();
-        }
+        StTactGroup() : llLineId(0), iFirstWordNum(0), iMainWordPos(0),
+            iNumOfWords(0), iNumOfSyllables(0), iStressedSyllable(0),
+            iReverseStressedSyllable(0), iSecondaryStressedSyllable(0)
+        {}
 
         void Reset()
         {
-            llLineId = -1;
-            iFirstWordNum = -1;
-            iMainWordPos = -1;
+            llLineId = 0;
+            iFirstWordNum = 0;
+            iMainWordPos = 0;
             iNumOfWords = 0;
-            iNumOfSyllables = -1;
-            iStressedSyllable = -1;
-            iReverseStressedSyllable = -1;
-            iSecondaryStressedSyllable = -1;
+            iNumOfSyllables = 0;
+            iStressedSyllable = 0;
+            iReverseStressedSyllable = 0;
+            iSecondaryStressedSyllable = 0;
             sSource.Erase();
             sTranscription.Erase();
-            vecWords.clear();
         }
 
         int iWordNumFromTextPos(int iTextPos)
@@ -113,20 +116,23 @@ namespace Hlib
         ET_ReturnCode eInit();
         ET_ReturnCode eParseMetadata(const CEString& sMetadata);
         ET_ReturnCode eRegisterText();
-        ET_ReturnCode eParseWord(const CEString& sWord, const CEString& sLine, int iNumInLine, int iWordsInLine, long long llLineDbKey);
-        ET_ReturnCode eFindEquivalencies(CEString& sLine);
+        ET_ReturnCode eParseWord(const CEString& sWord, const CEString& sLine, int iNumInLine, 
+                                 int iWordsInLine, long long llLineDbKey, vector<shared_ptr<StWordParse>>& vecParses);
+        ET_ReturnCode eFindEquivalencies(const vector<shared_ptr<StWordParse>>&, vector<InvariantParses>&);
 //        ET_ReturnCode eCountSyllables(StTactGroup&);
-        ET_ReturnCode eGetStress(StTactGroup&);
-        ET_ReturnCode eTranscribe(StTactGroup&);
-        ET_ReturnCode eAssembleTactGroups(CEString& sLine);
+        ET_ReturnCode eGetStress(shared_ptr<StTactGroup>);
+        ET_ReturnCode eTranscribe(shared_ptr<StTactGroup>);
+        ET_ReturnCode eAssembleTactGroups_old(CEString& sLine);
+        ET_ReturnCode eAssembleTactGroups_x(CEString& sLine, int iWord, StTactGroup& tg);
+        ET_ReturnCode eNewTactGroup(shared_ptr<StTactGroup> current, CEString& sLine, int iNextWord);
         ET_ReturnCode eSaveLine(int iLineNum, int iTextOffset, int iLength, int iNumOfWords, const CEString& sText, long long& llDbKey);
         ET_ReturnCode eSaveWord(long long llLineDbId, int iWord, int iWordsInLine, int iLineOffset, int iSegmentLength, const CEString& sWord, long long& llWordDbKey);
         ET_ReturnCode eSaveWordParse(long long llSegmentId, long long llWordFormId, long long& llWordToWordFormId);
-        ET_ReturnCode eSaveTactGroup(StTactGroup&);
+        ET_ReturnCode eSaveTactGroup(shared_ptr<StTactGroup>);
         ET_ReturnCode eClearTextData(long long llText);
-        bool bIsProclitic(CWordForm&);
-        bool bIsEnclitic(CWordForm&);
+        ET_WordStressType eGetStressType(CWordForm&);
         bool bArePhoneticallyIdentical(CWordForm& wf1, CWordForm& wf2);
+        ET_ReturnCode eAddParsesToTactGroup(shared_ptr<StTactGroup>, int iLinePos);
 
     private:
         shared_ptr<CSqlite> m_pDb;
@@ -138,11 +144,11 @@ namespace Hlib
         CEString m_sText;
         long long m_llTextDbId;
 
-        multimap<int, StWordParse> m_mmapWordParses;
-        multimap<int, vector<StWordParse>> m_mmapEquivalencies;  // word # --> phonetic invariant sets
-        multimap<int, StTactGroup> m_mapTactGroups;   // 1st word # --> tact group
-
+//        multimap<int, StWordParse> m_mmapLinePosToParses;
+        multimap<int, InvariantParses> m_mmapLinePosToHomophones;
         vector<pair<CEString, CEString>> m_vecMetadataKeyValPairs;
+        shared_ptr<StTactGroup> m_pTactGroupListHead;
+        int m_iWordsInCurrentLine;
 
     };      //  class CAnalytics
 

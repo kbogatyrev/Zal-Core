@@ -68,7 +68,7 @@ namespace Hlib
         CTranscriber(shared_ptr<CSqlite>);
         ET_ReturnCode eLoadTranscriptionRules();
         ET_ReturnCode eTranscribe();
-        ET_ReturnCode eTranscribeTactGroup(StTactGroup&);
+        ET_ReturnCode eTranscribeTactGroup(shared_ptr<StTactGroup>);
 
     private:
         ET_ReturnCode eSplitSource(CEString& sSource, vector<CEString>& vecOutput);
@@ -78,18 +78,18 @@ namespace Hlib
         ET_ReturnCode eParseTransforms(CEString& sSource, vector<ET_Transform>& vecTransform);
         bool bIsProclitic(CWordForm& wf);           // stub
         bool bIsEnclitic(CWordForm& wf);            // stub
-        ET_ReturnCode eHandleVowel(StTactGroup&, int& iPos);
-        ET_ReturnCode eHandleConsonant(StTactGroup&, int& iPos);
-        ET_ReturnCode eGetStressStatus(StTactGroup&, int iPos, ET_VowelStressRelation&);
-        ET_ReturnCode eContextMatch(StTactGroup& stTg, PhonemicContextAtom, ET_ContextDirection, int iPos);
-        ET_ReturnCode eMorphemeMatch(StTactGroup& stTg, MorphemicContextAtom, int iPos);
-        ET_ReturnCode eBoundaryMatch(StTactGroup& stTg, ET_Boundary, ET_ContextDirection eRightOrLeft, int iPos);
-        ET_ReturnCode eSubparadigmMatch(StTactGroup& stTg, const vector<ET_Subparadigm>& vecSp);
-        ET_ReturnCode eGenderMatch(StTactGroup& stTg, const vector<ET_Gender>& vecGenders);
-        ET_ReturnCode eNumberMatch(StTactGroup& stTg, const vector<ET_Number>& vecNumbers);
-        ET_ReturnCode eCaseMatch(StTactGroup& stTg, const vector<ET_Case>& vecCases);
+        ET_ReturnCode eHandleVowel(shared_ptr<StTactGroup>, int& iPos);
+        ET_ReturnCode eHandleConsonant(shared_ptr<StTactGroup>, int& iPos);
+        ET_ReturnCode eGetStressStatus(shared_ptr<StTactGroup>, int iPos, ET_VowelStressRelation&);
+        ET_ReturnCode eContextMatch(shared_ptr<StTactGroup> pTg, PhonemicContextAtom, ET_ContextDirection, int iPos);
+        ET_ReturnCode eMorphemeMatch(shared_ptr<StTactGroup> pTg, MorphemicContextAtom, int iPos);
+        ET_ReturnCode eBoundaryMatch(shared_ptr<StTactGroup> pTg, ET_Boundary, ET_ContextDirection eRightOrLeft, int iPos);
+        ET_ReturnCode eSubparadigmMatch(shared_ptr<StTactGroup> pTg, const vector<ET_Subparadigm>& vecSp);
+        ET_ReturnCode eGenderMatch(shared_ptr<StTactGroup> pTg, const vector<ET_Gender>& vecGenders);
+        ET_ReturnCode eNumberMatch(shared_ptr<StTactGroup> pTg, const vector<ET_Number>& vecNumbers);
+        ET_ReturnCode eCaseMatch(shared_ptr<StTactGroup> pTg, const vector<ET_Case>& vecCases);
         ET_ReturnCode eApplyTransform(StConsonant&, ET_Transform);
-        ET_ReturnCode eAddStressMark(StTactGroup&);
+        ET_ReturnCode eAddStressMark(shared_ptr<StTactGroup>);
 
     private:
         unordered_map<wchar_t, vector<StRule>> m_mapCharToRules;
