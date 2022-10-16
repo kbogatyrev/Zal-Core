@@ -1041,7 +1041,7 @@ ET_ReturnCode CAnalytics::eAddParsesToTactGroup(shared_ptr<StTactGroup> pCurrent
                 pNextTactGroup->llLineId = pNextWordParse->llLineDbId;
                 pNextTactGroup->m_vecParses.push_back(itInvariantSet->second);
                 pCurrentTactGroup->sSource += pNextWordParse->WordForm.sWordForm();
-                auto& setParses = *pCurrentTactGroup->m_vecParses.begin();
+//                auto& setParses = *pCurrentTactGroup->m_vecParses.begin();
                 pCurrentTactGroup->m_vecNext.push_back(pNextTactGroup);
                 auto eRc = eAddParsesToTactGroup(pNextTactGroup, iWordPos + 1);
                 if (eRc != H_NO_ERROR)
