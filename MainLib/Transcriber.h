@@ -84,10 +84,10 @@ namespace Hlib
         ET_ReturnCode eContextMatch(shared_ptr<StTactGroup> pTg, PhonemicContextAtom, ET_ContextDirection, int iPos);
         ET_ReturnCode eMorphemeMatch(shared_ptr<StTactGroup> pTg, MorphemicContextAtom, int iPos);
         ET_ReturnCode eBoundaryMatch(shared_ptr<StTactGroup> pTg, ET_Boundary, ET_ContextDirection eRightOrLeft, int iPos);
-        ET_ReturnCode eSubparadigmMatch([[maybe_unused]] shared_ptr<StTactGroup> pTg, [[maybe_unused]] const vector<ET_Subparadigm>& vecSp);
-        ET_ReturnCode eGenderMatch([[maybe_unused]] shared_ptr<StTactGroup> pTg, [[maybe_unused]] const vector<ET_Gender>& vecGenders);
-        ET_ReturnCode eNumberMatch([[maybe_unused]] shared_ptr<StTactGroup> pTg, [[maybe_unused]] const vector<ET_Number>& vecNumbers);
-        ET_ReturnCode eCaseMatch([[maybe_unused]] shared_ptr<StTactGroup> pTg, [[maybe_unused]] const vector<ET_Case>& vecCases);
+        ET_ReturnCode eSubparadigmMatch(shared_ptr<StTactGroup> pTg, const vector<ET_Subparadigm>& vecSp);
+        ET_ReturnCode eGenderMatch(shared_ptr<StTactGroup> pTg, const vector<ET_Gender>& vecGenders);
+        ET_ReturnCode eNumberMatch(shared_ptr<StTactGroup> pTg, const vector<ET_Number>& vecNumbers);
+        ET_ReturnCode eCaseMatch(shared_ptr<StTactGroup> pTg, const vector<ET_Case>& vecCases);
         ET_ReturnCode eApplyTransform(StConsonant&, ET_Transform);
         ET_ReturnCode eAddStressMark(shared_ptr<StTactGroup>);
 

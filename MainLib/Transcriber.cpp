@@ -1260,7 +1260,7 @@ ET_ReturnCode CTranscriber::eBoundaryMatch(shared_ptr<StTactGroup> pstTg, ET_Bou
 
 }       //  eBoundaryMatch()
 
-ET_ReturnCode CTranscriber::eSubparadigmMatch(shared_ptr<StTactGroup> pstTg, const vector<ET_Subparadigm>& vecSp)
+ET_ReturnCode CTranscriber::eSubparadigmMatch([[maybe_unused]] shared_ptr<StTactGroup> pstTg, [[maybe_unused]] const vector<ET_Subparadigm>& vecSp)
 {
     /*
     auto m_pstParse = *m_pstTg->m_vecParses[iWord].begin();&&&&
@@ -1273,7 +1273,7 @@ ET_ReturnCode CTranscriber::eSubparadigmMatch(shared_ptr<StTactGroup> pstTg, con
     return H_FALSE;
 }
 
-ET_ReturnCode CTranscriber::eGenderMatch(shared_ptr<StTactGroup> stTg, const vector<ET_Gender>& vecGenders)
+ET_ReturnCode CTranscriber::eGenderMatch([[maybe_unused]] shared_ptr<StTactGroup> stTg, [[maybe_unused]] const vector<ET_Gender>& vecGenders)
 {
     /*
     for (auto& stWordParse : pstTg.vecWords)
@@ -1285,7 +1285,7 @@ ET_ReturnCode CTranscriber::eGenderMatch(shared_ptr<StTactGroup> stTg, const vec
     return H_FALSE;
 }
 
-ET_ReturnCode CTranscriber::eNumberMatch(shared_ptr<StTactGroup> stTg, const vector<ET_Number>& vecNumbers)
+ET_ReturnCode CTranscriber::eNumberMatch([[maybe_unused]] shared_ptr<StTactGroup> stTg, [[maybe_unused]] const vector<ET_Number>& vecNumbers)
 {
     /*
     for (auto& stWordParse : pstTg.vecWords)
@@ -1297,7 +1297,7 @@ ET_ReturnCode CTranscriber::eNumberMatch(shared_ptr<StTactGroup> stTg, const vec
     return H_FALSE;
 }
 
-ET_ReturnCode CTranscriber::eCaseMatch(shared_ptr<StTactGroup> stTg, const vector<ET_Case>& vecCases)
+ET_ReturnCode CTranscriber::eCaseMatch([[maybe_unused]] shared_ptr<StTactGroup> stTg, [[maybe_unused]] const vector<ET_Case>& vecCases)
 {
     /*
     for (auto& stWordParse : pstTg.vecWords)
