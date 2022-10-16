@@ -1065,7 +1065,7 @@ ET_ReturnCode CTranscriber::eMorphemeMatch(shared_ptr<StTactGroup> pstTg, Morphe
         StMatchTypes(shared_ptr<StTactGroup> pstTg, int iPos, ET_ReturnCode eRet) : m_pstTg(pstTg), m_iPos(iPos), m_eRet(eRet) 
         {
             auto iWord = pstTg->iWordNumFromTextPos(iPos);
-            if (iWord >= pstTg->m_vecParses.size())
+            if (iWord >= (int)pstTg->m_vecParses.size())
             {
                 bError = true;
                 CEString sMsg(L"Illegal word position: ");
@@ -1077,8 +1077,8 @@ ET_ReturnCode CTranscriber::eMorphemeMatch(shared_ptr<StTactGroup> pstTg, Morphe
             }
             m_pstParse = *m_pstTg->m_vecParses[iWord].begin();  // TODO other parses in the invariant set may be structurally different,
                                                                 // should we check them all?
-            auto iStemLength = (int)(m_pstParse->WordForm.sWordForm().uiLength() -
-                                     m_pstParse->WordForm.sEnding().uiLength());
+//            auto iStemLength = (int)(m_pstParse->WordForm.sWordForm().uiLength() -
+//                                     m_pstParse->WordForm.sEnding().uiLength());          // TODO unused
         };
 
         // Enum match
