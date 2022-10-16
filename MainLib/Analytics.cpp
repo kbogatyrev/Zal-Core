@@ -492,7 +492,7 @@ ET_ReturnCode CAnalytics::eGetStress(shared_ptr<StTactGroup> pTg)
 
     for (int iWord = pTg->iFirstWordNum, iCount = 0; iCount < pTg->iNumOfWords; ++iWord, ++iCount)
     {
-        if (pTg->iNumOfWords < pTg->m_vecParses.size())
+        if (pTg->iNumOfWords < (int)pTg->m_vecParses.size())
         {
             CEString sMsg(L"Size of the parse array does not match number of words in the tact group.");
             return H_ERROR_UNEXPECTED;
@@ -920,7 +920,7 @@ ET_ReturnCode CAnalytics::eAddParsesToTactGroup(shared_ptr<StTactGroup> pCurrent
         return H_ERROR_POINTER;
     }
 
-    if (pCurrentTactGroup->m_vecParses.size() != pCurrentTactGroup->iNumOfWords)
+    if ((int)pCurrentTactGroup->m_vecParses.size() != pCurrentTactGroup->iNumOfWords)
     {
         CEString sMsg(L"Unexpected number of parses in tact group, word num ");
         sMsg += CEString::sToString(iWordPos) + L".";
@@ -964,7 +964,13 @@ ET_ReturnCode CAnalytics::eAddParsesToTactGroup(shared_ptr<StTactGroup> pCurrent
             pCurrentTactGroup->m_vecParses.push_back(itInvariantSet->second);
             pCurrentTactGroup->sSource += L" " + pNextWordParse->WordForm.sWordForm();
             auto eRc = eAddParsesToTactGroup(pCurrentTactGroup, iWordPos+1);
-            // TODO handle return code
+            if (eRc != H_NO_ERROR)
+            { 
+                CEString sMsg(L"Unable to add parse to the tact group, word position is ");
+                sMsg += CEString::sToString(iWordPos) + L".";
+                ERROR_LOG(sMsg);
+                continue;
+            }
         }
         else if (ET_WordStressType::WORD_STRESS_TYPE_PROCLITIC == pNextWordParse->eStressType)
         {
@@ -977,6 +983,13 @@ ET_ReturnCode CAnalytics::eAddParsesToTactGroup(shared_ptr<StTactGroup> pCurrent
                     pCurrentTactGroup->m_vecParses.push_back(itInvariantSet->second);
                     pCurrentTactGroup->sSource += L" " + pNextWordParse->WordForm.sWordForm();
                     auto eRc = eAddParsesToTactGroup(pCurrentTactGroup, iWordPos+1);
+                    if (eRc != H_NO_ERROR)
+                    {
+                        CEString sMsg(L"Unable to add parse to the tact group, word position is ");
+                        sMsg += CEString::sToString(iWordPos) + L".";
+                        ERROR_LOG(sMsg);
+                        continue;
+                    }
                 }
             }
             else
@@ -994,6 +1007,13 @@ ET_ReturnCode CAnalytics::eAddParsesToTactGroup(shared_ptr<StTactGroup> pCurrent
                 }
                 pCurrentTactGroup->m_vecNext.push_back(pNextTactGroup);
                 auto eRc = eAddParsesToTactGroup(pNextTactGroup, iWordPos+1);
+                if (eRc != H_NO_ERROR)
+                {
+                    CEString sMsg(L"Unable to add parse to the tact group, word position is ");
+                    sMsg += CEString::sToString(iWordPos) + L".";
+                    ERROR_LOG(sMsg);
+                    continue;
+                }
             }
         }
         else if (ET_WordStressType::WORD_STRESS_TYPE_CLITIC == pNextWordParse->eStressType)
@@ -1038,9 +1058,16 @@ ET_ReturnCode CAnalytics::eAddParsesToTactGroup(shared_ptr<StTactGroup> pCurrent
                 pNextTactGroup->llLineId = pNextWordParse->llLineDbId;
                 pNextTactGroup->m_vecParses.push_back(itInvariantSet->second);
                 pCurrentTactGroup->sSource += pNextWordParse->WordForm.sWordForm();
-                auto& setParses = *pCurrentTactGroup->m_vecParses.begin();
+//                auto& setParses = *pCurrentTactGroup->m_vecParses.begin();
                 pCurrentTactGroup->m_vecNext.push_back(pNextTactGroup);
                 auto eRc = eAddParsesToTactGroup(pNextTactGroup, iWordPos+1);
+                if (eRc != H_NO_ERROR)
+                {
+                    CEString sMsg(L"Unable to add parse to the tact group, word position is ");
+                    sMsg += CEString::sToString(iWordPos) + L".";
+                    ERROR_LOG(sMsg);
+                    continue;
+                }
             }
         }
     }           // for (auto itInvariantSet ...)
