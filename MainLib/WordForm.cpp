@@ -125,6 +125,7 @@ ET_ReturnCode CWordForm::eInitFromHash (const CEString& sHash)
     }
     catch (CException& ex)
     {
+        ERROR_LOG(ex.szGetDescription());
         return H_EXCEPTION;  // logging should be always done by callee
     }
 
@@ -156,6 +157,7 @@ ET_ReturnCode CWordForm::eGetFirstStressPos(int& iPos, ET_StressType& eType)
     }
     catch (CException& ex)
     {
+        ERROR_LOG(ex.szGetDescription());
         return H_EXCEPTION;
     }
 
@@ -182,6 +184,7 @@ ET_ReturnCode CWordForm::eGetNextStressPos(int& iPos, ET_StressType& eType)
     }
     catch (CException& ex)
     {
+        ERROR_LOG(ex.szGetDescription());
         return H_EXCEPTION;
     }
 

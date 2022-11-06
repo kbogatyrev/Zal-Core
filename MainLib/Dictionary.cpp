@@ -480,49 +480,46 @@ ET_ReturnCode CDictionary::eGetLexemesByInitialForm(const CEString& sSource)
 
     m_pDb->Finalize(uiQueryHandle);
 
-    if (!bFound)
-    {
-        CEString sSpryazhSmQuery(sQueryBase);
-        sSpryazhSmQuery += L", no_aspect_pair ";
-        sSpryazhSmQuery += L"FROM headword INNER JOIN spryazh_sm_headwords ON headword.id = spryazh_sm_headwords.headword_id ";
-        sSpryazhSmQuery += L"INNER JOIN descriptor ON spryazh_sm_headwords.ref_descriptor_id = descriptor.id ";
-        sSpryazhSmQuery += L"LEFT OUTER JOIN inflection ON descriptor.id = inflection.descriptor_id ";
-        sSpryazhSmQuery += L"WHERE headword.source = \"";
-        sSpryazhSmQuery += sSource;
-        sSpryazhSmQuery += L"\"";
+    CEString sSpryazhSmQuery(sQueryBase);
+    sSpryazhSmQuery += L", no_aspect_pair ";
+    sSpryazhSmQuery += L"FROM headword INNER JOIN spryazh_sm_headwords ON headword.id = spryazh_sm_headwords.headword_id ";
+    sSpryazhSmQuery += L"INNER JOIN descriptor ON spryazh_sm_headwords.ref_descriptor_id = descriptor.id ";
+    sSpryazhSmQuery += L"LEFT OUTER JOIN inflection ON descriptor.id = inflection.descriptor_id ";
+    sSpryazhSmQuery += L"WHERE headword.source = \"";
+    sSpryazhSmQuery += sSource;
+    sSpryazhSmQuery += L"\"";
 
-        uiQueryHandle = 0;
-        rc = eQueryDb(sSpryazhSmQuery, uiQueryHandle);
-        if (H_NO_ERROR != rc)
+    uiQueryHandle = 0;
+    rc = eQueryDb(sSpryazhSmQuery, uiQueryHandle);
+    if (H_NO_ERROR != rc)
+    {
+        return rc;
+    }
+
+    while (H_NO_ERROR == rc)
+    {
+        shared_ptr<CLexeme> pLexeme = make_shared<CLexeme>(this);
+        if (nullptr == pLexeme)
         {
+            return H_ERROR_POINTER;
+        }
+
+        auto bSpryazhSm = true;
+        rc = eGetSingleRow(pLexeme->stGetPropertiesForWriteAccess(), uiQueryHandle, bSpryazhSm);
+        if (H_NO_ERROR == rc)
+        {
+            bFound = true;
+            m_vecLexemes.push_back(pLexeme);
+        }
+        if (H_NO_ERROR != rc && H_NO_MORE != rc)
+        {
+            Clear();
+            pLexeme = nullptr;
+            ERROR_LOG(L"Error retrieving lexeme data.");
             return rc;
         }
-
-        while (H_NO_ERROR == rc)
-        {
-            shared_ptr<CLexeme> pLexeme = make_shared<CLexeme>(this);
-            if (nullptr == pLexeme)
-            {
-                return H_ERROR_POINTER;
-            }
-
-            auto bSpryazhSm = true;
-            rc = eGetSingleRow(pLexeme->stGetPropertiesForWriteAccess(), uiQueryHandle, bSpryazhSm);
-            if (H_NO_ERROR == rc)
-            {
-                bFound = true;
-                m_vecLexemes.push_back(pLexeme);
-            }
-            if (H_NO_ERROR != rc && H_NO_MORE != rc)
-            {
-                Clear();
-                pLexeme = nullptr;
-                ERROR_LOG(L"Error retrieving lexeme data.");
-                return rc;
-            }
-        }
-        m_pDb->Finalize(uiQueryHandle);
     }
+    m_pDb->Finalize(uiQueryHandle);
 
     for (auto& pLexeme : m_vecLexemes)
     {

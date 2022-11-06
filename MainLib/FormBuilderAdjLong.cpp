@@ -534,6 +534,7 @@ ET_ReturnCode CFormBuilderLongAdj::eBuild()
     }
     catch (CException& ex)
     {
+        ERROR_LOG(ex.szGetDescription());
         return H_EXCEPTION;  // logging should be always done by callee
     }
 
@@ -652,6 +653,7 @@ ET_ReturnCode CFormBuilderLongAdj::eBuildParticiple()
     }
     catch (CException& ex)
     {
+        ERROR_LOG(ex.szGetDescription());
         return H_EXCEPTION;  // logging should be always done by callee
     }
 

@@ -651,7 +651,7 @@ ET_ReturnCode CFormBuilderShortAdj::eBuild()
                                             try {
                                                 --vecStressPos.at(iAt);
                                             }
-                                            catch (const out_of_range& ex) {
+                                            catch (const out_of_range) {
                                                 assert(0);
                                                 ERROR_LOG(L"Stress position item out of range.");
                                             }
@@ -747,8 +747,9 @@ ET_ReturnCode CFormBuilderShortAdj::eBuild()
 
         }   //  for (ET_Gender eGender = GENDER_UNDEFINED; ...
     }
-    catch (const CException& ex)
+    catch (CException& ex)
     {
+        ERROR_LOG(ex.szGetDescription());
         return H_EXCEPTION;  // logging should be always done by callee
     }
 

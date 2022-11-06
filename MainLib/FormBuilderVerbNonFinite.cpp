@@ -694,6 +694,7 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastAdverbial()
     }
     catch (CException& ex)
     {
+        ERROR_LOG(ex.szGetDescription());
         return H_EXCEPTION;
     }
 

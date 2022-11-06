@@ -298,6 +298,7 @@ ET_ReturnCode CFormBuilderComparative::eBuild()
     }
     catch (CException& ex)
     {
+        ERROR_LOG(ex.szGetDescription());
         return H_EXCEPTION;  // logging should be always done by callee
     }
 
