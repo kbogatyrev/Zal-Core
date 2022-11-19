@@ -30,20 +30,8 @@ protected:
     bool bHasIrregularPresent();
     bool bHasIrregularPast();
     bool bHasIrregularImperative();
-    bool bHasIrregularActivePartPast();
-    bool bHasIrregularPassivePartPast();
 
-//    void Get1SgIrregular (vector<CWordForm *>&);
-//    void Get3SgIrregular (vector<CWordForm *>&);
-//    void Get3PlIrregular (vector<CWordForm *>&);
     ET_ReturnCode eGetIrregularForms(CEString sHash, vector<CWordForm *>&); // get irregular form; fill stress pos for monosyll
-
-//    void GetPastMIrregular (vector<CWordForm *>&);
-//    ET_ReturnCode h_GetPastFIrregular (StIrregularForm& stIf);
-
-//    ET_ReturnCode h_GetPastPartActIrregular (StIrregularForm& stIf);
-
-//    ET_ReturnCode hGetPastPartPassNSgIrregular (StIrregularForm& stIf);
 };
 
 }

@@ -19,19 +19,6 @@ ET_ReturnCode CFormBuilderConj::eBuildVerbStems()
     CEString& s3SgStem = stProperties.s3SgStem;
     CEString sVerbStemAlternation = stProperties.sVerbStemAlternation;  // immutable
 
-/*
-    if (sInfinitive.b_EndsWith (L"ться") || 
-        sInfinitive.b_EndsWith (L"тись") || 
-        sInfinitive.b_EndsWith (L"чься"))
-    {
-        m_pLexeme->eo_Reflexive = REFL_YES;
-    }
-    else
-    {
-        m_pLexeme->eo_Reflexive = REFL_NO;
-    }
-*/
-
     sInfStem = stProperties.sGraphicStem;
 
     switch (m_pLexeme->iType())

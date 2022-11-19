@@ -454,6 +454,8 @@ ET_ReturnCode CDictionary::eGetLexemesByInitialForm(const CEString& sSource)
         return rc;
     }
 
+    vector<shared_ptr<CLexeme>> vecLexemesFound;
+
     bool bFound = false;
     while (H_NO_ERROR == rc)
     {
@@ -467,7 +469,8 @@ ET_ReturnCode CDictionary::eGetLexemesByInitialForm(const CEString& sSource)
         if (H_NO_ERROR == rc)
         {
             bFound = true;
-            m_vecLexemes.push_back(pLexeme);
+//            m_vecLexemes.push_back(pLexeme);
+            vecLexemesFound.push_back(pLexeme);
         }
         if (H_NO_ERROR != rc && H_NO_MORE != rc)
         {
@@ -509,7 +512,8 @@ ET_ReturnCode CDictionary::eGetLexemesByInitialForm(const CEString& sSource)
         if (H_NO_ERROR == rc)
         {
             bFound = true;
-            m_vecLexemes.push_back(pLexeme);
+//            m_vecLexemes.push_back(pLexeme);
+            vecLexemesFound.push_back(pLexeme);
         }
         if (H_NO_ERROR != rc && H_NO_MORE != rc)
         {
@@ -521,7 +525,8 @@ ET_ReturnCode CDictionary::eGetLexemesByInitialForm(const CEString& sSource)
     }
     m_pDb->Finalize(uiQueryHandle);
 
-    for (auto& pLexeme : m_vecLexemes)
+    //    for (auto& pLexeme : m_vecLexemes)
+    for (auto& pLexeme : vecLexemesFound)
     {
         if (pLexeme->stGetProperties().llSecondPartId > 0)
         {
@@ -529,12 +534,20 @@ ET_ReturnCode CDictionary::eGetLexemesByInitialForm(const CEString& sSource)
             rc = eGetSecondPart(pLexeme->stGetProperties().llSecondPartId, spSecondLexeme);
             pLexeme->SetSecondPart(spSecondLexeme);
         }
+
+        if (pLexeme->stGetProperties().bSpryazhSm)
+        {
+            pLexeme->eHandleSpryazhSmForms();   // currently, it is always H_NO_ERROR
+        }
     }
 
     if (H_NO_MORE == rc && !bFound)
     {
         return H_FALSE;
     }
+
+    m_vecLexemes.insert(m_vecLexemes.end(), make_move_iterator(vecLexemesFound.begin()),
+        make_move_iterator(vecLexemesFound.end()));
 
     return rc;
 
