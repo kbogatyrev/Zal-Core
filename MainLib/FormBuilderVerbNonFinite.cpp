@@ -107,34 +107,38 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildInfinitive()
             return rc;
         }
 
-        ((CInfinitiveEndings *)m_pEndings)->eSelect(m_pLexeme->iType());
+        bool bHasRegularEnding{ true };
+        ((CInfinitiveEndings*)m_pEndings)->eSelect(m_pLexeme->iType());
         int64_t iNumEndings = m_pEndings->iCount();
         if (iNumEndings < 1)
         {
             CEString sMsg(L"No ending or too many endings; lexeme = ");
             sMsg += m_pLexeme->sSourceForm();
-            return H_ERROR_UNEXPECTED;
+            bHasRegularEnding = false;
+            //            return H_ERROR_UNEXPECTED;
         }
 
+        auto iForms = bHasRegularEnding ? iNumEndings : 1;
         vector <CWordForm *> vecWordForms;
-        for (int iEnding = 0; (rc == H_NO_ERROR && iEnding < iNumEndings); ++iEnding)
+        for (int iEnding = 0; (rc == H_NO_ERROR && iEnding < iForms); ++iEnding)
         {
-            CEString sEnding;
             int64_t llEndingKey = -1;
-            rc = m_pEndings->eGetEnding(iEnding, sEnding, llEndingKey);
-            if (rc != H_NO_ERROR)
+            if (bHasRegularEnding)
             {
-                continue;
+                CEString sEnding;
+                rc = m_pEndings->eGetEnding(iEnding, sEnding, llEndingKey);
+                if (rc != H_NO_ERROR)
+                {
+                    continue;
+                }
             }
-
-            CWordForm * pWordForm = new CWordForm();
+            CWordForm* pWordForm = new CWordForm();
             if (NULL == pWordForm)
             {
                 assert(0);
                 ERROR_LOG(L"Unable to instantiate CWordForm.");
                 return H_ERROR_POINTER;
             }
-
             pWordForm->m_pLexeme = m_pLexeme;
             pWordForm->m_ePos = POS_VERB;
             pWordForm->m_eSubparadigm = SUBPARADIGM_INFINITIVE;
@@ -2442,7 +2446,6 @@ ET_ReturnCode CFormBuilderNonFinite::eDeriveIrregPresActiveParticiple()
         ERROR_LOG (L"Irregular 3 Pl form not found in database.");
         return H_ERROR_UNEXPECTED;
     }
-
     map<CWordForm *, bool>::iterator itWf = map3PlIrreg.begin();
     for (; itWf != map3PlIrreg.end(); ++itWf)
     {
