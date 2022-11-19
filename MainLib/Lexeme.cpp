@@ -469,12 +469,6 @@ ET_ReturnCode CLexeme::eWordFormFromHash(CEString sHash, int iAt, CWordForm *& p
     pairRange = m_mmWordForms.equal_range(sHash);
     if (pairRange.first == pairRange.second)
     {
-//        assert(0);
-//        CEString sMsg(L"Unable to locate word form in collection, hash = ");
-//        sMsg += sHash;
-//        sMsg += L".";
-//        ERROR_LOG(sMsg);
-//        return H_ERROR_UNEXPECTED;
         return H_FALSE;     // form does not exist; this is common, cf. locative, non-existent participia, etc.
     }
 
@@ -2061,10 +2055,10 @@ ET_ReturnCode CLexeme::eGenerateParadigm()
 
     try
     {
-        if (m_stProperties.bSpryazhSm)
-        {
-            rc = eHandleSpryazhSmForms();
-        }
+//        if (m_stProperties.bSpryazhSm)
+//        {
+//            rc = eHandleSpryazhSmForms();
+//        }
 
         if (m_stProperties.bHasIrregularForms || POS_NUM == m_stProperties.ePartOfSpeech)
         {
@@ -2171,7 +2165,6 @@ ET_ReturnCode CLexeme::eGenerateParadigm()
         if (m_stProperties.ePartOfSpeech == POS_VERB)
         {
             m_stProperties.eAspect = ASPECT_UNDEFINED;
-//            if (L"нсв" == str_MainSymbol)
             if (L"нсв" == m_stProperties.sInflectionType)
             {
                 m_stProperties.eAspect = ASPECT_IMPERFECTIVE;
