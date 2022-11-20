@@ -121,6 +121,18 @@ target_sources (ZalMainLib PRIVATE
 # ---------------------------------------------------------------
 
 #
+#	String test
+#
+
+add_executable (ZalStringTest)
+
+target_sources (ZalStringTest PRIVATE
+	HLib/StringTest.cpp
+)
+
+# ---------------------------------------------------------------
+
+#
 #	Standalone analytics
 #
 
