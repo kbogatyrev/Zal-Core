@@ -985,7 +985,7 @@ namespace Hlib
         CDictionary * m_pDictionary;
         shared_ptr<CLexeme> m_spSecondPart;
         vector<CEString> m_vecHypotheticalForms;     //  gram hashes of missing forms that were generated anyway 
-                                                //  to be used in generation of other forms
+                                                     //  to be used in generation of other forms
 
         // Word forms
         multimap<CEString, CWordForm *>::iterator m_itCurrentWordForm;

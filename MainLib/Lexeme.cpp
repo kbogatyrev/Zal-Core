@@ -2053,13 +2053,13 @@ ET_ReturnCode CLexeme::eGenerateParadigm()
 {
     ET_ReturnCode rc = H_NO_ERROR;
 
+    if (m_bFormsGenerated)
+    {
+        return rc;
+    }
+
     try
     {
-//        if (m_stProperties.bSpryazhSm)
-//        {
-//            rc = eHandleSpryazhSmForms();
-//        }
-
         if (m_stProperties.bHasIrregularForms || POS_NUM == m_stProperties.ePartOfSpeech)
         {
             rc = eLoadIrregularForms();
@@ -2098,7 +2098,6 @@ ET_ReturnCode CLexeme::eGenerateParadigm()
             rc = bn.eBuild();
             if (m_spSecondPart)
             {
-//                auto& stProperties = m_spSecondPart->stGetPropertiesForWriteAccess();
                 rc = m_spSecondPart->eGenerateParadigm();
                 rc = eAlignInflectedParts();
             }
@@ -2116,7 +2115,6 @@ ET_ReturnCode CLexeme::eGenerateParadigm()
                 }
                 if (m_spSecondPart)
                 {
-//                    auto& stProperties = m_spSecondPart->stGetPropertiesForWriteAccess();
                     rc = m_spSecondPart->eGenerateParadigm();
                 }
             }
