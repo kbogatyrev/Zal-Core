@@ -651,9 +651,11 @@ ET_ReturnCode CFormBuilderShortAdj::eBuild()
                                             try {
                                                 --vecStressPos.at(iAt);
                                             }
-                                            catch (const out_of_range) {
+                                            catch (const out_of_range& oor) {
                                                 assert(0);
-                                                ERROR_LOG(L"Stress position item out of range.");
+                                                CEString sMsg(L"Stress position item out of range: ");
+                                                sMsg += CEString::sFromUtf8(oor.what());
+                                                ERROR_LOG(sMsg);
                                             }
                                         }
                                     }
