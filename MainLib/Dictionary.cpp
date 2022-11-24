@@ -469,7 +469,6 @@ ET_ReturnCode CDictionary::eGetLexemesByInitialForm(const CEString& sSource)
         if (H_NO_ERROR == rc)
         {
             bFound = true;
-//            m_vecLexemes.push_back(pLexeme);
             vecLexemesFound.push_back(pLexeme);
         }
         if (H_NO_ERROR != rc && H_NO_MORE != rc)
@@ -512,7 +511,6 @@ ET_ReturnCode CDictionary::eGetLexemesByInitialForm(const CEString& sSource)
         if (H_NO_ERROR == rc)
         {
             bFound = true;
-//            m_vecLexemes.push_back(pLexeme);
             vecLexemesFound.push_back(pLexeme);
         }
         if (H_NO_ERROR != rc && H_NO_MORE != rc)
@@ -525,7 +523,6 @@ ET_ReturnCode CDictionary::eGetLexemesByInitialForm(const CEString& sSource)
     }
     m_pDb->Finalize(uiQueryHandle);
 
-    //    for (auto& pLexeme : m_vecLexemes)
     for (auto& pLexeme : vecLexemesFound)
     {
         if (pLexeme->stGetProperties().llSecondPartId > 0)
