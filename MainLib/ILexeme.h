@@ -206,7 +206,8 @@ namespace Hlib
         virtual ET_ReturnCode eIsFormAssumed(const CEString& sGramHash) = 0;
         virtual ET_ReturnCode eSetHasAssumedForms(bool bIsAssumed) = 0;
         virtual bool bIsMultistressedCompound() = 0;
-        virtual ET_ReturnCode eGetSourceFormWithStress(CEString& sSourceForm, bool bIsVariant=false) = 0;
+        virtual ET_ReturnCode eGetSourceFormWithDiacritics(CEString& sSourceForm, bool bIsVariant = false) = 0;  // real diacritics
+        virtual ET_ReturnCode eGetSourceFormWithStress(CEString& sSourceForm, bool bIsVariant=false) = 0;   // inline stress marks
         virtual ET_ReturnCode eGetFirstStemStressPos(int& iPos) = 0;
         virtual ET_ReturnCode eGetNextStemStressPos(int& iPos) = 0;
         virtual ET_ReturnCode eGetFirstSecondaryStemStressPos(int& iPos) = 0;

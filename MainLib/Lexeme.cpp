@@ -3085,6 +3085,59 @@ ET_ReturnCode CLexeme::eGetSourceFormWithStress(CEString& sSourceForm, bool bIsV
 
 }   //  eGetSourceFormWithStress()
 
+ET_ReturnCode CLexeme::eGetSourceFormWithDiacritics(CEString& sSourceForm, bool bIsVariant)
+{
+    CEString sRet = bIsVariant ? m_stProperties.sHeadwordVariant : m_stProperties.sSourceForm;
+    vector<int> vecStressedSyllables = bIsVariant ? m_stProperties.vecSourceVariantStressPos : m_stProperties.vecSourceStressPos;
+    vector<int> vecSecondaryStressedSyllables = bIsVariant ? m_stProperties.vecSecondaryVariantStressPos : m_stProperties.vecSecondaryStressPos;
+
+    map<int, bool> mapStressedVowelPositions;
+
+    try
+    {
+        for (auto iSyll : vecStressedSyllables)
+        {
+            int iVowelPos = m_stProperties.sSourceForm.uiGetVowelPos(iSyll);
+            mapStressedVowelPositions[iVowelPos] = true;
+        }
+
+        for (auto iSyll : vecSecondaryStressedSyllables)
+        {
+            int iVowelPos = m_stProperties.sSourceForm.uiGetVowelPos(iSyll);
+            mapStressedVowelPositions[iVowelPos] = false;
+        }
+
+        int iIncrement = 0;
+        for (auto&& pairVowelPos : mapStressedVowelPositions)
+        {
+            if (pairVowelPos.second)
+            {
+                sRet.sInsert((unsigned int)(pairVowelPos.first + iIncrement), Hlib::CEString::g_chrCombiningAcuteAccent);
+                ++iIncrement;
+            }
+            else
+            {
+                sRet.sInsert((unsigned int)(pairVowelPos.first + iIncrement), Hlib::CEString::g_chrCombiningGraveAccent);
+                ++iIncrement;
+            }
+        }
+    }
+    catch (CException& ex)
+    {
+        ERROR_LOG(ex.szGetDescription());
+        return H_EXCEPTION;
+    }
+    catch (...)
+    {
+        ERROR_LOG(L"Unknown exception.");
+    }
+
+    sSourceForm = sRet;
+
+    return H_NO_ERROR;
+
+}   //  eGetSourceFormWithDiacritics()
+
 ET_ReturnCode CLexeme::eGetFirstStemStressPos (int& iPos)
 {
     sort(m_stProperties.vecSourceStressPos.begin(), m_stProperties.vecSourceStressPos.end());   // edge case but...

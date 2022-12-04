@@ -867,6 +867,7 @@ namespace Hlib
         virtual bool bFindStandardAlternation(const CEString& sKey, CEString& sValue);
 
         virtual ET_ReturnCode eGetSourceFormWithStress(CEString& sSourceForm, bool bIsVariant=false);
+        virtual ET_ReturnCode eGetSourceFormWithDiacritics(CEString& sSourceForm, bool bIsVariant = false);
         virtual ET_ReturnCode eGetFirstStemStressPos(int& iPos);
         virtual ET_ReturnCode eGetNextStemStressPos(int& iPos);
         virtual ET_ReturnCode eGetFirstSecondaryStemStressPos(int& iPos);
