@@ -1011,11 +1011,6 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPresentPassiveParticiple()
     // Irregular participle
     //
     rc = eBuildIrregParticipialFormsLong (SUBPARADIGM_PART_PRES_PASS_LONG);
-//    if (H_NO_ERROR == rc)    // found irregular part. pass. praes.
-//    {
-//        rc = eDeriveIrregPartPresPassShort (STATUS_COMMON); // i don't know how to set it
-//        return rc;
-//    }
 
     if (L"св" == m_pLexeme->sMainSymbol() || !m_pLexeme->bTransitive() || REFL_YES == m_pLexeme->eIsReflexive())
     {
@@ -1030,10 +1025,6 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPresentPassiveParticiple()
         if (bHasIrregularPresent())
         {
             rc = eDeriveIrregPresPassiveParticiple();
-//            if (H_NO_ERROR == rc)
-//            {
-//                rc = eDeriveIrregPartPresPassShort (STATUS_COMMON); // i don't know how to set it
-//            }
             return rc;
         }
     }
@@ -1092,125 +1083,6 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPresentPassiveParticiple()
         rc = eBuildPresPassPartFromSourceForm(p1Pl);
     }
 
-/*
-        int iGroup = -1;       // GDRL, p.86
-        if (s1Pl.bEndsWith(L"ем") &&
-            p1Pl->m_mapStress.find(s1Pl.uiLength() - 2) == p1Pl->m_mapStress.end() &&
-            CEString::bIn(s1Pl[s1Pl.uiLength() - 3], g_szRusVowels))
-        {
-            assert((1 == m_pLexeme->iType() && AT_A == m_pLexeme->eAccentType1()) ||
-                (2 == m_pLexeme->iType() && AT_A == m_pLexeme->eAccentType1()) ||
-                (12 == m_pLexeme->iType() && AT_A == m_pLexeme->eAccentType1()) ||
-                (6 == m_pLexeme->iType() && AT_A == m_pLexeme->eAccentType1() &&
-                    m_pLexeme->sSourceForm().bEndsWith(L"ять")) || 13 == m_pLexeme->iType());
-            iGroup = 1;
-        }
-        else if (4 == m_pLexeme->iType())
-        {
-            iGroup = 2;
-        }
-        else if (5 == m_pLexeme->iType() ||
-            (6 == m_pLexeme->iType() && m_pLexeme->sSourceForm().bEndsWith(L"ать")) ||
-            (6 == m_pLexeme->iType() && 1 == m_pLexeme->iStemAugment()) ||
-            (7 == m_pLexeme->iType()))
-        {
-            //        слышать видеть гнать (терпеть зреть?)
-            if (5 == m_pLexeme->iType())
-            {
-                vector<CEString> vecAllowed{ L"слышать", L"видеть", L"гнать" };     // Предисловие, с. 105
-                auto sSourceForm = m_pLexeme->sSourceForm();
-                if (!any_of(vecAllowed.begin(), vecAllowed.end(), [sSourceForm](CEString sAllowedForm) { return sSourceForm == sAllowedForm; }))
-                {
-                    return H_NO_ERROR;
-                }
-            }
-            //        глаголать колебать колыхать
-            if (6 == m_pLexeme->iType())
-            {
-                vector<CEString> vecAllowed{ L"глаголать", L"колебать", L"колыхать", L"двигать" };
-                auto sSourceForm = m_pLexeme->sSourceForm();
-                if (!any_of(vecAllowed.begin(), vecAllowed.end(), [sSourceForm](CEString sAllowedForm) { return sSourceForm == sAllowedForm; }))
-                {
-                    return H_NO_ERROR;
-                }
-            }
-
-            //        везти пасти нести вести
-            if (7 == m_pLexeme->iType())
-            {
-                vector<CEString> vecAllowed{ L"везти", L"пасти", L"нести", L"вести" };
-                auto sSourceForm = m_pLexeme->sSourceForm();
-                if (!any_of(vecAllowed.begin(), vecAllowed.end(), [sSourceForm](CEString sAllowedForm) { return sSourceForm == sAllowedForm; }))
-                {
-                    return H_NO_ERROR;
-                }
-            }
-
-            iGroup = 3;
-        }
-
-        if (iGroup < 1)
-        {
-            return H_NO_ERROR;
-        }
-
-        CEString sStem;
-        if (13 == m_pLexeme->iType())
-        {
-            sStem = m_pLexeme->sInfStem();
-            sStem += L"ем";
-        }
-        else
-        {
-            sStem = p1Pl->m_sWordForm;
-            if (sStem.bEndsWith(L"ём"))
-            {
-                if (CEString::bIn(sStem[sStem.uiLength() - 3], g_szRusConsonants))
-                {
-                    sStem.sReplace(sStem.uiLength() - 2, 2, L"ом");
-                }
-            }
-
-            if (3 == iGroup && 6 == m_pLexeme->iType() && m_pLexeme->sSourceForm() == L"двигать")
-            {
-                sStem = L"движим";
-            }
-        }
-
-        ET_Status eStatus = (1 != iGroup) ? STATUS_RARE : STATUS_COMMON;
-
-        ET_Subparadigm eSp(SUBPARADIGM_PART_PRES_PASS_LONG);
-        vector<int> vecStress;
-        rc = eGetParticipleStressPos(eSp, vecStress);
-        if (rc != H_NO_ERROR)
-        {
-            return rc;
-        }
-
-        vector<int>::iterator itStress = vecStress.begin();
-        for (; (H_NO_ERROR == rc) && (itStress != vecStress.end()); ++itStress)
-        {
-            CFormBuilderLongAdj co_long(m_pLexeme, sStem, AT_A, eSp, *itStress, eStatus);
-            rc = co_long.eBuildParticiple();
-
-            eSp = SUBPARADIGM_PART_PRES_PASS_SHORT;
-            bool bYoAlternation = false;
-            bool bFleetingVowel = false;
-            CFormBuilderShortAdj shortAdj(m_pLexeme,
-                bYoAlternation,
-                sStem,
-                eSp,
-                AT_A,
-                AT_A,
-                vector<int>(1, *itStress),
-                bFleetingVowel);
-            shortAdj.SetUsageStatus(eStatus);
-            rc = shortAdj.eBuild();
-        }
-    }       //  for (auto nSourceForm = 0; ...
-
-    m_pLexeme->SetHasPresPassParticiple(true);
-*/
     return H_NO_ERROR;
 
 }   //  eBuildPresentPassPart()
@@ -1794,7 +1666,7 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPresPassPartFromSourceForm(CWordForm 
             auto sSourceForm = m_pLexeme->sSourceForm();
             if (!any_of(vecAllowed.begin(), vecAllowed.end(), [sSourceForm](CEString sAllowedForm) { return sSourceForm == sAllowedForm; }))
             {
-                return H_NO_ERROR;
+                return H_FALSE;
             }
         }
         //        глаголать колебать колыхать
@@ -1804,7 +1676,7 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPresPassPartFromSourceForm(CWordForm 
             auto sSourceForm = m_pLexeme->sSourceForm();
             if (!any_of(vecAllowed.begin(), vecAllowed.end(), [sSourceForm](CEString sAllowedForm) { return sSourceForm == sAllowedForm; }))
             {
-                return H_NO_ERROR;
+                return H_FALSE;
             }
         }
 
@@ -1815,7 +1687,7 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPresPassPartFromSourceForm(CWordForm 
             auto sSourceForm = m_pLexeme->sSourceForm();
             if (!any_of(vecAllowed.begin(), vecAllowed.end(), [sSourceForm](CEString sAllowedForm) { return sSourceForm == sAllowedForm; }))
             {
-                return H_NO_ERROR;
+                return H_FALSE;
             }
         }
 
@@ -1828,7 +1700,7 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPresPassPartFromSourceForm(CWordForm 
 
     if (iGroup < 1)
     {
-        return H_NO_ERROR;
+        return H_FALSE;
     }
 
     CEString sStem;
