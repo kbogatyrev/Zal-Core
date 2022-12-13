@@ -2364,6 +2364,7 @@ ET_ReturnCode CDictionary::eSaveCommonDeviation(ILexeme * pLexeme)
     }
     catch (CException& ex)
     {
+        m_pDb->RollbackTransaction();
         ERROR_LOG(ex.szGetDescription());
         return H_EXCEPTION;
     }
