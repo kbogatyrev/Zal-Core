@@ -139,7 +139,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>..\HLib;..\ThirdParty\Sqlite;..\ThirdParty\sha1;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <OutDir>..\..\Zal-Core\out-win\build\x64-Debug</OutDir>
+    <OutDir>..\..\Zal-Core\out\build\x64-Debug\</OutDir>
     <SourcePath>$(SourcePath)</SourcePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -148,7 +148,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>..\HLib;..\ThirdParty\Sqlite;..\ThirdParty\sha1;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <OutDir>..\..\Zal-Core\out-win\build\x64-Release</OutDir>
+    <OutDir>..\..\Zal-Core\out\build\x64-Release\</OutDir>
     <SourcePath>$(SourcePath)</SourcePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -180,6 +180,9 @@
       <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>MainLib.def</ModuleDefinitionFile>
     </Link>
+    <PostBuildEvent>
+      <Command>copy ..\out\build\x64-debug\ZalMainLib.dll ..\..\Zal-Windows\TestApp\bin\Debug\ &amp;&amp; copy ..\out\build\x64-debug\ZalMainLib.lib ..\..\Zal-Windows\TestApp\bin\Debug\</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -218,6 +221,9 @@
       <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>MainLib.def</ModuleDefinitionFile>
     </Link>
+    <PostBuildEvent>
+      <Command>copy ..\out\build\x64-release\ZalMainLib.dll ..\..\Zal-Windows\TestApp\bin\Release\ &amp;&amp; copy ..\out\build\x64-release\ZalMainLib.lib ..\..\Zal-Windows\TestApp\bin\Release\</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
