@@ -543,7 +543,7 @@ ET_ReturnCode CLexeme::eRemoveWordForms(CEString sHash)
     auto pairRange = m_mmapIrregularForms.equal_range(sHash);
     if (pairRange.first == pairRange.second)
     {
-        assert(0);
+//        assert(0);  NB this may be legit, e.g., when there was not irreg. forms before editing
         ERROR_LOG(L"Unable to locate word form in collection.");
         return H_ERROR_UNEXPECTED;
     }
