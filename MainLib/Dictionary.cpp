@@ -2430,6 +2430,7 @@ ET_ReturnCode CDictionary::eSaveInflectionInfo(ILexeme * pLexeme)
     catch (CException& ex)
     {
         ERROR_LOG(ex.szGetDescription());
+        m_pDb->RollbackTransaction();
         return H_EXCEPTION;
     }
 
