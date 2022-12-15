@@ -1966,7 +1966,6 @@ ET_ReturnCode CDictionary::eUpdateHeadword(ILexeme* pLexeme)
     catch (CException& ex)
     {
         m_pDb->RollbackTransaction();
-
         ERROR_LOG(ex.szGetDescription());
         return H_EXCEPTION;
     }
@@ -2185,7 +2184,6 @@ ET_ReturnCode CDictionary::eSaveHeadwordStress(ILexeme* pLexeme)
     catch (CException& ex)
     {
         m_pDb->RollbackTransaction();
-
         ERROR_LOG(ex.szGetDescription());
         return H_EXCEPTION;
     }
@@ -2279,6 +2277,7 @@ ET_ReturnCode CDictionary::eSaveAspectPairInfo(ILexeme * pLexeme)
     catch (CException& ex)
     {
         ERROR_LOG(ex.szGetDescription());
+        m_pDb->RollbackTransaction();
         return H_EXCEPTION;
     }
 
@@ -2317,6 +2316,7 @@ ET_ReturnCode CDictionary::eSaveP2Info(ILexeme * pLexeme)
     catch (CException& ex)
     {
         ERROR_LOG(ex.szGetDescription());
+        m_pDb->RollbackTransaction();
         return H_EXCEPTION;
     }
 
@@ -2535,6 +2535,7 @@ ET_ReturnCode CDictionary::eUpdateDescriptorInfo(ILexeme * pLexeme)
     }
     catch (CException& ex)
     {
+        m_pDb->RollbackTransaction();
         ERROR_LOG(ex.szGetDescription());
         return H_EXCEPTION;
     }
@@ -2639,6 +2640,7 @@ ET_ReturnCode CDictionary::eSaveDescriptorInfo(ILexeme* pLexeme)
     catch (CException& ex)
     {
         ERROR_LOG(ex.szGetDescription());
+        m_pDb->RollbackTransaction();
         return H_EXCEPTION;
     }
 
