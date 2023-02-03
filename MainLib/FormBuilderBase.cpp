@@ -4,13 +4,14 @@
 
 using namespace Hlib;
 
-CFormBuilder::CFormBuilder (CLexeme * pLexeme, ET_Subparadigm eSubparadigm) : 
-    m_pLexeme (pLexeme), 
+CFormBuilder::CFormBuilder (shared_ptr<CLexeme> spLexeme, shared_ptr<CInflection> spInflection, ET_Subparadigm eSubparadigm) : 
+    m_spLexeme (spLexeme), 
+    m_spInflection (spInflection),
     m_eSubparadigm (eSubparadigm), 
-    m_pEndings (NULL), 
+    m_spEndings (NULL), 
     m_eStatus (STATUS_COMMON)
 {
-    if (NULL == pLexeme)
+    if (NULL == spLexeme)
     {
         assert(0);
         CEString sMsg(L"CLexeme ptr is NULL.");
@@ -21,59 +22,64 @@ CFormBuilder::CFormBuilder (CLexeme * pLexeme, ET_Subparadigm eSubparadigm) :
 
 void CFormBuilder::ReportDbError()
 {
-    if (!m_pLexeme)
+    if (!m_spLexeme)
     {
         ERROR_LOG (L"No lexeme handle.");
     }
 
-    CSqlite * pDb = NULL;
+    if (!m_spInflection)
+    {
+        ERROR_LOG(L"No lexeme handle.");
+    }
+
+    shared_ptr<CSqlite> spDb;
     CEString sMsg;
     try
     {
-        pDb = m_pLexeme->pGetDb();
+        spDb = m_spLexeme->spGetDb();
         CEString sError;
-        pDb->GetLastError (sError);
+        spDb->GetLastError (sError);
         sMsg = L"DB error: ";
         sMsg += sError;
         sMsg += L"; code = ";
-        sMsg += CEString::sToString (pDb->iGetLastError());
+        sMsg += CEString::sToString (spDb->iGetLastError());
     }
     catch (...)
     {
         sMsg = L"Apparent DB error ";
     }
 
-    sMsg += CEString::sToString (pDb->iGetLastError());
+    sMsg += CEString::sToString (spDb->iGetLastError());
     ERROR_LOG (sMsg);
 }
 
-void CFormBuilder::CloneWordForm (const  CWordForm * pSource, CWordForm *& pClone)
+void CFormBuilder::CloneWordForm(const  shared_ptr<CWordForm> spSource, shared_ptr<CWordForm>& spClone)
 {
-    pClone = new CWordForm;
-    if (NULL == pClone)
+    spClone = make_shared<CWordForm>();
+    if (nullptr == spClone)
     {
         CEString sMsg (L"Unable to create instance of CWordForm.");
         assert(0);
         throw CException (H_ERROR_POINTER, sMsg);   
     }
 
-    pClone->m_pLexeme = pSource->m_pLexeme;
-    pClone->m_sWordForm = pSource->m_sWordForm;
-    pClone->m_sStem = pSource->m_sStem;
-    pClone->m_llLexemeId = pSource->m_llLexemeId;
-    pClone->m_mapStress = pSource->m_mapStress;
-    pClone->m_ePos = pSource->m_ePos;
-    pClone->m_eCase = pSource->m_eCase;
-    pClone->m_eNumber = pSource->m_eNumber;
-    pClone->m_eSubparadigm = pSource->m_eSubparadigm;
-    pClone->m_eGender = pSource->m_eGender;
+    spClone->m_spLexeme = spSource->m_spLexeme;
+    spClone->m_sWordForm = spSource->m_sWordForm;
+    spClone->m_sStem = spSource->m_sStem;
+    spClone->m_llLexemeId = spSource->m_llLexemeId;
+    spClone->m_mapStress = spSource->m_mapStress;
+    spClone->m_ePos = spSource->m_ePos;
+    spClone->m_eCase = spSource->m_eCase;
+    spClone->m_eNumber = spSource->m_eNumber;
+    spClone->m_eSubparadigm = spSource->m_eSubparadigm;
+    spClone->m_eGender = spSource->m_eGender;
 //    pClone->m_eTense = pSource->m_eTense;
-    pClone->m_ePerson = pSource->m_ePerson;
-    pClone->m_eAnimacy = pSource->m_eAnimacy;
-    pClone->m_eReflexivity = pSource->m_eReflexivity;
+    spClone->m_ePerson = spSource->m_ePerson;
+    spClone->m_eAnimacy = spSource->m_eAnimacy;
+    spClone->m_eReflexivity = spSource->m_eReflexivity;
 //    pClone->m_eVoice = pSource->m_eVoice;
 //    pClone->m_eSpecialForm = pSource->m_eSpecialForm;
 //    pClone->m_eAspect = pSource->m_eAspect;
-    pClone->m_eStatus = pSource->m_eStatus;
+    spClone->m_eStatus = spSource->m_eStatus;
 
 }  // CloneWordForm (...)
