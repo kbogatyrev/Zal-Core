@@ -12,13 +12,12 @@
 
 using namespace Hlib;
 
-CParser::CParser(CDictionary * pDictionary) : m_pDictionary(pDictionary), m_pEndingsTree(nullptr)
+CParser::CParser(shared_ptr<CDictionary> spDictionary) : m_spDictionary(spDictionary)
 {}
 
 CParser::~CParser()
 {
     ClearResults();
-    delete m_pEndingsTree;
 }
 
 ET_ReturnCode CParser::eParseWord(const CEString& sWord)
@@ -27,14 +26,14 @@ ET_ReturnCode CParser::eParseWord(const CEString& sWord)
 
     m_vecWordForms.clear();
 
-    if (!m_pDictionary)
+    if (!m_spDictionary)
     {
         return H_ERROR_DB;
     }
 
-    if (NULL == m_pEndingsTree)
+    if (nullptr == m_spEndingsTree)
     {
-        m_pEndingsTree = new CParsingTree(m_pDictionary->pGetDb());
+        m_spEndingsTree = make_shared<CParsingTree>(m_spDictionary->spGetDb());
     }
 
     ET_ReturnCode rc = H_NO_ERROR;
@@ -68,19 +67,19 @@ ET_ReturnCode CParser::eParseWord(const CEString& sWord)
 
     eRemoveFalsePositives();
 
-    for (auto& pWf : m_vecWordForms)
+    for (auto& spWf : m_vecWordForms)
     {
-        shared_ptr<CLexeme> pLexeme = nullptr;
-        m_pDictionary->eGetLexemeById(pWf->llLexemeId(), pLexeme);
-        if (nullptr == pLexeme)
+        shared_ptr<CLexeme> spLexeme;
+        m_spDictionary->eGetLexemeById(spWf->spLexeme()->llLexemeId(), spLexeme);
+        if (nullptr == spLexeme)
         {
             CEString sMsg(L"Failed to get lexeme by ID, ID = ");
-            sMsg += CEString::sToString(pWf->llLexemeId());
+            sMsg += CEString::sToString(spWf->spLexeme()->llLexemeId());
             ERROR_LOG(sMsg);
             continue;
         }
-        pWf->SetPos(pLexeme->ePartOfSpeech());
-        pWf->m_pLexeme = pLexeme.get();
+        spWf->SetPos(spLexeme->ePartOfSpeech());
+        spWf->m_spLexeme = spLexeme;
     }
 
     return m_vecWordForms.empty() ? H_FALSE : H_NO_ERROR;
@@ -94,21 +93,21 @@ ET_ReturnCode CParser::eParseWord(const CEString& sWord)
 // TODO: variants!
 ET_ReturnCode CParser::eRemoveFalsePositives()
 {
-    using pwfIterator = vector<unique_ptr<CWordForm>>::iterator;
+    using pwfIterator = vector<shared_ptr<CWordForm>>::iterator;
 
     set<pwfIterator> setFalsePositives;
-    for (auto& pMe : m_vecWordForms)
+    for (auto& spMe : m_vecWordForms)
     {
-        if (!pMe->bIrregular())
+        if (!spMe->bIrregular())
         {
             continue;
         }
 
         for (pwfIterator itOther = m_vecWordForms.begin(); itOther != m_vecWordForms.end(); ++itOther)
         {
-            if (pMe->llLexemeId() == (*itOther)->llLexemeId())
+            if (spMe->spLexeme()->llLexemeId() == (*itOther)->spLexeme()->llLexemeId())
             {
-                if (pMe->sGramHash() == (*itOther)->sGramHash())
+                if (spMe->sGramHash() == (*itOther)->sGramHash())
                 {
                     if (!(*itOther)->bIrregular())
                     {
@@ -128,38 +127,9 @@ ET_ReturnCode CParser::eRemoveFalsePositives()
     return H_NO_ERROR;
 
 }       //  eRemoveFalsePositives()
-ET_ReturnCode CParser::eGetFirstWordForm(IWordForm *& pWordForm)
-{
-    m_itCurrentWordForm = m_vecWordForms.begin();
-    if (m_vecWordForms.end() == m_itCurrentWordForm)
-    {
-        return H_FALSE;
-    }
-
-    pWordForm = (*m_itCurrentWordForm).get();
-
-    return H_NO_ERROR;
-}
-
-ET_ReturnCode CParser::eGetNextWordForm(IWordForm *& pWordForm)
-{
-    if (m_itCurrentWordForm != m_vecWordForms.end())
-    {
-        ++m_itCurrentWordForm;
-    }
-
-    if (m_vecWordForms.end() == m_itCurrentWordForm)
-    {
-        return H_NO_MORE;
-    }
-
-    pWordForm = (*m_itCurrentWordForm).get();
-
-    return H_NO_ERROR;
-}
 
 //  Overloaded non-virtual versions for internal use
-ET_ReturnCode CParser::eGetFirstWordForm(CWordForm *& wordForm)
+ET_ReturnCode CParser::eGetFirstWordForm(shared_ptr<CWordForm>& spWordForm)
 {
     m_itCurrentWordForm = m_vecWordForms.begin();
     if (m_vecWordForms.end() == m_itCurrentWordForm)
@@ -167,12 +137,12 @@ ET_ReturnCode CParser::eGetFirstWordForm(CWordForm *& wordForm)
         return H_FALSE;
     }
 
-    wordForm = (*m_itCurrentWordForm).get();
+    spWordForm = (*m_itCurrentWordForm);
 
     return H_NO_ERROR;
 }
 
-ET_ReturnCode CParser::eGetNextWordForm(CWordForm *& pWordForm)
+ET_ReturnCode CParser::eGetNextWordForm(shared_ptr<CWordForm>& spWordForm)
 {
     if (m_itCurrentWordForm != m_vecWordForms.end())
     {
@@ -184,7 +154,7 @@ ET_ReturnCode CParser::eGetNextWordForm(CWordForm *& pWordForm)
         return H_NO_MORE;
     }
 
-    pWordForm = (*m_itCurrentWordForm).get();
+    spWordForm = (*m_itCurrentWordForm);
 
     return H_NO_ERROR;
 }
@@ -197,12 +167,12 @@ void CParser::ClearResults()
 //        delete *itWf;
 //    }
     m_vecWordForms.clear();
-    m_pDictionary->Clear();
+    m_spDictionary->Clear();
 }
 
-void CParser::SetDb(shared_ptr<CSqlite> pDb)
+void CParser::SetDb(shared_ptr<CSqlite> spDb)
 {
-    m_pDb = pDb;
+    m_spDb = spDb;
 }
 
 
@@ -214,7 +184,7 @@ ET_ReturnCode CParser::eQueryDb(const CEString& sSelect, uint64_t& uiQueryHandle
 {
     ET_ReturnCode rc = H_NO_ERROR;
 
-    if (NULL == m_pDb)
+    if (nullptr == m_spDb)
     {
         assert(0);
         ERROR_LOG(L"DB pointer is NULL.");
@@ -223,7 +193,7 @@ ET_ReturnCode CParser::eQueryDb(const CEString& sSelect, uint64_t& uiQueryHandle
 
     try
     {
-        uiQueryHandle = m_pDb->uiPrepareForSelect(sSelect);
+        uiQueryHandle = m_spDb->uiPrepareForSelect(sSelect);
     }
     catch (CException& ex)
     {
@@ -251,24 +221,24 @@ ET_ReturnCode CParser::eIrregularFormLookup(const CEString& sWord, bool bSpryazh
 
     try
     {
-        uint64_t uiFormQueryHandle = m_pDb->uiPrepareForSelect(sIrregFormQuery);
-        while (m_pDb->bGetRow(uiFormQueryHandle))
+        uint64_t uiFormQueryHandle = m_spDb->uiPrepareForSelect(sIrregFormQuery);
+        while (m_spDb->bGetRow(uiFormQueryHandle))
         {
             uint64_t llFormId = -1;
-            m_pDb->GetData(0, llFormId, uiFormQueryHandle);
+            m_spDb->GetData(0, llFormId, uiFormQueryHandle);
 
             uint64_t llDescriptorId = -1;
-            m_pDb->GetData(1, llDescriptorId, uiFormQueryHandle);
+            m_spDb->GetData(1, llDescriptorId, uiFormQueryHandle);
 
             CEString sGramHash = -1;
-            m_pDb->GetData(2, sGramHash, uiFormQueryHandle);
+            m_spDb->GetData(2, sGramHash, uiFormQueryHandle);
 
             CEString sWordForm;
             sWordForm.SetVowels(CEString::g_szRusVowels);
-            m_pDb->GetData(3, sWordForm, uiFormQueryHandle);
+            m_spDb->GetData(3, sWordForm, uiFormQueryHandle);
 
             bool bIsAlternative = false;
-            m_pDb->GetData(4, bIsAlternative, uiFormQueryHandle);       // what to do with this one?
+            m_spDb->GetData(4, bIsAlternative, uiFormQueryHandle);       // what to do with this one?
 
             unique_ptr<CWordForm> pWf = make_unique<CWordForm>(sGramHash);
             pWf->m_bIrregular = true;
@@ -287,23 +257,23 @@ ET_ReturnCode CParser::eIrregularFormLookup(const CEString& sWord, bool bSpryazh
             }
             sIrregStressQuery += CEString::sToString(llFormId);
             sIrregStressQuery += L'\"';
-            uint64_t uiStressHandle = m_pDb->uiPrepareForSelect(sIrregStressQuery);
-            while (m_pDb->bGetRow(uiStressHandle))
+            uint64_t uiStressHandle = m_spDb->uiPrepareForSelect(sIrregStressQuery);
+            while (m_spDb->bGetRow(uiStressHandle))
             {
                 int iPosition = -1;
-                m_pDb->GetData(0, iPosition, uiStressHandle);
+                m_spDb->GetData(0, iPosition, uiStressHandle);
 
                 ET_StressType eType = STRESS_TYPE_UNDEFINED;
                 int iType = (int)eType;
-                m_pDb->GetData(1, iType, uiStressHandle);
+                m_spDb->GetData(1, iType, uiStressHandle);
                 int iStressedSyll = sWordForm.uiGetSyllableFromVowelPos(iPosition);
                 pWf->m_mapStress[iStressedSyll] = (ET_StressType)iType;
             }
-            m_pDb->Finalize(uiStressHandle);
+            m_spDb->Finalize(uiStressHandle);
 
             m_vecWordForms.push_back(move(pWf));
         }
-        m_pDb->Finalize(uiFormQueryHandle);
+        m_spDb->Finalize(uiFormQueryHandle);
     }
     catch (CException& ex)
     {
@@ -327,22 +297,22 @@ ET_ReturnCode CParser::eWholeWordLookup(const CEString& sWord)
 {
     CEString sQuery(s_sWholeWordQuery);
     sQuery = sQuery.sReplace(L"#WORDFORM#", sWord);
-    uint64_t uiFormQueryHandle = m_pDb->uiPrepareForSelect(sQuery);
-    while (m_pDb->bGetRow(uiFormQueryHandle))
+    uint64_t uiFormQueryHandle = m_spDb->uiPrepareForSelect(sQuery);
+    while (m_spDb->bGetRow(uiFormQueryHandle))
     {
         CEString sGramHash;
-        m_pDb->GetData(0, sGramHash, uiFormQueryHandle);
+        m_spDb->GetData(0, sGramHash, uiFormQueryHandle);
 
         int64_t llLexemeId = -1;
-        m_pDb->GetData(1, llLexemeId, uiFormQueryHandle);
+        m_spDb->GetData(1, llLexemeId, uiFormQueryHandle);
 
         int64_t llFormId = -1;
-        m_pDb->GetData(2, llFormId, uiFormQueryHandle);
+        m_spDb->GetData(2, llFormId, uiFormQueryHandle);
 
         int64_t llEndingId = -1;
-        m_pDb->GetData(3, llEndingId, uiFormQueryHandle);
+        m_spDb->GetData(3, llEndingId, uiFormQueryHandle);
 
-        if (llEndingId < 0 || H_TRUE == m_pEndingsTree->eIsEmptyEnding(llEndingId))
+        if (llEndingId < 0 || H_TRUE == m_spEndingsTree->eIsEmptyEnding(llEndingId))
         {
             unique_ptr<CWordForm> pWf = nullptr;
             try
@@ -360,7 +330,7 @@ ET_ReturnCode CParser::eWholeWordLookup(const CEString& sWord)
             catch (...)
             {
                 CEString sMsg(L"Exception, error code = ");
-                sMsg += CEString::sToString(m_pDb->iGetLastError());
+                sMsg += CEString::sToString(m_spDb->iGetLastError());
                 ERROR_LOG(sMsg);
 
                 return H_ERROR_GENERAL;
@@ -374,23 +344,23 @@ ET_ReturnCode CParser::eWholeWordLookup(const CEString& sWord)
             CEString sStressQuery(L"SELECT position, is_primary FROM stress_data WHERE form_id = \"");
             sStressQuery += CEString::sToString(llFormId);
             sStressQuery += L'\"';
-            uint64_t uiStressHandle = m_pDb->uiPrepareForSelect(sStressQuery);
-            while (m_pDb->bGetRow(uiStressHandle))
+            uint64_t uiStressHandle = m_spDb->uiPrepareForSelect(sStressQuery);
+            while (m_spDb->bGetRow(uiStressHandle))
             {
                 int iPosition = -1;
-                m_pDb->GetData(0, iPosition, uiStressHandle);
+                m_spDb->GetData(0, iPosition, uiStressHandle);
 
                 bool bIsPrimary = false;
-                m_pDb->GetData(1, bIsPrimary, uiStressHandle);
+                m_spDb->GetData(1, bIsPrimary, uiStressHandle);
                 ET_StressType eType = bIsPrimary ? STRESS_PRIMARY : STRESS_SECONDARY;
                 pWf->m_mapStress[iPosition] = eType;
             }
-            m_pDb->Finalize(uiStressHandle);
+            m_spDb->Finalize(uiStressHandle);
 
             m_vecWordForms.push_back(move(pWf));
         }
-    }       //  while (m_pDb->bGetRow(...)) 
-    m_pDb->Finalize(uiFormQueryHandle);
+    }       //  while (m_spDb->bGetRow(...)) 
+    m_spDb->Finalize(uiFormQueryHandle);
 
     return H_NO_ERROR;
 
@@ -406,15 +376,15 @@ static CEString s_sWordFormQuery (L"SELECT DISTINCT wf.id, sd.gram_hash, sd.lexe
 
 ET_ReturnCode CParser::eFormLookup(const CEString& sWord)
 {
-    if (NULL == m_pEndingsTree)
+    if (NULL == m_spEndingsTree)
     {
         return H_ERROR_POINTER;
     }
 
-    m_pEndingsTree->eSplit(sWord);
+    m_spEndingsTree->eSplit(sWord);
 
     int iEndingLength = -1;
-    ET_ReturnCode rc = m_pEndingsTree->eGetFirstMatch(iEndingLength);
+    ET_ReturnCode rc = m_spEndingsTree->eGetFirstMatch(iEndingLength);
     while (H_NO_ERROR == rc || H_FALSE == rc)
     {
         if (iEndingLength > 0)
@@ -428,18 +398,18 @@ ET_ReturnCode CParser::eFormLookup(const CEString& sWord)
                 sQuery = sQuery.sReplace(L"#STEM#", sStemCandidate);
                 sQuery = sQuery.sReplace(L"#ENDING#", sEndingCandidate);
 
-                uint64_t uiFormQueryHandle = m_pDb->uiPrepareForSelect(sQuery);
+                uint64_t uiFormQueryHandle = m_spDb->uiPrepareForSelect(sQuery);
 
-                while (m_pDb->bGetRow(uiFormQueryHandle))
+                while (m_spDb->bGetRow(uiFormQueryHandle))
                 {
                     int64_t llFormId = -1;
-                    m_pDb->GetData(0, llFormId, uiFormQueryHandle);
+                    m_spDb->GetData(0, llFormId, uiFormQueryHandle);
 
                     CEString sGramHash;
-                    m_pDb->GetData(1, sGramHash, uiFormQueryHandle);
+                    m_spDb->GetData(1, sGramHash, uiFormQueryHandle);
 
                     int64_t llLexemeId = -1;
-                    m_pDb->GetData(2, llLexemeId, uiFormQueryHandle);
+                    m_spDb->GetData(2, llLexemeId, uiFormQueryHandle);
 
                     unique_ptr<CWordForm> pWf = make_unique<CWordForm>(sGramHash);
                     pWf->m_llDbKey = llFormId;
@@ -451,23 +421,23 @@ ET_ReturnCode CParser::eFormLookup(const CEString& sWord)
                     sStressQuery += CEString::sToString(llFormId);
                     sStressQuery += L'\"';
 
-                    uint64_t uiStressHandle = m_pDb->uiPrepareForSelect(sStressQuery);
-                    while (m_pDb->bGetRow(uiStressHandle))
+                    uint64_t uiStressHandle = m_spDb->uiPrepareForSelect(sStressQuery);
+                    while (m_spDb->bGetRow(uiStressHandle))
                     {
                         int iPosition = -1;
-                        m_pDb->GetData(0, iPosition, uiStressHandle);
+                        m_spDb->GetData(0, iPosition, uiStressHandle);
 
                         bool bIsPrimary = false;
-                        m_pDb->GetData(1, bIsPrimary, uiStressHandle);
+                        m_spDb->GetData(1, bIsPrimary, uiStressHandle);
 //                        ET_StressType eType = STRESS_TYPE_UNDEFINED;
                         pWf->m_mapStress[iPosition] = bIsPrimary ? STRESS_PRIMARY : STRESS_SECONDARY;
                     }
-                    m_pDb->Finalize(uiStressHandle);
+                    m_spDb->Finalize(uiStressHandle);
                     m_vecWordForms.push_back(move(pWf));
 
-                }       //  while (m_pDb->bGetRow(...))
+                }       //  while (m_spDb->bGetRow(...))
 
-                m_pDb->Finalize(uiFormQueryHandle);
+                m_spDb->Finalize(uiFormQueryHandle);
             }
             catch (CException& ex)
             {
@@ -478,7 +448,7 @@ ET_ReturnCode CParser::eFormLookup(const CEString& sWord)
             }
         }
 
-        rc = m_pEndingsTree->eGetNextMatch(iEndingLength);
+        rc = m_spEndingsTree->eGetNextMatch(iEndingLength);
 
         if (H_FALSE == rc)
         {
@@ -502,7 +472,7 @@ void CParser::HandleDbException(CException& ex)
     CEString sError;
     try
     {
-        m_pDb->GetLastError(sError);
+        m_spDb->GetLastError(sError);
         sMsg += CEString(L", error description: ");
         sMsg += sError;
     }
@@ -512,7 +482,7 @@ void CParser::HandleDbException(CException& ex)
     }
 
     sMsg += L", error code = ";
-    sMsg += CEString::sToString(m_pDb->iGetLastError());
+    sMsg += CEString::sToString(m_spDb->iGetLastError());
     ERROR_LOG(sMsg);
 
 }

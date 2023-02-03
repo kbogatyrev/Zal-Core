@@ -13,129 +13,87 @@ namespace Hlib
         //
         // Stem data as acquired from the DB
         //
-        StLexemeProperties() :
-            llDescriptorId(-1),
-            llHeadwordId(-1),
-            llSecondPartId(0),
-            bIsUnstressed(false),
-            bSpryazhSm(false),
-            llSourceEntryId(-1),
-            bIsVariant(false),
-            bIsPluralOf(false),
-            bTransitive(false),
-            eReflexive(REFL_UNDEFINED),
-            ePartOfSpeech(POS_UNDEFINED),
-            iSection(-1),
-            bPartPastPassZhd(false),
-            bNoComparative(false),
-            bAssumedForms(false),
-            bYoAlternation(false),
-            bOAlternation(false),
-            bSecondGenitive(false),
-            bSecondPrepositional(false),
-            bIsImpersonal(false),
-            bIsIterative(false),
-            bHasAspectPair(false),
-            iAspectPairType(0),
-            iAltAspectPairType(0),
-            bHasDifficultForms(false),
-            bHasMissingForms(false),
-            bHasIrregularForms(false),
-            bHasIrregularVariants(false),
-            bPrimaryInflectionGroup(false),
-            iType(-1),
-            eAccentType1(AT_UNDEFINED),
-            eAccentType2(AT_UNDEFINED),
-            bShortFormsRestricted(false),
-            bPastParticipleRestricted(false),
-            bNoLongForms(false),
-            bShortFormsIncomplete(false),
-            bNoPassivePastParticiple(false),
-            bFleetingVowel(false),
-            iStemAugment(-1),
-            bSecondPart(false),
-            iSpryazhSmRefPrefixLength(-1),
-            bSpryazhSmNoAspectPair(false)
+        StLexemeProperties()
         {
-                sSourceForm.SetVowels(CEString::g_szRusVowels);
-                sGraphicStem.SetVowels(CEString::g_szRusVowels);
+            sSourceForm.SetVowels(CEString::g_szRusVowels);
+            sGraphicStem.SetVowels(CEString::g_szRusVowels);
         }
 
-        long long llDescriptorId;
-        long long llHeadwordId;
-        long long llSecondPartId;
+        long long llDescriptorId { -1 };
+        long long llHeadwordId { -1 };
+        long long llSecondPartId { -1 };
         CEString sSourceForm;
         CEString sHeadwordComment;
         CEString sHeadwordVariant;
         CEString sHeadwordVariantComment;
         vector<int> vecSourceStressPos, vecSecondaryStressPos;
         vector<int> vecSourceVariantStressPos, vecSecondaryVariantStressPos;
-        bool bIsUnstressed;
+        bool bIsUnstressed { false };
         vector<int> vecHomonyms;
         CEString sPluralOf;
         CEString sUsage;
         CEString sSeeRef;
         CEString sBackRef;
-        bool bSpryazhSm;
-        long long llSourceEntryId;
+        bool bSpryazhSm { false };
+        long long llSourceEntryId { -1 };
         CEString sGraphicStem;
-        bool bIsVariant;
+        bool bIsVariant { false };
         CEString sMainSymbol;
-        bool bIsPluralOf;
-        bool bTransitive;
-        ET_Reflexivity eReflexive;
+        bool bIsPluralOf { false };
+        bool bTransitive { false };
+        ET_Reflexivity eReflexive { REFL_UNDEFINED };
         CEString sMainSymbolPluralOf;
         CEString sAltMainSymbol;
-        ET_Aspect eAspect;
+        ET_Aspect eAspect { ASPECT_UNDEFINED };
         CEString sInflectionType;
-        ET_PartOfSpeech ePartOfSpeech;
+        ET_PartOfSpeech ePartOfSpeech { POS_UNDEFINED };
         CEString sComment;
         CEString sAltMainSymbolComment;
         CEString sAltInflectionComment;
         CEString sVerbStemAlternation;
-        int iSection;
-        bool bPartPastPassZhd;
-        bool bNoComparative;
-        bool bAssumedForms;
-        bool bYoAlternation;
-        bool bOAlternation;
-        bool bSecondGenitive;
-        bool bSecondPrepositional;
-        bool bSecondPrepositionalOptional;
+        int iSection{ -1 };
+        bool bPartPastPassZhd { false };
+        bool bNoComparative { false };
+        bool bAssumedForms { false };
+        bool bYoAlternation { false };
+        bool bOAlternation { false };
+        bool bSecondGenitive { false };
+        bool bSecondPrepositional { false };
+        bool bSecondPrepositionalOptional { false };
         CEString sP2Preposition;
-        bool bIsImpersonal;
-        bool bIsIterative;
-        bool bHasAspectPair;
-        int iAspectPairType;
-        int iAltAspectPairType;
+        bool bIsImpersonal { false };
+        bool bIsIterative { false };
+        bool bHasAspectPair { false };
+        int iAspectPairType { -1 };
+        int iAltAspectPairType { -1 };
         CEString sAspectPairData;
         CEString sAltAspectPairData;
         CEString sAltAspectPairComment;
-        bool bHasDifficultForms;
-        bool bHasMissingForms;
-        bool bHasIrregularForms;
+        bool bHasDifficultForms { false };
+        bool bHasMissingForms { false };
+        bool bHasIrregularForms { false };
         CEString sIrregularFormsLeadComment;
-        bool bHasIrregularVariants;    // true if any of irreg. forms alternates with regular
+        bool bHasIrregularVariants { false };    // true if any of irreg. forms alternates with regular
         CEString sRestrictedContexts;
         CEString sContexts;
         CEString sCognate;
         CEString sTrailingComment;
-        ET_Subparadigm eSubparadigm;    // currently only used with numerals
-        bool bHasPresPassParticiple;
+        ET_Subparadigm eSubparadigm { SUBPARADIGM_UNDEFINED };    // currently only used with numerals
+        bool bHasPresPassParticiple { false };
 
         // From inflection table:
-        long long llInflectionId;
-        bool bPrimaryInflectionGroup;
-        int iType;
-        ET_AccentType eAccentType1;
-        ET_AccentType eAccentType2;
-        bool bShortFormsRestricted;
-        bool bPastParticipleRestricted;
+        //long long llInflectionId;
+        //bool bPrimaryInflectionGroup;
+        //int iType;
+        //ET_AccentType eAccentType1;
+        //ET_AccentType eAccentType2;
+        //bool bShortFormsRestricted;
+        //bool bPastParticipleRestricted;
         bool bNoLongForms;
-        bool bShortFormsIncomplete;
-        bool bNoPassivePastParticiple;
-        bool bFleetingVowel;
-        int iStemAugment;
+        //bool bShortFormsIncomplete;
+        //bool bNoPassivePastParticiple;
+        //bool bFleetingVowel;
+        //int iStemAugment;
         bool bSecondPart;
         int iSpryazhSmRefPrefixLength;
         bool bSpryazhSmNoAspectPair;
@@ -149,7 +107,7 @@ namespace Hlib
 
         CEString sInfinitive;
 
-        map<int, bool> mapCommonDeviations;
+//        map<int, bool> mapCommonDeviations;
 
         // Spryazh sm. 
         CEString sSpryazhSmRefSource;

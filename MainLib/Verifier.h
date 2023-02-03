@@ -4,10 +4,10 @@
 #include "Enums.h"
 #include "EString.h"
 
-#include "IVerifier.h"
-#include "ILexeme.h"
-#include "IWordForm.h"
-#include "Dictionary.h"     // we need internal methods as well
+#include "Verifier.h"
+#include "Lexeme.h"
+#include "WordForm.h"
+#include "Dictionary.h"
 
 using namespace std;
 
@@ -23,39 +23,39 @@ namespace Hlib
         {}
     };
 
-    class CVerifier : public IVerifier
+    class CVerifier
     {
     public:
-        CVerifier(CDictionary *);
+        CVerifier(shared_ptr<CDictionary>);
         ~CVerifier();
 
     public:
-        virtual ET_ReturnCode eVerify(const CEString& sLexemeHash);
-        virtual ET_TestResult eResult();
-        virtual int iCount();
+        ET_ReturnCode eVerify(const CEString& sLexemeHash);
+        ET_TestResult eResult();
+        int iCount();
 
-        virtual ET_ReturnCode eLoadStoredLexemes();
-        virtual ET_ReturnCode eDeleteStoredLexeme(const CEString& sLexeme);
+        ET_ReturnCode eLoadStoredLexemes();
+        ET_ReturnCode eDeleteStoredLexeme(const CEString& sLexeme);
 
-        virtual ET_ReturnCode eGetFirstLexemeData(CEString& sLexemeHash, CEString& sHeadword);
-        virtual ET_ReturnCode eGetNextLexemeData(CEString& sLexemeHash, CEString& sHeadword);
+        ET_ReturnCode eGetFirstLexemeData(CEString& sLexemeHash, CEString& sHeadword);
+        ET_ReturnCode eGetNextLexemeData(CEString& sLexemeHash, CEString& sHeadword);
 
-        virtual ET_ReturnCode eGetFirstWordForm(IWordForm *& pWordForm);
-        virtual ET_ReturnCode eGetNextWordForm(IWordForm *& pWordForm);
+        ET_ReturnCode eGetFirstWordForm(shared_ptr<CWordForm>&);
+        ET_ReturnCode eGetNextWordForm(shared_ptr<CWordForm>&);
 
     private:
         CVerifier();        // no use
         ET_ReturnCode eLoadStoredForms(const CEString& sLexemeHash);
-        ET_ReturnCode eCheckLexeme(ILexeme&, const CEString& sLexemeHash, bool& bCheckedOut);
-        bool bWordFormsMatch(IWordForm * pLhs, IWordForm * pRhs);
+        ET_ReturnCode eCheckLexeme(shared_ptr<CLexeme>&, const CEString& sLexemeHash, bool& bCheckedOut);
+        bool bWordFormsMatch(shared_ptr<CWordForm> spLhs, shared_ptr<CWordForm> spRhs);
         ET_ReturnCode eGetStoredLexemeData(const CEString& sSelect);
 
     private:
-        CDictionary * m_pDictionary;
+        shared_ptr<CDictionary> m_spDictionary;
         vector<StStoredLexeme> m_vecStoredLexemes;
-        CSqlite * m_pDb;
-        multimap<CEString, IWordForm *> m_mmapStoredForms;
-        multimap<CEString, IWordForm *>::iterator m_itCurrentForm;
+        shared_ptr<CSqlite> m_spDb;
+        multimap<CEString, shared_ptr<CWordForm>> m_mmapStoredForms;
+        multimap<CEString, shared_ptr<CWordForm>>::iterator m_itCurrentForm;
         ET_TestResult m_eResult;
         vector<StStoredLexeme>::iterator m_itCurrentLexeme;
     };

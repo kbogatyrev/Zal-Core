@@ -16,14 +16,15 @@ namespace Hlib
 class CFormBuilderComparative : public CFormBuilderDecl
 {
 public:
-    CFormBuilderComparative (CLexeme * pLexeme) 
-        : CFormBuilderDecl (pLexeme, SUBPARADIGM_COMPARATIVE)
+    CFormBuilderComparative (shared_ptr<CLexeme> spLexeme, shared_ptr<CInflection> spInflection) 
+        : CFormBuilderDecl (spLexeme, spInflection, SUBPARADIGM_COMPARATIVE)
     {}
 
 public:
-    ET_ReturnCode eCreateFormTemplate (const CEString& sLemma, CWordForm *& pWordForm);
-    ET_ReturnCode eHandleStressAndAdd(CWordForm * pWordForm, 
-        vector<int>& vecIStress, ET_StressLocation, CEString& sStem, const CEString& sEnding, long long llEndingKey);
+    ET_ReturnCode eCreateFormTemplate (const CEString& sStem, shared_ptr<CWordForm>& spWordForm);
+    ET_ReturnCode eHandleStressAndAdd(shared_ptr<CWordForm> spWordForm, vector<int>& vecIStress, 
+                                      ET_StressLocation, CEString& sStem, const CEString& sEnding, 
+                                      long long llEndingKey);
     ET_ReturnCode eBuild();
 
 };

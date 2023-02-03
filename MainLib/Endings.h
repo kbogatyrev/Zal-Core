@@ -13,11 +13,13 @@ namespace Hlib
 {
 
 class CLexeme;
+class CInflection;
 
 class CEndings
 {
 public:
-    CEndings(CLexeme * pLexeme) : m_pLexeme(pLexeme), m_ullDbKey(0)
+    CEndings(shared_ptr<CLexeme> spLexeme, shared_ptr<CInflection> spInflection) 
+        : m_spLexeme(spLexeme), m_spInflection(spInflection), m_ullDbKey(0)
     {
         m_sEnding.SetVowels(CEString::g_szRusVowels);
     }
@@ -45,7 +47,8 @@ protected:
     void ReportDbError();
     std::vector<pair<uint64_t, CEString> > m_vecEndings;
 
-    CLexeme * m_pLexeme;
+    shared_ptr<CLexeme> m_spLexeme;
+    shared_ptr<CInflection> m_spInflection;
     uint64_t m_ullDbKey;
     CEString m_sEnding;
 
@@ -63,84 +66,83 @@ protected:
 class CNounEndings : public CEndings
 {
 public:
-    CNounEndings(CLexeme *);
+    CNounEndings(shared_ptr<CLexeme>, shared_ptr<CInflection>);
     ET_ReturnCode eSelect(ET_Number, ET_Case, ET_StressLocation);
-
-};      //  CNounEndings
+};
 
 class CAdjLongEndings : public CEndings
 {
 public:
-    CAdjLongEndings(CLexeme *, ET_Subparadigm);
+    CAdjLongEndings(shared_ptr<CLexeme>, shared_ptr<CInflection>, ET_Subparadigm);
 
     ET_ReturnCode eSelect(ET_Subparadigm, ET_Gender, ET_Number, ET_Case, ET_Animacy);
 
 protected:
     ET_Subparadigm m_eSubparadigm;
 
-};   //  CAdjLongEndings
+};
 
 class CAdjShortEndings : public CEndings
 {
 public:
-    CAdjShortEndings(CLexeme * pLexeme, ET_Subparadigm);
+    CAdjShortEndings(shared_ptr<CLexeme>, shared_ptr<CInflection>, ET_Subparadigm);
 
     ET_ReturnCode eSelect(ET_Gender, ET_Number, ET_StressLocation);
 
 protected:
     ET_Subparadigm m_eSubparadigm;
 
-};    //  CAdjShortEndings
+};
 
 class CAdjPronounEndings : public CEndings
 {
 public:
-    CAdjPronounEndings(CLexeme *);
+    CAdjPronounEndings(shared_ptr<CLexeme>, shared_ptr<CInflection>);
 
     ET_ReturnCode eSelect(ET_Gender, ET_Number, ET_Case, ET_Animacy);
 
-};   //  CAdjPronounEndings
+};
 
 class CPersonalEndings : public CEndings
 {
 public:
-    CPersonalEndings(CLexeme * pLexeme);
+    CPersonalEndings(shared_ptr<CLexeme>, shared_ptr<CInflection>);
 
     ET_ReturnCode eSelect(ET_Person, ET_Number, ET_StressLocation, ET_StemAuslaut);
 
-};   //  CPersonalEndings
+};
 
 class CInfinitiveEndings : public CEndings
 {
 public:
-    CInfinitiveEndings(CLexeme * pLexeme);
+    CInfinitiveEndings(shared_ptr<CLexeme>, shared_ptr<CInflection>);
 
     ET_ReturnCode eSelect(int iInflectionType);
 
-};    //   CInfinitiveEndings
+};
 
 class CPastTenseEndings : public CEndings
 {
 public:
-    CPastTenseEndings(CLexeme * pLexeme);
+    CPastTenseEndings(shared_ptr<CLexeme>, shared_ptr<CInflection>);
 
     ET_ReturnCode eSelect(ET_Gender, ET_Number, ET_StemAuslaut);
 
-};    //  CPastTenseEndings
+};
 
 class CImperativeEndings : public CEndings
 {
 public:
-    CImperativeEndings(CLexeme * pLexeme);
+    CImperativeEndings(shared_ptr<CLexeme>, shared_ptr<CInflection>);
 
     ET_ReturnCode eSelect(ET_Number, int iType, bool bIsVariant = false);
 
-};    //  CPastTenseEndings
+};
 
 class CAdverbialEndings : public CEndings
 {
 public:
-    CAdverbialEndings(CLexeme * pLexeme);
+    CAdverbialEndings(shared_ptr<CLexeme>, shared_ptr<CInflection>);
 
     ET_ReturnCode eSelect(ET_Subparadigm, bool bHusherStem, bool bVStem, bool bIsVariant);
     ET_ReturnCode eSelectPastAdvAugmentedEndings(ET_Subparadigm, bool bIsVariant);
@@ -149,7 +151,7 @@ public:
 class CComparativeEndings : public CEndings
 {
 public:
-    CComparativeEndings(CLexeme* pLexeme);
+    CComparativeEndings(shared_ptr<CLexeme>, shared_ptr<CInflection>);
 
     ET_ReturnCode eSelect(bool bVelarStem, bool bIsVariant);
 };

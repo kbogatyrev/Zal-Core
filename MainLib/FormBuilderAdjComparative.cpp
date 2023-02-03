@@ -3,29 +3,30 @@
 #include "Logging.h"
 #include "WordForm.h"
 #include "Lexeme.h"
+#include "Inflection.h"
 #include "FormBuilderAdjComparative.h"
 
 using namespace Hlib;
 
-ET_ReturnCode CFormBuilderComparative::eCreateFormTemplate (const CEString& sStem, CWordForm *& pWordForm)
+ET_ReturnCode CFormBuilderComparative::eCreateFormTemplate (const CEString& sStem, shared_ptr<CWordForm>& spWordForm)
 {
-    pWordForm = new CWordForm;
-    if (NULL == pWordForm)
+    spWordForm = make_shared<CWordForm>();
+    if (NULL == spWordForm)
     {
         return H_ERROR_POINTER;
     }
 
-    pWordForm->m_pLexeme = m_pLexeme;
-    pWordForm->m_ePos = m_pLexeme->ePartOfSpeech();
-    pWordForm->m_eSubparadigm = SUBPARADIGM_COMPARATIVE;
-    pWordForm->m_sStem = sStem;
-    pWordForm->m_llLexemeId = m_pLexeme->llLexemeId();
+    spWordForm->m_spLexeme = m_spLexeme;
+    spWordForm->m_ePos = m_spLexeme->ePartOfSpeech();
+    spWordForm->m_eSubparadigm = SUBPARADIGM_COMPARATIVE;
+    spWordForm->m_sStem = sStem;
+    spWordForm->m_llLexemeId = m_spLexeme->llLexemeId();
 
     return H_NO_ERROR;
 
 }   //  eCreateFormTemplate (...)
 
-ET_ReturnCode CFormBuilderComparative::eHandleStressAndAdd(CWordForm * pWordForm, 
+ET_ReturnCode CFormBuilderComparative::eHandleStressAndAdd(shared_ptr<CWordForm> spWordForm, 
                                                            vector<int>& vecStress, 
                                                            ET_StressLocation eStressType, 
                                                            CEString& sStem, 
@@ -34,18 +35,18 @@ ET_ReturnCode CFormBuilderComparative::eHandleStressAndAdd(CWordForm * pWordForm
 {
     ET_ReturnCode rc = H_NO_ERROR;
 
-    assert(m_pLexeme);   // we assume base class ctor took care of this
+    assert(m_spLexeme);   // we assume base class ctor took care of this
 
-    CEString sGramHash = pWordForm->sGramHash();
+    CEString sGramHash = spWordForm->sGramHash();
 
     try
     {
-        if (1 == vecStress.size() || m_pLexeme->bIsMultistressedCompound())
+        if (1 == vecStress.size() || m_spInflection->bIsMultistressedCompound())
         {
             vector<int>::iterator itStressPos = vecStress.begin();
             for (; itStressPos != vecStress.end(); ++itStressPos)
             {
-                pWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;
+                spWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;
                 rc = eHandleYoAlternation(eStressType, *itStressPos, sStem, sEnding);
                 if (rc != H_NO_ERROR)
                 {
@@ -53,12 +54,12 @@ ET_ReturnCode CFormBuilderComparative::eHandleStressAndAdd(CWordForm * pWordForm
                 }
             }
 
-            pWordForm->m_sStem = sStem;
-            pWordForm->m_sEnding = sEnding;
-            pWordForm->m_llEndingDataId = llEndingKey;
-            pWordForm->m_sWordForm = sStem + sEnding;
+            spWordForm->m_sStem = sStem;
+            spWordForm->m_sEnding = sEnding;
+            spWordForm->m_llEndingDataId = llEndingKey;
+            spWordForm->m_sWordForm = sStem + sEnding;
 
-            m_pLexeme->AddWordForm(pWordForm);
+            m_spInflection->AddWordForm(spWordForm);
         }
         else
         {
@@ -67,23 +68,23 @@ ET_ReturnCode CFormBuilderComparative::eHandleStressAndAdd(CWordForm * pWordForm
             {
                 if (itStressPos != vecStress.begin())
                 {
-                    CWordForm * pWfVariant = NULL;
-                    CloneWordForm (pWordForm, pWfVariant);
-                    pWordForm = pWfVariant;
+                    shared_ptr<CWordForm> spWfVariant = NULL;
+                    CloneWordForm (spWordForm, spWfVariant);
+                    spWordForm = spWfVariant;
                 }
-                pWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;
+                spWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;
                 rc = eHandleYoAlternation(eStressType, *itStressPos, sStem, sEnding);
                 if (rc != H_NO_ERROR)
                 {
                     return rc;
                 }
 
-                pWordForm->m_sStem = sStem;
-                pWordForm->m_sEnding = sEnding;
-                pWordForm->m_llEndingDataId = llEndingKey;
-                pWordForm->m_sWordForm = sStem + sEnding;
+                spWordForm->m_sStem = sStem;
+                spWordForm->m_sEnding = sEnding;
+                spWordForm->m_llEndingDataId = llEndingKey;
+                spWordForm->m_sWordForm = sStem + sEnding;
 
-                m_pLexeme->AddWordForm(pWordForm);
+                m_spInflection->AddWordForm(spWordForm);
             }
         }
     }
@@ -103,9 +104,9 @@ ET_ReturnCode CFormBuilderComparative::eBuild()
 {
     ET_ReturnCode rc = H_NO_ERROR;
 
-    assert(m_pLexeme);   // we assume base class ctor took care of this
+    assert(m_spLexeme);   // we assume base class ctor took care of this
 
-    if (m_pLexeme->bHasMissingForms() && m_pLexeme->eFormExists(L"AdjComp"))
+    if (m_spLexeme->bHasMissingForms() && m_spInflection->eFormExists(L"AdjComp"))
     {
         return H_NO_ERROR;
     }
@@ -114,10 +115,10 @@ ET_ReturnCode CFormBuilderComparative::eBuild()
 
     try
     {
-        CEString sStem(m_pLexeme->sGraphicStem());
+        CEString sStem(m_spLexeme->sGraphicStem());
         CGramHasher hash(SUBPARADIGM_COMPARATIVE, NUM_UNDEFINED, GENDER_UNDEFINED, ANIM_UNDEFINED, CASE_UNDEFINED);
-        map<CWordForm *, bool> mapIrreg;
-        rc = m_pLexeme->eGetIrregularForms(hash.sGramHash(), mapIrreg);
+        map<shared_ptr<CWordForm>, bool> mapIrreg;
+        rc = m_spInflection->eGetIrregularForms(hash.sGramHash(), mapIrreg);
         if (rc != H_NO_ERROR)
         {
             return rc;
@@ -127,7 +128,7 @@ ET_ReturnCode CFormBuilderComparative::eBuild()
         // Irregular forms
         bool bNoRegularForms = mapIrreg.empty() ? false : true;
 
-        map<CWordForm *, bool>::iterator it = mapIrreg.begin();
+        auto it = mapIrreg.begin();
         for (; it != mapIrreg.end(); ++it)
         {
             if ((*it).second)   // optional?  TODO: needs work; this DOES NOT indicate that a regular variant exists
@@ -135,8 +136,8 @@ ET_ReturnCode CFormBuilderComparative::eBuild()
                 bNoRegularForms = false;
             }
 
-            CWordForm * pWordForm = new CWordForm((*it).first);
-            m_pLexeme->AddWordForm(pWordForm);
+            shared_ptr<CWordForm> spWordForm = make_shared<CWordForm>((*it).first);
+            m_spInflection->AddWordForm(spWordForm);
         }
 
         if (bNoRegularForms)
@@ -147,13 +148,13 @@ ET_ReturnCode CFormBuilderComparative::eBuild()
         bool bVelarStemAuslaut = false;
 
         // Regular forms
-        m_pEndings = new CComparativeEndings(m_pLexeme);
-        if (NULL == m_pEndings)
+        m_spEndings = make_shared<CComparativeEndings>(m_spLexeme, m_spInflection);
+        if (nullptr == m_spEndings)
         {
             return H_ERROR_POINTER;
         }
 
-        CEString sGraphicStem = m_pLexeme->sGraphicStem();
+        CEString sGraphicStem = m_spLexeme->sGraphicStem();
 
         if (sGraphicStem.bEndsWithOneOf (L"кгх"))
         {
@@ -172,16 +173,16 @@ ET_ReturnCode CFormBuilderComparative::eBuild()
                 sStem[sStem.uiLength()-1] = L'ш';
             }
 
-            CWordForm * pWordForm = NULL;
-            rc = eCreateFormTemplate(sStem, pWordForm);
+            shared_ptr<CWordForm> spWordForm;
+            rc = eCreateFormTemplate(sStem, spWordForm);
             if (rc != H_NO_ERROR)
             {
                 return rc;
             }
-            pWordForm->m_sStem = sStem;
+            spWordForm->m_sStem = sStem;
             
-            ((CComparativeEndings*)m_pEndings)->eSelect(bVelarStemAuslaut, bIsVariant);
-            int iNumEndings = m_pEndings->iCount();
+            static_pointer_cast<CComparativeEndings>(m_spEndings)->eSelect(bVelarStemAuslaut, bIsVariant);
+            int iNumEndings = m_spEndings->iCount();
             if (iNumEndings < 1)
             {
                 ERROR_LOG(L"No endings");
@@ -194,29 +195,29 @@ ET_ReturnCode CFormBuilderComparative::eBuild()
 
             int64_t llEndingKey = -1;
             CEString sEnding;
-            rc = m_pEndings->eGetEnding(0, sEnding, llEndingKey);
+            rc = m_spEndings->eGetEnding(0, sEnding, llEndingKey);
             if (rc != H_NO_ERROR)
             {
                 return H_ERROR_UNEXPECTED;
             }
 
-            pWordForm->m_sStem = sStem;
-            pWordForm->m_sEnding = sEnding;
-            pWordForm->m_llEndingDataId = llEndingKey;
-            pWordForm->m_sWordForm = sStem + sEnding;
+            spWordForm->m_sStem = sStem;
+            spWordForm->m_sEnding = sEnding;
+            spWordForm->m_llEndingDataId = llEndingKey;
+            spWordForm->m_sWordForm = sStem + sEnding;
 
             unsigned int uiLastStemVowel = sStem.uiFindLastOf (CEString::g_szRusVowels);
             if (ecNotFound != uiLastStemVowel)
             {
                 unsigned int uiStressedSyllable = sStem.uiGetSyllableFromVowelPos(uiLastStemVowel);
-                pWordForm->m_mapStress[uiStressedSyllable] = STRESS_PRIMARY;
+                spWordForm->m_mapStress[uiStressedSyllable] = STRESS_PRIMARY;
             }
             else
             {
                 ERROR_LOG (L"Warning: can't find stressed vowel in comparative.");
             }
 
-            m_pLexeme->AddWordForm (pWordForm);
+            m_spInflection->AddWordForm (spWordForm);
         }
         else
         {
@@ -225,23 +226,23 @@ ET_ReturnCode CFormBuilderComparative::eBuild()
             vector<int> vecStress;
             ET_StressLocation eStressLocation = STRESS_LOCATION_UNDEFINED;
 
-            if (m_pLexeme->bHasCommonDeviation(2))
+            if (m_spInflection->bHasCommonDeviation(2))
             {
                 assert(sStem.bEndsWith(L"нн"));
 
                 eStressLocation = STRESS_LOCATION_STEM;
 
                 int iPos = -1;
-                rc = m_pLexeme->eGetFirstStemStressPos(iPos);
+                rc = m_spLexeme->eGetFirstStemStressPos(iPos);
                 auto nSyllablesInStem = sStem.uiNSyllables();;
                 while (H_NO_ERROR == rc && iPos < nSyllablesInStem)
                 {
                     assert(iPos >= 0);
                     vecStress.push_back(iPos);
-                    rc = m_pLexeme->eGetNextStemStressPos(iPos);
+                    rc = m_spLexeme->eGetNextStemStressPos(iPos);
                 }
             }
-            else if ((AT_A == m_pLexeme->eAccentType1()) && (AT_UNDEFINED == m_pLexeme->eAccentType2()))
+            else if ((AT_A == m_spInflection->eAccentType1()) && (AT_UNDEFINED == m_spInflection->eAccentType2()))
             {
                 // &&&& Never has fleeting vowel???
                 eStressLocation = STRESS_LOCATION_STEM;
@@ -259,8 +260,8 @@ ET_ReturnCode CFormBuilderComparative::eBuild()
                 vecStress.push_back(iStress);
             }
 
-            ((CComparativeEndings*)m_pEndings)->eSelect(bVelarStemAuslaut, bIsVariant);
-            int iNumEndings = m_pEndings->iCount();
+            static_pointer_cast<CComparativeEndings>(m_spEndings)->eSelect(bVelarStemAuslaut, bIsVariant);
+            int iNumEndings = m_spEndings->iCount();
             if (iNumEndings < 1)
             {
                 ERROR_LOG(L"No endings");
@@ -273,8 +274,8 @@ ET_ReturnCode CFormBuilderComparative::eBuild()
 
             for (int iEnding = 0; iEnding < iNumEndings; ++iEnding)
             {
-                CWordForm* pWordForm = NULL;
-                rc = eCreateFormTemplate(sStem, pWordForm);
+                shared_ptr<CWordForm> spWordForm;
+                rc = eCreateFormTemplate(sStem, spWordForm);
                 if (rc != H_NO_ERROR)
                 {
                     continue;
@@ -282,13 +283,13 @@ ET_ReturnCode CFormBuilderComparative::eBuild()
 
                 CEString sEnding;
                 int64_t llEndingKey = -1;
-                rc = m_pEndings->eGetEnding(iEnding, sEnding, llEndingKey);
+                rc = m_spEndings->eGetEnding(iEnding, sEnding, llEndingKey);
                 if (rc != H_NO_ERROR)
                 {
                     continue;
                 }
 
-                rc = eHandleStressAndAdd(pWordForm, vecStress, eStressLocation, sStem, sEnding, llEndingKey);
+                rc = eHandleStressAndAdd(spWordForm, vecStress, eStressLocation, sStem, sEnding, llEndingKey);
  //               if (rc != H_NO_ERROR)
  //               {
  //                   continue;

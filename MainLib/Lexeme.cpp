@@ -9,13 +9,106 @@
 #include "FormBuilderVerbPast.h"
 #include "FormBuilderVerbNonFinite.h"
 #include "FormBuilderAspectPair.h"
-//#include "md5.h"
-#include "sha1.hpp"     // ThirdParty/sha1
 #include "Lexeme.h"
 
 using namespace Hlib;
 
-CLexeme::CLexeme(CDictionary * pD) : m_bFormsGenerated(false), m_pDictionary(pD), m_spSecondPart(nullptr)
+ET_ReturnCode CInflectionEnumerator::eReset()
+{
+    if (nullptr == m_spLexeme)
+    {
+        return H_ERROR_POINTER;
+    }
+
+    m_itCurrentInflection = m_spLexeme->m_vecInflection.begin();
+    
+    return H_NO_ERROR;
+}
+
+/*
+ET_ReturnCode CInflectionEnumerator::eGetFirstInflection(IInflection*& pInflectionItf)
+{
+    if (nullptr == m_pLexeme)
+    {
+        return H_ERROR_POINTER;
+    }
+
+    m_itCurrentInflection = m_pLexeme->m_vecInflection.begin();
+    if (m_pLexeme->m_vecInflection.end() == m_itCurrentInflection)
+    {
+        return H_FALSE;
+    }
+
+    pInflectionItf = (*m_itCurrentInflection).get();
+
+    return H_NO_ERROR;
+};
+
+ET_ReturnCode CInflectionEnumerator::eGetNextInflection(IInflection*& pInflectionItf)
+{
+    if (nullptr == m_pLexeme)
+    {
+        return H_ERROR_POINTER;
+    }
+
+    if (m_itCurrentInflection != m_pLexeme->m_vecInflection.end())
+    {
+        ++m_itCurrentInflection;
+    }
+
+    if (m_pLexeme->m_vecInflection.end() == m_itCurrentInflection)
+    {
+        return H_NO_MORE;
+    }
+
+    pInflectionItf = (*m_itCurrentInflection).get();
+
+    return H_NO_ERROR;
+}
+*/
+
+ET_ReturnCode CInflectionEnumerator::eGetFirstInflection(shared_ptr<CInflection>& spInflection)
+{
+    if (nullptr == m_spLexeme)
+    {
+        return H_ERROR_POINTER;
+    }
+
+    m_itCurrentInflection = m_spLexeme->m_vecInflection.begin();
+    if (m_spLexeme->m_vecInflection.end() == m_itCurrentInflection)
+    {
+        return H_FALSE;
+    }
+
+    spInflection = *m_itCurrentInflection;
+
+    return H_NO_ERROR;
+}
+
+ET_ReturnCode CInflectionEnumerator::eGetNextInflection(shared_ptr<CInflection>& spInflection)
+{
+    if (nullptr == m_spLexeme)
+    {
+        return H_ERROR_POINTER;
+    }
+
+    if (m_itCurrentInflection != m_spLexeme->m_vecInflection.end())
+    {
+        ++m_itCurrentInflection;
+    }
+
+    if (m_spLexeme->m_vecInflection.end() == m_itCurrentInflection)
+    {
+        return H_NO_MORE;
+    }
+
+    spInflection = *m_itCurrentInflection;
+
+    return H_NO_ERROR;
+}
+
+
+CLexeme::CLexeme(shared_ptr<CDictionary> spD) : m_spDictionary(spD), m_spSecondPart(nullptr)
 {
     Init();
 }
@@ -25,36 +118,36 @@ CLexeme::CLexeme(const CLexeme& source)
     Init();
 
     m_stProperties = source.m_stProperties;
-    m_pDictionary = source.m_pDictionary;
-    m_itCurrentWordForm = source.m_itCurrentWordForm;
-    m_mmapIrregularForms = source.m_mmapIrregularForms;
-    m_itCurrentIrregularForm = source.m_itCurrentIrregularForm;
+    m_spDictionary = source.m_spDictionary;
+//    m_itCurrentWordForm = source.m_itCurrentWordForm;
+//    m_mmapIrregularForms = source.m_mmapIrregularForms;
+//    m_itCurrentIrregularForm = source.m_itCurrentIrregularForm;
 //    m_vecMissingForms = source.m_vecMissingForms;
     m_itCurrentStressPos = source.m_itCurrentStressPos;
     m_spSecondPart = source.m_spSecondPart;
 
-    auto it = source.m_mmWordForms.begin();
-    for (;  it != source.m_mmWordForms.end(); ++it)
-    {
-        CWordForm * pWfCopy = new CWordForm(*(*it).second);
-        pWfCopy->m_pLexeme = this;
-        pair<CEString, CWordForm *> pairHW(pWfCopy->sGramHash(), pWfCopy);
-        m_mmWordForms.insert(pairHW);
-    }
+//    auto it = source.m_mmWordForms.begin();
+//    for (;  it != source.m_mmWordForms.end(); ++it)
+//    {
+//        CWordForm * pWfCopy = new CWordForm(*(*it).second);
+//        pWfCopy->m_pLexeme = this;
+//        pair<CEString, CWordForm *> pairHW(pWfCopy->sGramHash(), pWfCopy);
+//        m_mmWordForms.insert(pairHW);
+//    }
 }
 
 CLexeme::~CLexeme()
 {
-    multimap<CEString, CWordForm *>::iterator itWf = m_mmWordForms.begin();
-    for (; itWf != m_mmWordForms.end(); ++itWf)
-    {
-        delete(itWf->second);
-        auto itRange = m_mmWordForms.equal_range(itWf->first);
-        for (auto& itForm = itRange.first; itForm != itRange.second; ++itForm)
-        {
-            itForm->second = NULL;
-        }
-    }
+//    multimap<CEString, CWordForm *>::iterator itWf = m_mmWordForms.begin();
+//    for (; itWf != m_mmWordForms.end(); ++itWf)
+//    {
+//        delete(itWf->second);
+//        auto itRange = m_mmWordForms.equal_range(itWf->first);
+//        for (auto& itForm = itRange.first; itForm != itRange.second; ++itForm)
+//        {
+//            itForm->second = NULL;
+//        }
+//    }
 
 //    multimap<int, StIrregularForm>::iterator itIf = m_mmapIrregularForms.begin();
 //    for (; itIf != m_mmapIrregularForms.end(); ++itIf)
@@ -185,7 +278,7 @@ void CLexeme::Init()
         {
             m_mapStandardAlternations[arr1stStage[i_sa]] = arr2ndStage[i_sa];
         }
-
+/*
         const wchar_t * arrPreverbs[] = { L"в", L"над", L"об", L"от", L"под", L"пред", L"с" };
         for (int i_ap = 0; i_ap < (int)(sizeof(arrPreverbs)/sizeof(wchar_t *)); ++i_ap)
         {
@@ -197,7 +290,7 @@ void CLexeme::Init()
         {
             m_vecAlternatingPreverbsWithVoicing.push_back(arrPreverbsV[i_ap]);
         }
-
+*/
         m_stProperties.s1SgStem.SetVowels(CEString::g_szRusVowels);
         m_stProperties.s3SgStem.SetVowels(CEString::g_szRusVowels);
         m_stProperties.sInfinitive.SetVowels(CEString::g_szRusVowels);
@@ -209,11 +302,34 @@ void CLexeme::Init()
     }
 }   // Init()
 
+void CLexeme::SetDictionary(shared_ptr<CDictionary> spDict)
+{
+    // Note: IDictionary is an interface, not a base class
+    m_spDictionary = spDict;
+}
+
+ET_ReturnCode CLexeme::eCreateInflectionEnumerator(shared_ptr<CInflectionEnumerator>& pIe)
+{
+    pIe = make_shared<CInflectionEnumerator>(shared_from_this());
+    if (!pIe)
+    {
+        ERROR_LOG(L"Error retrieving IInflectionEnumerator.");
+        return H_ERROR_POINTER;
+    }
+    return H_NO_ERROR;
+}
+
+void CLexeme::DeleteInflectionEnumerator(shared_ptr<CInflectionEnumerator> pIe)
+{
+//    delete pIe;
+}
+
 StLexemeProperties& CLexeme::stGetSecondPartProperties()
 {
     return m_stProperties2ndPart;
 }
 
+/*
 ET_ReturnCode CLexeme::eAddCommonDeviation(int iValue, bool bIsOptional)
 {
     if (iValue < 1)
@@ -257,6 +373,7 @@ bool CLexeme::bFindCommonDeviation (int iNum, bool& bIsOptional)
 
     return true;
 }
+*/
 
 bool CLexeme::bFindStandardAlternation (const CEString& sKey, CEString& sValue)
 {
@@ -307,6 +424,7 @@ ET_ReturnCode CLexeme::eGetStemStressPositions (const CEString& sStem, vector<in
 
 }   //  hGetStemStressPositions (...)
 
+/*
 ET_ReturnCode CLexeme::eGetAlternatingPreverb (const CEString& sVerbForm, CEString& sPreverb, bool& bVoicing)
 {
     if (!m_stProperties.bFleetingVowel)
@@ -357,32 +475,34 @@ ET_ReturnCode CLexeme::eGetAlternatingPreverb (const CEString& sVerbForm, CEStri
     return H_NO_ERROR;
 
 }       //  eGetAlternatingPreverb(...)
+*/
 
-void CLexeme::AssignPrimaryStress (CWordForm * pWordForm)
+void CLexeme::AssignPrimaryStress (shared_ptr<CWordForm> spWordForm)
 {
     vector<int>::iterator itStressPos = m_stProperties.vecSourceStressPos.begin();
     for (; itStressPos != m_stProperties.vecSourceStressPos.end(); ++itStressPos)
     {
-        pWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;
+        spWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;
     }
 }
 
-void CLexeme::AssignSecondaryStress (CWordForm * pWordForm)
+void CLexeme::AssignSecondaryStress (shared_ptr<CWordForm> spWordForm)
 {
     vector<int>::iterator itPos = m_stProperties.vecSecondaryStressPos.begin();
     for (; itPos != m_stProperties.vecSecondaryStressPos.end(); ++itPos)
     {
         int iStressedSyll = *itPos; // it _is_ the syllable number, so we don't need that conversion
 //        if (iStressedSyll < 0 || iStressedSyll >= (int)m_stProperties.sGraphicStem.uiGetNumOfSyllables())
-        if (iStressedSyll < 0 || iStressedSyll >= (int)pWordForm->sWordForm().uiGetNumOfSyllables())
+        if (iStressedSyll < 0 || iStressedSyll >= (int)spWordForm->sWordForm().uiGetNumOfSyllables())
         {
             throw CException (H_ERROR_UNEXPECTED, L"Secondary stress position out of bounds.");
         }
 
-        pWordForm->m_mapStress[iStressedSyll] = STRESS_SECONDARY;
+        spWordForm->m_mapStress[iStressedSyll] = STRESS_SECONDARY;
     }
 }
 
+/*
 void CLexeme::AddWordForm (CWordForm * pWordForm)
 {
     if (NULL == pWordForm)
@@ -396,34 +516,36 @@ void CLexeme::AddWordForm (CWordForm * pWordForm)
     m_mmWordForms.insert (pairHW);
 
 }  //  AddWordForm (...)
+*/
 
-void CLexeme::SetHypotheticalForm(CEString& sGramHash)
+//void CLexeme::SetHypotheticalForm(CEString& sGramHash)
+//{
+//    m_vecHypotheticalForms.push_back(sGramHash);
+//}
+//
+//bool CLexeme::bIsHypotheticalForm(CEString& sGramHash)
+//{
+//    if (m_vecHypotheticalForms.end() != find(m_vecHypotheticalForms.begin(), m_vecHypotheticalForms.end(), sGramHash))
+//    {
+//        return true;
+//    }
+//    else
+//    {
+//        return false;
+//    }
+//}
+//
+//uint64_t CLexeme::uiTotalWordForms()
+//{
+//    return m_mmWordForms.size();
+//}
+
+ET_ReturnCode CLexeme::eUpdateDescriptorInfo(shared_ptr<CLexeme> spLexeme)
 {
-    m_vecHypotheticalForms.push_back(sGramHash);
+    return m_spDictionary->eUpdateDescriptorInfo(spLexeme);
 }
 
-bool CLexeme::bIsHypotheticalForm(CEString& sGramHash)
-{
-    if (m_vecHypotheticalForms.end() != find(m_vecHypotheticalForms.begin(), m_vecHypotheticalForms.end(), sGramHash))
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
-
-uint64_t CLexeme::uiTotalWordForms()
-{
-    return m_mmWordForms.size();
-}
-
-ET_ReturnCode CLexeme::eUpdateDescriptorInfo(CLexeme * pLexeme)
-{
-    return m_pDictionary->eUpdateDescriptorInfo(pLexeme);
-}
-
+/*
 ET_ReturnCode CLexeme::eGetWordForm(unsigned int uiAt, CWordForm *& pWordForm)
 {
     if (uiAt >= m_mmWordForms.size())
@@ -493,7 +615,14 @@ ET_ReturnCode CLexeme::eWordFormFromHash(CEString sHash, int iAt, CWordForm *& p
     return H_NO_ERROR;
 
 }   //  WordFormFromHash (...)
+*/
 
+void CLexeme::AddInflection(shared_ptr<CInflection> spInflection)
+{
+    m_vecInflection.emplace_back(spInflection);
+}
+
+/*
 ET_ReturnCode CLexeme::eWordFormFromHash(CEString sHash, int iAt, IWordForm *& pIWordForm)
 {
     CWordForm * pCWordForm = NULL;
@@ -567,7 +696,9 @@ void CLexeme::AddWordForm(IWordForm* pItfWordForm)
         m_mmWordForms.insert(pair<CEString, CWordForm*>(pItfWordForm->sGramHash(), pCWf));
     }
 }
+*/
 
+/*
 bool CLexeme::bNoRegularForms (CEString sGramHash)
 {
     IWordForm * pWf = NULL;         // currently not nused
@@ -683,6 +814,7 @@ ET_ReturnCode CLexeme::eGetIrregularForms(CEString sHash, map<CWordForm *, bool>
     return H_NO_ERROR;
 
 }   //  eGetIrregularForms()
+*/
 
 CEString CLexeme::sGramHashNSgMLong()
 {
@@ -692,296 +824,41 @@ CEString CLexeme::sGramHashNSgMLong()
     return sHash;
 }
 
-void CLexeme::SetSecondPart(shared_ptr<CLexeme>& spRhs)
+void CLexeme::SetSecondPart(shared_ptr<CLexeme> spRhs)
 {
     m_spSecondPart = spRhs;
 }
 
-int CLexeme::iFormCount (CEString sHash)
-{
-    return (int)m_mmWordForms.count (sHash);
-}
+//int CLexeme::iFormCount (CEString sHash)
+//{
+//    return (int)m_mmWordForms.count (sHash);
+//}
 
-bool CLexeme::bHasCommonDeviation (int iCd)
-{
+//bool CLexeme::bHasCommonDeviation (int iCd)
+//{
 //    bool bRet = false;
-    map<int, bool>::iterator itCd = m_stProperties.mapCommonDeviations.find (iCd);
-    return (itCd != m_stProperties.mapCommonDeviations.end());
-}
+//    map<int, bool>::iterator itCd = m_stProperties.mapCommonDeviations.find (iCd);
+//    return (itCd != m_stProperties.mapCommonDeviations.end());
+//}
 
-bool CLexeme::bDeviationOptional (int iCd)
-{
+//bool CLexeme::bDeviationOptional (int iCd)
+//{
 //    bool bRet = false;
-    map<int, bool>::iterator itCd = m_stProperties.mapCommonDeviations.find (iCd);
-    if (itCd != m_stProperties.mapCommonDeviations.end())
-    {
-        return (*itCd).second;
-    }
-    else
-    {
-        assert(0);
-        CEString sMsg (L"Common deviation expected.");
-        ERROR_LOG (sMsg);
-        throw CException (H_EXCEPTION, sMsg);
-    }
-}
-
-ET_ReturnCode CLexeme::eFormExists(const CEString& sFH)
-{
-//    if (m_mmWordForms.end() != m_mmWordForms.find(sFH))
+//    map<int, bool>::iterator itCd = m_stProperties.mapCommonDeviations.find (iCd);
+//    if (itCd != m_stProperties.mapCommonDeviations.end())
 //    {
-//        return H_TRUE;
+//        return (*itCd).second;
 //    }
+//    else
+//    {
+//        assert(0);
+//        CEString sMsg (L"Common deviation expected.");
+//        ERROR_LOG (sMsg);
+//        throw CException (H_EXCEPTION, sMsg);
+//    }
+//}
 
-    auto& sFormHash = const_cast<CEString&> (sFH);
-    sFormHash.SetBreakChars(L"_");
-
-    if (m_stProperties.bHasMissingForms) 
-    {
-        if (m_vecMissingForms.end() != find(m_vecMissingForms.begin(), m_vecMissingForms.end(), sFH))
-        {
-            return H_FALSE;
-        }
-        if (m_vecMissingForms.end() != find(m_vecMissingForms.begin(), m_vecMissingForms.end(), L"SingleForm"))
-        {
-            if (sFormHash.uiNFields() >= 3 && sFormHash.sGetField(1) == L"Sg" && sFormHash.sGetField(2) == L"N")
-            {
-                return H_TRUE;
-            }
-            return H_FALSE;
-        }
-    }
-
-    if (L"Noun_Sg_Part" == sFH)
-    {
-        if (m_stProperties.bSecondGenitive)
-        {
-            return H_TRUE;
-        }
-        else
-        {
-            return H_FALSE;
-        }
-    }
-
-    if (L"Noun_Sg_P2" == sFH)
-    {
-        if (m_stProperties.bSecondPrepositional)
-        {
-            return H_TRUE;
-        }
-        else
-        {
-            return H_FALSE;
-        }
-    }
-
-    
-    if (L"Noun_Sg_P2_Prepositions" == sFH)
-    {
-        if (m_stProperties.sP2Preposition.bIsEmpty())
-        {
-            return H_FALSE;
-        }
-        else
-        {
-            return H_TRUE;
-        }
-    }
-
-    if (L"мн." == m_stProperties.sMainSymbol || m_stProperties.bIsPluralOf)
-    {
-        if (sFH.bStartsWith(L"Noun_Sg_"))
-        {
-            return H_FALSE;
-        }
-    }
-
-    if (L"AdjComp" == sFH && m_stProperties.bNoComparative)
-    {
-        return H_FALSE;
-    }
-
-    if (sFH.bStartsWith(L"AdjL_") && m_stProperties.bNoLongForms)
-    {
-        return H_FALSE;
-    }
-
-    if (m_stProperties.bIsImpersonal && L"Pres_Sg_3" != sFH && L"Past_N" != sFH && L"Inf" != sFH)
-    {
-        return H_FALSE;
-    }
-
-    if (m_stProperties.bIsIterative)
-    {
-        if (sFH.bStartsWith(L"Pres") || sFH.bStartsWith(L"PPres") || sFH.bStartsWith(L"VAdv_Pres") || 
-            sFH.bStartsWith(L"Impv"))
-        {
-            return H_FALSE;
-        }
-    }
-
-    if (POS_VERB == m_stProperties.ePartOfSpeech && L"AdjComp" == sFH)
-    {
-        return H_FALSE;
-    }
-
-//    auto sFormHash = const_cast<CEString&> (sFH);
-//    sFormHash.SetBreakChars(L"_");
-
-    if (L"AdjS" == sFormHash.sGetField(0) || L"AdjComp" == sFormHash.sGetField(0))
-    {
-        if (L"мс-п" == m_stProperties.sMainSymbol || L"мс" == m_stProperties.sInflectionType || 
-            L"числ.-п" == m_stProperties.sInflectionType)
-        {
-            return H_FALSE;
-        }
-
-        if (m_stProperties.sSourceForm.bEndsWith(L"ийся"))
-        {
-            return H_FALSE;
-        }
-
-//        if (POS_VERB == m_stProperties.ePartOfSpeech) // detail view for participles
-//        {
-//            if (m_mmWordForms.find())
-//            return H_FALSE;
-//        }
-    }
-
-    if (m_stProperties.bShortFormsIncomplete && L"AdjS_M" == sFormHash)
-    {
-        return H_FALSE;
-    }
-    
-    if (m_stProperties.bNoPassivePastParticiple && sFormHash.uiNFields() > 0)
-    {
-        if (sFormHash.sGetField(0).bStartsWith(L"PPastP"))
-        {
-            return H_FALSE;
-        }
-    }
-
-    if ((sFormHash.bStartsWith(L"PPresA") || L"VAdv_Pres" == sFormHash) && L"св" == m_stProperties.sMainSymbol)
-    {
-        return H_FALSE;
-    }
-
-    if (L"VAdv_Pres" == sFormHash && 17 == m_stProperties.iSection) // $17 -- special case
-    {
-        return H_TRUE;
-    }
-
-    if (sFormHash.bStartsWith(L"VAdv_Pres"))
-    {
-        int aNoAdvTypes[] = { 3, 8, 9, 11, 14, 15 };
-        auto size = aNoAdvTypes + sizeof(aNoAdvTypes) / sizeof(int);
-        if (find(aNoAdvTypes, size, m_stProperties.iType) != size)
-        {
-            return H_FALSE;
-        }
-    }
-
-    if (sFormHash.bStartsWith(L"PPresP") && !m_stProperties.bHasPresPassParticiple)
-    {
-        return H_FALSE;
-    }
-
-    if (sFormHash.bStartsWith(L"PPastP") && (!m_stProperties.bTransitive || REFL_YES == m_stProperties.eReflexive))
-    {
-        return H_FALSE;
-    }
-
-    if (sFormHash.bStartsWith(L"PPastP") && L"нсв" == m_stProperties.sMainSymbol && bHasAspectPair())
-    {
-        return H_FALSE;
-    }
-
-    if (!m_stProperties.bHasMissingForms)
-    {
-        return H_TRUE;
-    }
-
-    if (sFH.uiLength() < 1)
-    {
-        ERROR_LOG(L"Empty form hash.");
-        return H_ERROR_UNEXPECTED;
-    }
-
-    bool bNegate = false;
-
-    for (auto& sMissing : m_vecMissingForms)
-    {
-        if (L'!' == sMissing[0])
-        {
-            bNegate = true;
-            sMissing = sMissing.sSubstr(1);
-        }
-
-        sMissing.SetBreakChars(L"_");
-        bool bMatch = true;
-        if (sMissing.uiNFields() != sFormHash.uiNFields())
-        {
-            bMatch = false;
-        }
-        else
-        {
-            for (int iAt = 0; iAt < (int)sFormHash.uiNFields(); ++iAt)
-            {
-                auto&& sFormHashFragment = (sFormHash.uiNFields() == 0) ? sFormHash : sFormHash.sGetField(iAt);
-                auto&& sMissingHashFragment = (sMissing.uiNFields() == 0) ? sMissing : sMissing.sGetField(iAt);
-
-                if (sMissingHashFragment == L"*")
-                {
-                    continue;
-                }
-
-                if (sMissingHashFragment != sFormHashFragment)
-                {
-                    bMatch = false;
-                    break;
-                }
-            }
-        }
-
-        if (bMatch)
-        {
-            return bNegate ? H_TRUE : H_FALSE;
-        }
-    }
-
-    return bNegate ? H_FALSE : H_TRUE;
-
-}   //  eFormExists (...)
-
-ET_ReturnCode CLexeme::eSetFormExists(const CEString& sGramHash, bool bExists)
-{
-    if (L"AdjComp" == sGramHash)
-    {
-        m_stProperties.bNoComparative = bExists;
-        return H_NO_ERROR;
-    }
-
-    if (bExists)
-    {
-        auto itFound = find(m_vecMissingForms.begin(), m_vecMissingForms.end(), sGramHash);
-        if (itFound == m_vecMissingForms.end())
-        {
-            CEString sMsg(L"Hash " + sGramHash + L" not found.");
-            ERROR_LOG(sMsg);
-            return H_ERROR_UNEXPECTED;
-        }
-
-        m_vecMissingForms.erase(itFound);
-    }
-    else
-    {
-        m_vecMissingForms.push_back(sGramHash);
-    }
-
-    return H_NO_ERROR;
-}
-
+/*
 ET_ReturnCode CLexeme::eIsFormDifficult(const CEString& sFH)
 {
     auto& sFormHash = const_cast<CEString&> (sFH);
@@ -1129,7 +1006,9 @@ ET_ReturnCode CLexeme::eIsFormAssumed(const CEString& sFH)
     return H_FALSE;
 
 }   //  eIsFormAssumed()
+*/
 
+/*
 ET_ReturnCode CLexeme::eSetHasAssumedForms(bool bIsAssumed)
 {
     m_stProperties.bAssumedForms = bIsAssumed;
@@ -1181,12 +1060,14 @@ bool CLexeme::bIsMultistressedCompound()
     return false;
 
 }   //  bMultiStress (...)
+*/
 
 ET_ReturnCode CLexeme::eSetDb (const CEString& sDbPath)
 {
-    return m_pDictionary->eSetDbPath(sDbPath);
+    return m_spDictionary->eSetDbPath(sDbPath);
 }
 
+/*
 ET_ReturnCode CLexeme::eMakeGraphicStem(const CEString& sSource, CEString& sGraphicStem)
 {
     if (sSource.uiLength() < 1)
@@ -1329,6 +1210,7 @@ ET_ReturnCode CLexeme::eMakeGraphicStem()
     return eRet;
 
 }       //  eMakeGraphicStem()
+*/
 
 ET_ReturnCode CLexeme::eExtractStressSymbols()
 {
@@ -1528,9 +1410,11 @@ ET_ReturnCode CLexeme::eInitializeFromProperties()
 
 }       //  eInitializeFromProperties()
 
+
 //
 // Private
 //
+/*
 ET_ReturnCode CLexeme::eSaveStemsToDb()
 {
     if (m_mmWordForms.empty())
@@ -1589,7 +1473,7 @@ ET_ReturnCode CLexeme::eAssignStemIds()
 
            try
            {
-                CSqlite * pDbHandle = m_pDictionary->pGetDbHandle();
+                CSqlite * pDbHandle = m_pDictionary->spGetDb();
                 pDbHandle->PrepareForSelect(sQuery);
                 if (pDbHandle->bGetRow())
                 {
@@ -1678,143 +1562,9 @@ ET_ReturnCode CLexeme::eSaveIrregularFormsToDb()
 
     return eRet;
 }
+*/
 
-ET_ReturnCode CLexeme::eLoadIrregularForms()
-{
-    ET_ReturnCode rc = H_NO_ERROR;
-
-    if (!(m_stProperties.bHasIrregularForms || m_stProperties.ePartOfSpeech == POS_NUM))
-    {
-        return H_FALSE;
-    }
-
-    m_stProperties.bHasIrregularVariants = false;
-
-    CEString sQuery 
-        (L"SELECT id, gram_hash, wordform, is_alternative, lead_comment, trailing_comment, is_edited FROM irregular_forms WHERE descriptor_id = ");
-    sQuery += CEString::sToString (m_stProperties.llDescriptorId);
-    sQuery += L";";
-
-    CSqlite * pDb = NULL;
-
-    m_mmapIrregularForms.clear();
-
-    try
-    {
-        pDb = m_pDictionary->pGetDbHandle();            
-        uint64_t uiQueryHandle = pDb->uiPrepareForSelect (sQuery);
-        while (pDb->bGetRow(uiQueryHandle))
-        {
-            //StIrregularForm stForm;
-            int iId = -1;
-            CEString sHash;
-            CEString sForm;
-            bool bIsVariant = false;
-            CEString sLeadComment;
-            CEString sTrailingComment;
-            bool bIsEdited;
-
-            pDb->GetData (0, iId, uiQueryHandle);
-            pDb->GetData (1, sHash, uiQueryHandle);
-            pDb->GetData (2, sForm, uiQueryHandle);
-            pDb->GetData (3, bIsVariant, uiQueryHandle);
-            pDb->GetData(4, sLeadComment, uiQueryHandle);
-            pDb->GetData(5, sTrailingComment, uiQueryHandle);
-            pDb->GetData(6, bIsEdited, uiQueryHandle);
-
-            if (bIsVariant)
-            {
-                m_stProperties.bHasIrregularVariants = true;
-            }
-
-            CWordForm* pWf = new CWordForm(sHash);
-            pWf->m_pLexeme = this;
-            pWf->m_bIrregular = true;
-            pWf->m_llDbKey = iId;
-            pWf->m_sWordForm = sForm;
-            pWf->m_llLexemeId = this->llLexemeId();
-            pWf->m_bIsVariant = bIsVariant;
-            pWf->m_sLeadComment = sLeadComment;
-            pWf->m_sTrailingComment = sTrailingComment;
-
-            CEString sStressQuery (L"SELECT position, is_primary FROM irregular_stress WHERE form_id = ");
-            sStressQuery += CEString::sToString (iId);
-            sStressQuery += L";";
-
-            sForm.SetVowels(CEString::g_szRusVowels);
-
-            uint64_t uiStressHandle = pDb->uiPrepareForSelect (sStressQuery);
-            while (pDb->bGetRow (uiStressHandle))
-            {
-                int iPos = -1;
-                bool bPrimary = false;
-                pDb->GetData (0, iPos, uiStressHandle);
-                pDb->GetData (1, bPrimary, uiStressHandle);
-                int iStressedSyll = sForm.uiGetSyllableFromVowelPos (iPos);
-                pWf->m_mapStress[iStressedSyll] = bPrimary ? STRESS_PRIMARY : STRESS_SECONDARY;
-            }
-            pDb->Finalize (uiStressHandle);
-
-            StIrregularForm stIf(pWf, bIsVariant);
-            pair<CEString, StIrregularForm> pairHashToWordForm(sHash, stIf);
-            m_mmapIrregularForms.insert(pairHashToWordForm);
-
-        }   //  while (pDb->b_GetRow())
-
-        pDb->Finalize(uiQueryHandle);
-    }
-    catch (CException& ex)
-    {
-        ERROR_LOG (ex.szGetDescription());
-        rc = H_EXCEPTION;
-    }
-    catch (...)
-    {
-        CEString sMsg;
-        CEString sError;
-        try
-        {
-            pDb->GetLastError (sError);
-            sMsg += CEString (L", error: ");
-            sMsg += sError;
-        }
-        catch (...)
-        {
-            sMsg = L"Apparent DB error ";
-        }
-    
-        sMsg += CEString::sToString(pDb->iGetLastError());
-        ERROR_LOG (sMsg);
-        rc = H_EXCEPTION;
-    }
-
-    if (m_stProperties.bSpryazhSm)
-    {
-        auto& sPrefix = m_stProperties.sSpryazhSmPrefix;
-        auto& iPrefixLength = m_stProperties.iSpryazhSmRefPrefixLength;
-
-        for (auto& pairIf : m_mmapIrregularForms)
-        {
-            auto&& sRefForm = pairIf.second.pWordForm->sWordForm();
-            sRefForm.SetVowels(CEString::g_szRusVowels);
-            auto sNewForm = sPrefix + sRefForm.sSubstr(iPrefixLength);
-            sNewForm.SetVowels(CEString::g_szRusVowels);
-            int iDiff = (int)sNewForm.uiNSyllables() - (int)sRefForm.uiNSyllables();
-            pairIf.second.pWordForm->SetWordForm(sNewForm);
-            map<int, ET_StressType> mapModified;
-            for (auto& [iPos, eType] : pairIf.second.pWordForm->m_mapStress)
-            {
-                mapModified.emplace(iPos + iDiff, eType);
-            }
-            pairIf.second.pWordForm->m_mapStress = mapModified;
-        }
-    }
-
-    return rc;
-
-}   //  eLoadIrregularForms()
-
-ET_ReturnCode CLexeme::eHandleSpryazhSmForms()
+ET_ReturnCode CLexeme::eHandleSpryazhSmEntry()
 {
     uint64_t uiQueryHandle = 0;
     CEString sQuery(L"SELECT source FROM headword AS hw INNER JOIN descriptor AS d ON hw.id = d.word_id WHERE d.id = ");
@@ -1822,14 +1572,14 @@ ET_ReturnCode CLexeme::eHandleSpryazhSmForms()
     sQuery += L";";
 
     CEString sRefSource;
-    auto pDb = m_pDictionary->pGetDbHandle();
-    uiQueryHandle = pDb->uiPrepareForSelect(sQuery);
-    while (pDb->bGetRow(uiQueryHandle))
+    auto spDb = m_spDictionary->spGetDb();
+    uiQueryHandle = spDb->uiPrepareForSelect(sQuery);
+    while (spDb->bGetRow(uiQueryHandle))
     {
-        pDb->GetData(0, sRefSource, uiQueryHandle);
+        spDb->GetData(0, sRefSource, uiQueryHandle);
     }
 
-    pDb->Finalize(uiQueryHandle);
+    spDb->Finalize(uiQueryHandle);
 
     sRefSource.SetVowels(CEString::g_szRusVowels);
 
@@ -1862,8 +1612,9 @@ ET_ReturnCode CLexeme::eHandleSpryazhSmForms()
 
     return H_NO_ERROR;
 
-}   //  eHandleSpryazhSmForms()
+}   //  eHandleSpryazhSmEntry()
 
+/*
 ET_ReturnCode CLexeme::eLoadDifficultForms()
 {
     if (!m_stProperties.bHasDifficultForms)
@@ -1881,7 +1632,7 @@ ET_ReturnCode CLexeme::eLoadDifficultForms()
 
     try
     {
-        pDb = m_pDictionary->pGetDbHandle();
+        pDb = m_pDictionary->spGetDb();
         pDb->PrepareForSelect(sQuery);
         while (pDb->bGetRow())
         {
@@ -1913,7 +1664,8 @@ ET_ReturnCode CLexeme::eLoadDifficultForms()
     return H_NO_ERROR;
 
 }       //  eLoadDifficultForms()
-
+*/
+/*
 ET_ReturnCode CLexeme::eLoadMissingForms()
 {
     if (!m_stProperties.bHasMissingForms)
@@ -1931,7 +1683,7 @@ ET_ReturnCode CLexeme::eLoadMissingForms()
 
     try
     {
-        pDb = m_pDictionary->pGetDbHandle();
+        pDb = m_pDictionary->spGetDb();
         pDb->PrepareForSelect(sQuery);
         while (pDb->bGetRow())
         {
@@ -1967,7 +1719,9 @@ ET_ReturnCode CLexeme::eLoadMissingForms()
      return H_NO_ERROR;
 
 }   //  eLoadMissingForms()
+*/
 
+/*
 ET_ReturnCode CLexeme::eSaveIrregularForms(long long llDescriptorDbKey)
 {
     ET_ReturnCode rc = H_NO_ERROR;
@@ -1977,7 +1731,7 @@ ET_ReturnCode CLexeme::eSaveIrregularForms(long long llDescriptorDbKey)
         return H_FALSE;
     }
 
-    auto pDb = m_pDictionary->pGetDbHandle();
+    auto pDb = m_pDictionary->spGetDb();
     if (NULL == pDb)
     {
         return H_ERROR_POINTER;
@@ -2048,7 +1802,8 @@ ET_ReturnCode CLexeme::eSaveIrregularForms(long long llDescriptorDbKey)
     return rc;
 
 }   //  eSaveIrregularForms()
-
+*/
+/*
 ET_ReturnCode CLexeme::eGenerateParadigm()
 {
     ET_ReturnCode rc = H_NO_ERROR;
@@ -2274,12 +2029,14 @@ ET_ReturnCode CLexeme::eGenerateParadigm()
         }
     }
 
-	m_bFormsGenerated = true;
+    m_bFormsGenerated = true;
 
     return H_NO_ERROR;
 
 }   // eGenerateParadigm()
+*/
 
+/*
 ET_ReturnCode CLexeme::eSaveTestData()
 {
     if (m_mmWordForms.empty())
@@ -2288,7 +2045,7 @@ ET_ReturnCode CLexeme::eSaveTestData()
     }
 
     CSqlite * pDbHandle = NULL;
-    pDbHandle = m_pDictionary->pGetDbHandle();
+    pDbHandle = m_pDictionary->spGetDb();
 
     pDbHandle->BeginTransaction();
 
@@ -2352,7 +2109,7 @@ ET_ReturnCode CLexeme::eSaveTestData()
 
     try
     {
-        pDbHandle = m_pDictionary->pGetDbHandle();
+        pDbHandle = m_pDictionary->spGetDb();
 
         CEString sDeleteQuery(L"DELETE FROM lexeme_hash_to_descriptor WHERE descriptor_id = ");
         sDeleteQuery += CEString::sToString(m_stProperties.llDescriptorId);
@@ -2428,10 +2185,12 @@ ET_ReturnCode CLexeme::eSaveTestData()
 
     pDbHandle->CommitTransaction();
 
-	return H_NO_ERROR;
+    return H_NO_ERROR;
 
 }   // eSaveTestData()
+*/
 
+/*
 ET_ReturnCode CLexeme::eDeleteIrregularForm(const CEString& sFormHash)
 {
     // Delete irregular form and variants
@@ -2452,7 +2211,7 @@ ET_ReturnCode CLexeme::eDeleteIrregularForm(const CEString& sFormHash)
             sSelectIrregularForms += sFormHash;
             sSelectIrregularForms += L"\"";
 
-            pDbHandle = pGetDb();
+            pDbHandle = spGetDb();
             pDbHandle->PrepareForSelect(sSelectIrregularForms);
             int64_t iDbKey = 0;
             while (pDbHandle->bGetRow())
@@ -2543,7 +2302,7 @@ ET_ReturnCode CLexeme::eSaveIrregularForm(const CEString& sFormHash, IWordForm *
     sSelectIrregularForms += sFormHash;
     sSelectIrregularForms += L"\"";
 
-    CSqlite * pDbHandle = pGetDb();
+    CSqlite * pDbHandle = spGetDb();
     CEString sLeadComment;
     CEString sTrailingComment;
 
@@ -2650,7 +2409,7 @@ ET_ReturnCode CLexeme::eSaveIrregularForms(const CEString& sGramHash)
 {
     ET_ReturnCode rc = H_NO_ERROR;
 
-    auto pDb = m_pDictionary->pGetDbHandle();
+    auto pDb = m_pDictionary->spGetDb();
     if (NULL == pDb)
     {
         return H_ERROR_POINTER;
@@ -2748,10 +2507,11 @@ ET_ReturnCode CLexeme::eSaveIrregularForms(const CEString& sGramHash)
     return rc;
 
 }   //  eSaveIrregularForms()
+*/
 
-ET_ReturnCode CLexeme::eClone(ILexeme *& pClonedObject)
+ET_ReturnCode CLexeme::eClone(shared_ptr<CLexeme>& spClonedObject)
 {
-    pClonedObject = new CLexeme(const_cast<const CLexeme&>(*this));
+    spClonedObject = make_shared<CLexeme>(const_cast<const CLexeme&>(*this));
     return H_NO_ERROR;
 }
 
@@ -2766,16 +2526,17 @@ ET_ReturnCode CLexeme::eGetErrorMsg(CEString& sErrorMsg)
     return sErrorMsg.bIsEmpty() ? H_FALSE : H_NO_ERROR;
 }
 
-CSqlite * CLexeme::pGetDb()
+shared_ptr<CSqlite> CLexeme::spGetDb()
 {
-    CSqlite * pDb = m_pDictionary->pGetDbHandle();
-    if (!pDb)
+    shared_ptr<CSqlite> spDb = m_spDictionary->spGetDb();
+    if (!spDb)
     {
         throw CException (H_ERROR_POINTER, L"No database handle.");
     }
-    return pDb;
+    return spDb;
 }
 
+/*
 CEString CLexeme::sHash()
 {
     CEString sSource(m_stProperties.sSourceForm);
@@ -2824,7 +2585,8 @@ CEString CLexeme::sHash()
     return CEString::sFromUtf8(utf8Hash);
 
 }   //  sHash()
-
+*/
+/*
 CEString CLexeme::sParadigmHash()
 {
     CEString sSource(m_stProperties.sSourceForm);
@@ -2890,7 +2652,9 @@ CEString CLexeme::sParadigmHash()
     return CEString::sFromUtf8(utf8Hash);
 
 }   //  sParadigmHash()
+*/
 
+/*
 ET_ReturnCode CLexeme::eGetFirstWordForm (IWordForm *& pWf)
 {
     m_itCurrentWordForm = m_mmWordForms.begin();
@@ -3031,6 +2795,7 @@ ET_ReturnCode CLexeme::eGetNextIrregularForm (CWordForm *& pWordForm, bool& bIsO
     return H_NO_ERROR;
 
 }   //  eGetNextIrregularForm (...)
+*/
 
 ET_ReturnCode CLexeme::eGetSourceFormWithStress(CEString& sSourceForm, bool bIsVariant)
 {
@@ -3238,6 +3003,7 @@ ET_ReturnCode CLexeme::eGetAltAspectPair(CEString& sAltAspectPair, int& iAltStre
     return H_NO_ERROR;
 }
 
+/*
 ET_ReturnCode CLexeme::eAlignInflectedParts()
 {
     if (!m_spSecondPart)
@@ -3374,3 +3140,4 @@ ET_ReturnCode CLexeme::eConcatenateInflectedParts(CWordForm& wfLeft, CWordForm& 
 
     return H_NO_ERROR;
 }
+*/

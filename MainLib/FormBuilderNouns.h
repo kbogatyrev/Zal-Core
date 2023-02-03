@@ -18,7 +18,8 @@ namespace Hlib
 class CFormBuilderNouns : public CFormBuilderDecl
 {
 public:
-    CFormBuilderNouns (CLexeme * pLexeme) : CFormBuilderDecl (pLexeme, SUBPARADIGM_NOUN)
+    CFormBuilderNouns (shared_ptr<CLexeme> spLexeme, shared_ptr<CInflection> spInflection) 
+        : CFormBuilderDecl (spLexeme, spInflection, SUBPARADIGM_NOUN)
     {}
 
 protected:
@@ -41,7 +42,7 @@ protected:
                                        ET_StressLocation eStressType,
                                        vector<int>& vecStressPos);
 
-    ET_ReturnCode eCreateFormTemplate (ET_Number eNumber, ET_Case eCase, const CEString& sStem, CWordForm *&);
+    ET_ReturnCode eCreateFormTemplate (ET_Number eNumber, ET_Case eCase, const CEString& sStem, shared_ptr<CWordForm>&);
 
     ET_ReturnCode eCheckIrregularForms (ET_Gender eGender, 
                                         ET_Animacy eAnimacy, 
@@ -54,7 +55,7 @@ protected:
                         const CEString& sStem, 
                         const CEString& sEnding, 
                         long long llEndingKey, 
-                        CWordForm * pWordForm);
+                        shared_ptr<CWordForm> spWordForm);
 
 public:
     ET_ReturnCode eBuild();

@@ -22,7 +22,8 @@ namespace Hlib
         };
 
     public:
-        CFormBuilderPast (CLexeme * pLexeme) : CFormBuilderConj (pLexeme, SUBPARADIGM_PAST_TENSE)
+        CFormBuilderPast (shared_ptr<CLexeme> spLexeme, shared_ptr<CInflection> spInflection) 
+            : CFormBuilderConj (spLexeme, spInflection, SUBPARADIGM_PAST_TENSE)
         {}
 
     public:
@@ -39,15 +40,15 @@ namespace Hlib
                                            ET_Number eNumber, 
                                            ET_Gender eGender, 
                                            int64_t llEndingKey,
-                                           CWordForm *& pWordForm);
+                                           shared_ptr<CWordForm>& spWordForm);
 
-        ET_ReturnCode eAssemble (CWordForm * pWordForm, int iStressPos, CEString& sLemma, CEString& sEnding);
+        ET_ReturnCode eAssemble(shared_ptr<CWordForm> spWordForm, int iStressPos, CEString& sStem, CEString& sEnding);
 
         ET_ReturnCode eBuild();
 
-        ET_ReturnCode eBuildIrregular (bool&);
+        ET_ReturnCode eBuildIrregular(bool&);
 
-        ET_ReturnCode eRetractStressToPreverb (CWordForm *, bool bIsOptional);
+        ET_ReturnCode eRetractStressToPreverb(shared_ptr<CWordForm>, bool bIsOptional);
 
     };
 

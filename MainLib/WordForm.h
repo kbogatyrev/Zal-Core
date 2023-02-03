@@ -4,9 +4,10 @@
 #include "Enums.h"
 #include "EString.h"
 
-#include "IWordForm.h"
+//#include "IWordForm.h"
 #include "SqliteWrapper.h"
 #include "Lexeme.h"
+#include "Inflection.h"
 #include "GramHasher.h"
 
 using namespace std;
@@ -16,242 +17,254 @@ namespace Hlib
 {
     class CHasher;
     class CLexeme;
+    class CInflection;
 
-    struct CWordForm : public IWordForm
+    class CWordForm
     {
+    public:
         CWordForm();
         CWordForm(const CEString& sHash);
         CWordForm(const CWordForm&);
-        CWordForm(const CWordForm*);
+        CWordForm(const shared_ptr<CWordForm>);
 
         const CWordForm& operator= (const CWordForm&);
 
-        virtual ET_ReturnCode eInitFromHash(const CEString& sHash);
+        ET_ReturnCode eInitFromHash(const CEString& sHash);
 
-        virtual ET_ReturnCode eClone(IWordForm *&);
+        ET_ReturnCode eClone(shared_ptr<CWordForm>&);
 
-        virtual ILexeme * pLexeme();
+//        ILexeme* pLexemeItf() override;
+//        IInflection * pInflectionItf() override;
 
-        virtual void SetLexeme(ILexeme * pLexeme);
+        shared_ptr<CLexeme> spLexeme();
+        shared_ptr<CInflection> spInflection();
 
-        virtual CEString sWordForm()
+        void SetLexeme(shared_ptr<CLexeme>);
+        void SetInflection(shared_ptr<CInflection>);
+
+        CEString sWordForm()
         {
             return m_sWordForm;
         }
 
-        virtual void SetWordForm(const CEString& sWf)
+        void SetWordForm(const CEString& sWf)
         {
             m_sWordForm = sWf;
         }
 
-        virtual long long llDbId()
+        long long llDbId()
         {
             return m_llDbKey;
         }
 
-        virtual CEString sStem()
+        CEString sStem()
         {
             return m_sStem;
         }
 
-        virtual void SetStem(const CEString& sStem)
+        void SetStem(const CEString& sStem)
         {
             m_sStem = sStem;
         }
 
-        virtual long long llDbKey()
+        long long llDbKey()
         {
             return m_llDbKey;
         }
 
-        virtual long long llStemId()
+        long long llStemId()
         {
             return m_llStemId;
         }
 
-        virtual CEString sEnding()
+        CEString sEnding()
         {
             return m_sEnding;
         }
 
-        virtual long long llEndingDataId()
+        long long llEndingDataId()
         {
             return m_llEndingDataId;
         }
 
-        virtual long long llLexemeId()
+//        long long llLexemeId()
+//        {
+//            return m_pLexeme->llLexemeId();
+//        }
+
+        long long llInflectionId()
         {
-            return m_llLexemeId;
+            return m_llInflectionId;
         }
 
-        virtual ET_PartOfSpeech ePos()
+        ET_PartOfSpeech ePos()
         {
             return m_ePos;
         }
 
-        virtual void SetPos(ET_PartOfSpeech ePos)
+        void SetPos(ET_PartOfSpeech ePos)
         {
             m_ePos = ePos;
         }
 
-        virtual ET_Case eCase()
+        ET_Case eCase()
         {
             return m_eCase;
         }
 
-        virtual void SetCase(ET_Case eCase)
+        void SetCase(ET_Case eCase)
         {
             m_eCase = eCase;
         }
 
-        virtual ET_Subparadigm eSubparadigm()
+        ET_Subparadigm eSubparadigm()
         {
             return m_eSubparadigm;
         }
 
-        virtual void SetSubparadigm(ET_Subparadigm eSubparadigm)
+        void SetSubparadigm(ET_Subparadigm eSubparadigm)
         {
             m_eSubparadigm = eSubparadigm;
         }
 
-        virtual ET_Number eNumber()
+        ET_Number eNumber()
         {
             return m_eNumber;
         }
 
-        virtual void SetNumber(ET_Number eNumber)
+        void SetNumber(ET_Number eNumber)
         {
             m_eNumber = eNumber;
         }
 
-        virtual ET_Gender eGender()
+        ET_Gender eGender()
         {
             return m_eGender;
         }
 
-        virtual void SetGender(ET_Gender eGender)
+        void SetGender(ET_Gender eGender)
         {
             m_eGender = eGender;
         }
 
-        virtual ET_Person ePerson()
+        ET_Person ePerson()
         {
             return m_ePerson;
         }
 
-        virtual void SetPerson(ET_Person ePerson)
+        void SetPerson(ET_Person ePerson)
         {
             m_ePerson = ePerson;
         }
 
-        virtual ET_Animacy eAnimacy()
+        ET_Animacy eAnimacy()
         {
             return m_eAnimacy;
         }
 
-        virtual void SetAnimacy(ET_Animacy eAnimacy)
+        void SetAnimacy(ET_Animacy eAnimacy)
         {
             m_eAnimacy = eAnimacy;
         }
 
-        virtual ET_Reflexivity eReflexive()
+        ET_Reflexivity eReflexive()
         {
             return m_eReflexivity;
         }
 
-        virtual void SetReflexive(ET_Reflexivity eReflexivity)
+        void SetReflexive(ET_Reflexivity eReflexivity)
         {
             m_eReflexivity = eReflexivity;
         }
 
-        virtual ET_Aspect eAspect()
+        ET_Aspect eAspect()
         {
             return m_eAspect;
         }
 
-        virtual void SetAspect(ET_Aspect eAspect)
+        void SetAspect(ET_Aspect eAspect)
         {
             m_eAspect = eAspect;
         }
 
-        virtual ET_Status eStatus()
+        ET_Status eStatus()
         {
             return m_eStatus;
         }
 
-        virtual void SetStatus(ET_Status eStatus)
+        void SetStatus(ET_Status eStatus)
         {
             m_eStatus = eStatus;
         }
 
-        virtual bool bIrregular()       // came from the DB as opposed to being generated by the app
+        bool bIrregular()       // came from the DB as opposed to being generated by the app
         {
             return m_bIrregular;
         }
 
-        virtual void SetIrregular(bool bIrregular)
+        void SetIrregular(bool bIrregular)
         {
             m_bIrregular = bIrregular;
         }
 
-        virtual CEString sLeadComment()
+        CEString sLeadComment()
         {
             return m_sLeadComment;
         }
 
-        virtual void SetLeadComment(const CEString& sLeadComment)
+        void SetLeadComment(const CEString& sLeadComment)
         {
             m_sLeadComment = sLeadComment;
         }
 
-        virtual CEString sTrailingComment()
+        CEString sTrailingComment()
         {
             return m_sTrailingComment;
         }
 
-        virtual void SetTrailingComment(const CEString& sTrailingComment)
+        void SetTrailingComment(const CEString& sTrailingComment)
         {
             m_sTrailingComment = sTrailingComment;
         }
 
-        virtual bool bIsEdited()
+        bool bIsEdited()
         {
             return m_bIsEdited;
         }
 
-        virtual void SetIsEdited(bool bIsEdited)
+        void SetIsEdited(bool bIsEdited)
         {
             m_bIsEdited = bIsEdited;
         }
 
-        virtual bool bIsVariant()
+        bool bIsVariant()
         {
             return m_bIsVariant;
         }
 
-        virtual void SetIsVariant(bool bIsVariant)
+        void SetIsVariant(bool bIsVariant)
         {
             m_bIsVariant = bIsVariant;
         }
 
-        virtual bool bIsDifficult()
+        bool bIsDifficult()
         {
             return m_bIsDifficult;
         }
         
-        virtual void SetIsDifficult(bool bIsDifficult)
+        void SetIsDifficult(bool bIsDifficult)
         {
             m_bIsDifficult = bIsDifficult;
         }
 
-        virtual CEString sGramHash();
+        CEString sGramHash();
 
-        virtual ET_ReturnCode eGetFirstStressPos(int& iPos, ET_StressType& eType);
-        virtual ET_ReturnCode eGetNextStressPos(int& iPos, ET_StressType& eType);
+        ET_ReturnCode eGetFirstStressPos(int& iPos, ET_StressType& eType);
+        ET_ReturnCode eGetNextStressPos(int& iPos, ET_StressType& eType);
 
-        virtual ET_ReturnCode eSetStressPositions(map<int, ET_StressType> mapStress);
+        ET_ReturnCode eSetStressPositions(map<int, ET_StressType> mapStress);
 
-        virtual ET_ReturnCode eSaveIrregularForm();
+        ET_ReturnCode eSaveIrregularForm();
 
         // Not exposed thru itf??? 
         bool bSaveStemToDb();
@@ -263,7 +276,8 @@ namespace Hlib
         //
         // Member variables; public to facilitate access from internal consumers
         //
-        CLexeme * m_pLexeme;
+        shared_ptr<CLexeme> m_spLexeme;
+        shared_ptr<CInflection> m_spInflection;
         unsigned long long m_ullDbInsertHandle;
         long long m_llDbKey;
         CEString m_sWordForm;
@@ -274,6 +288,7 @@ namespace Hlib
         CEString m_sEnding;
         long long m_llEndingDataId;       // key into ending_data table
         long long m_llLexemeId;
+        long long m_llInflectionId;
         map<int, ET_StressType> m_mapStress; // <stressed syll, primary/secondary>
         ET_PartOfSpeech m_ePos;
         ET_Case m_eCase;
@@ -295,10 +310,9 @@ namespace Hlib
         bool m_bIsVariant;
         bool m_bIsEdited;
 //
-
         map<int, ET_StressType>::iterator m_itStressPos;
 
-    };      //  struct CWordForm : public IWordForm
+    };      //  class CWordForm
 
     class CHasher : public CGramHasher
     {
@@ -341,7 +355,10 @@ namespace Hlib
         }
 
     private:
+        shared_ptr<CLexeme> m_spLexeme;
+        shared_ptr<CInflection> m_spInflection;
         long long m_llLexemeId;
+        long long m_llInflectionId;
 
     };      //  class CHasher : public CGramHasher
 

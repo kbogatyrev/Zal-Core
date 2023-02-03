@@ -18,27 +18,28 @@ public:
     //
     // Use with adjectives
     //
-    CFormBuilderDecl (CLexeme * pLexeme, ET_Subparadigm eSubparadigm) : 
-        CFormBuilder (pLexeme, eSubparadigm),
-        m_bFleetingVowel (pLexeme->bHasFleetingVowel()),
+    CFormBuilderDecl (shared_ptr<CLexeme> spLexeme, shared_ptr<CInflection> spInflection, ET_Subparadigm eSubparadigm) : 
+        CFormBuilder (spLexeme, spInflection, eSubparadigm),
+        m_bFleetingVowel (spInflection->bHasFleetingVowel()),
         m_bFleetingVowelPresent (false),
-        m_bYoAlternation (pLexeme->bHasYoAlternation()),
-        m_bOAlternation (pLexeme->bHasOAlternation()),
+        m_bYoAlternation (spLexeme->bHasYoAlternation()),
+        m_bOAlternation (spLexeme->bHasOAlternation()),
         m_bIrregularSourceForm (false)
     {}
 
     //
     // Use with participles
     //
-    CFormBuilderDecl (CLexeme * pLexeme,
-                          ET_Subparadigm eSubparadigm, 
-                          bool bFleetingVowel, 
-                          bool bYoAlternation) : 
-    CFormBuilder (pLexeme, eSubparadigm),
+    CFormBuilderDecl (shared_ptr<CLexeme> spLexeme,
+                      shared_ptr<CInflection> spInflection,
+                      ET_Subparadigm eSubparadigm, 
+                      bool bFleetingVowel, 
+                      bool bYoAlternation) : 
+    CFormBuilder (spLexeme, spInflection, eSubparadigm),
     m_bFleetingVowel (bFleetingVowel),
     m_bFleetingVowelPresent (false),
     m_bYoAlternation (bYoAlternation),
-    m_bOAlternation (pLexeme->bHasOAlternation()),
+    m_bOAlternation (spLexeme->bHasOAlternation()),
     m_bIrregularSourceForm(false)
     {}
 

@@ -37,10 +37,7 @@
     <ClInclude Include="FormBuilderVerbNonFinite.h" />
     <ClInclude Include="FormBuilderVerbPast.h" />
     <ClInclude Include="FormBuilderVerbPers.h" />
-    <ClInclude Include="IAnalytics.h" />
-    <ClInclude Include="IDictionary.h" />
-    <ClInclude Include="ILexeme.h" />
-    <ClInclude Include="IParser.h" />
+    <ClInclude Include="Inflection.h" />
     <ClInclude Include="IVerifier.h" />
     <ClInclude Include="IWordForm.h" />
     <ClInclude Include="Lexeme.h" />
@@ -70,6 +67,7 @@
     <ClCompile Include="FormBuilderVerbNonFinite.cpp" />
     <ClCompile Include="FormBuilderVerbPast.cpp" />
     <ClCompile Include="FormBuilderVerbPers.cpp" />
+    <ClCompile Include="Inflection.cpp" />
     <ClCompile Include="Lexeme.cpp" />
     <ClCompile Include="MainLib.cpp" />
     <ClCompile Include="Parser.cpp" />

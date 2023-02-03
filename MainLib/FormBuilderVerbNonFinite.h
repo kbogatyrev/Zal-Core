@@ -13,12 +13,11 @@ using namespace std;
 
 namespace Hlib
 {
-
     class CFormBuilderNonFinite : public CFormBuilderConj
     {
     public:
-        CFormBuilderNonFinite (CLexeme * pLexeme) : 
-            CFormBuilderConj (pLexeme, SUBPARADIGM_UNDEFINED)
+        CFormBuilderNonFinite (shared_ptr<CLexeme> spLexeme, shared_ptr<CInflection> spInflection) : 
+            CFormBuilderConj (spLexeme, spInflection, SUBPARADIGM_UNDEFINED)
         {}
 
     public:
@@ -33,7 +32,7 @@ namespace Hlib
         ET_ReturnCode eBuildPastAdverbial();
         ET_ReturnCode eBuildPastPassiveParticiple();
 
-        ET_ReturnCode eBuildPresPassPartFromSourceForm(CWordForm * pWordform);
+        ET_ReturnCode eBuildPresPassPartFromSourceForm(shared_ptr<CWordForm>);
 
         ET_ReturnCode eGetParticipleStressPos (ET_Subparadigm eSubparadigm, vector<int>& vecPositions);
 

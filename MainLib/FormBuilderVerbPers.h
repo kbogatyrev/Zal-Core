@@ -14,8 +14,8 @@ namespace Hlib
     class CFormBuilderPersonal : public CFormBuilderConj
     {
     public:
-        CFormBuilderPersonal (CLexeme * pLexeme) : 
-            CFormBuilderConj (pLexeme, SUBPARADIGM_PRESENT_TENSE)
+        CFormBuilderPersonal (shared_ptr<CLexeme> spLexeme, shared_ptr<CInflection> spInflection) : 
+            CFormBuilderConj (spLexeme, spInflection, SUBPARADIGM_PRESENT_TENSE)
         {}
 
     public:
@@ -27,7 +27,7 @@ namespace Hlib
                                            ET_StressLocation eStressType,
                                            vector<int>& vecStressPositions);
     //    ET_ReturnCode h_FleetingVowelCheck (wstring& str_verbForm);
-        ET_ReturnCode eCreateFormTemplate (ET_Number, ET_Person, CWordForm *& pWordForm);
+        ET_ReturnCode eCreateFormTemplate (ET_Number, ET_Person, shared_ptr<CWordForm>&);
         ET_ReturnCode eBuild();
         ET_ReturnCode eHandleIrregularForms(); // get from the dictionary or generate if abbreviated paradigm was used
         ET_ReturnCode eBuildIrregularForms (ET_Number, ET_Person); // ... when the dictionary only provides base forms

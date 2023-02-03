@@ -1,6 +1,7 @@
 #include "Logging.h"
 
 #include "Lexeme.h"
+#include "Inflection.h"
 #include "SqliteWrapper.h"
 #include "Endings.h"
 
@@ -29,34 +30,35 @@ ET_ReturnCode CEndings::eGetEnding(int iSeqNum, CEString& sEnding, int64_t& llEn
 
 void CEndings::ReportDbError()
 {
-    if (!m_pLexeme)
+    if (!m_spLexeme)
     {
         ERROR_LOG(L"No lexeme handle.");
     }
 
-    CSqlite * pDb = NULL;
+    shared_ptr<CSqlite> spDb;
     CEString sMsg;
     try
     {
-        pDb = m_pLexeme->pGetDb();
+        spDb = m_spLexeme->spGetDb();
         CEString sError;
-        pDb->GetLastError(sError);
+        spDb->GetLastError(sError);
         sMsg = L"DB error: ";
         sMsg += sError;
         sMsg += L"; code = ";
-        sMsg += CEString::sToString(pDb->iGetLastError());
+        sMsg += CEString::sToString(spDb->iGetLastError());
     }
     catch (...)
     {
         sMsg = L"Apparent DB error ";
     }
 
-    sMsg += CEString::sToString(pDb->iGetLastError());
+    sMsg += CEString::sToString(spDb->iGetLastError());
     ERROR_LOG(sMsg);
 
 }   //  ReportDbError()
 
-CNounEndings::CNounEndings(CLexeme * pLexeme) : CEndings(pLexeme)
+CNounEndings::CNounEndings(shared_ptr<CLexeme> spLexeme, shared_ptr<CInflection> spInflection) 
+    : CEndings(spLexeme, spInflection)
 {}
 
 ET_ReturnCode CNounEndings::eSelect(ET_Number eNumber, ET_Case eCase, ET_StressLocation eStressPos)                                                         // nouns
@@ -77,20 +79,20 @@ ET_ReturnCode CNounEndings::eSelect(ET_Number eNumber, ET_Case eCase, ET_StressL
     sSelectBase += L" WHERE inflection_class = ";
     sSelectBase += CEString::sToString(ENDING_CLASS_NOUN);
     sSelectBase += L" AND inflection_type = ";
-    sSelectBase += CEString::sToString(m_pLexeme->iType());
+    sSelectBase += CEString::sToString(m_spInflection->iType());
     sSelectBase += L" AND (gender = ";
-    sSelectBase += CEString::sToString(m_pLexeme->eInflectionTypeToGender());
+    sSelectBase += CEString::sToString(m_spLexeme->eInflectionTypeToGender());
     sSelectBase += L" OR gender = ";
     sSelectBase += CEString::sToString(GENDER_UNDEFINED) + L")";
     sSelectBase += L" AND (animacy = ";
-    sSelectBase += CEString::sToString(m_pLexeme->eInflectionTypeToAnimacy());
+    sSelectBase += CEString::sToString(m_spLexeme->eInflectionTypeToAnimacy());
     sSelectBase += L" OR animacy = ";
     sSelectBase += CEString::sToString(ANIM_UNDEFINED) + L")";
     sSelectBase += L" AND stem_augment = ";
-    auto iStemAugment = m_pLexeme->iStemAugment();
+    auto iStemAugment = m_spInflection->iStemAugment();
     if (0 == iStemAugment)
     {
-        iStemAugment = -1;   // Kludge: values 0 & 1 both signify no stem augment 
+        iStemAugment = -1;   // Kludge: values 0 & -1 both signify no stem augment 
                              // but only -1 is used is the ending_data table
     }
 //    sSelectBase += CEString::sToString(m_pLexeme->iStemAugment());
@@ -103,25 +105,25 @@ ET_ReturnCode CNounEndings::eSelect(ET_Number eNumber, ET_Case eCase, ET_StressL
     sSelectBase += CEString::sToString(eStressPos);
     sSelectBase += L")";
 
-    CSqlite * pDb = NULL;
+    shared_ptr<CSqlite> spDb;
     try
     {
-        pDb = m_pLexeme->pGetDb();
+        spDb = m_spLexeme->spGetDb();
 
         CEString sSelect(sSelectBase);
         sSelect += L" AND common_deviation = 0;";
-        pDb->PrepareForSelect(sSelect);
-        while (pDb->bGetRow())
+        spDb->PrepareForSelect(sSelect);
+        while (spDb->bGetRow())
         {
             m_sEnding.Erase();
-            pDb->GetData(0, (uint64_t&)m_ullDbKey);
-            pDb->GetData(1, m_sEnding);
+            spDb->GetData(0, (uint64_t&)m_ullDbKey);
+            spDb->GetData(1, m_sEnding);
 
             // Skip if non-optional common deviation
             bool bIsOptional = false;
-            if (m_pLexeme->bFindCommonDeviation(1, bIsOptional))
+            if (m_spInflection->bFindCommonDeviation(1, bIsOptional))
             {
-                if (NUM_PL == m_eNumber && CASE_NOM == m_eCase && GENDER_F != m_pLexeme->eInflectionTypeToGender())
+                if (NUM_PL == m_eNumber && CASE_NOM == m_eCase && GENDER_F != m_spLexeme->eInflectionTypeToGender())
                 {
                     if (!bIsOptional)
                     {
@@ -130,7 +132,7 @@ ET_ReturnCode CNounEndings::eSelect(ET_Number eNumber, ET_Case eCase, ET_StressL
                 }
             }
 
-            if (m_pLexeme->bFindCommonDeviation(2, bIsOptional))
+            if (m_spInflection->bFindCommonDeviation(2, bIsOptional))
             {
                 if (NUM_PL == m_eNumber && CASE_GEN == m_eCase)
                 {
@@ -145,7 +147,7 @@ ET_ReturnCode CNounEndings::eSelect(ET_Number eNumber, ET_Case eCase, ET_StressL
 
         }   //  while (pDb->bGetRow())
 
-        pDb->Finalize();
+        spDb->Finalize();
     }
     catch (...)
     {
@@ -155,7 +157,7 @@ ET_ReturnCode CNounEndings::eSelect(ET_Number eNumber, ET_Case eCase, ET_StressL
 
     for (int iCd = 1; iCd <= 2; ++iCd)
     {
-        if (!m_pLexeme->bHasCommonDeviation(iCd))
+        if (!m_spInflection->bHasCommonDeviation(iCd))
         {
             continue;
         }
@@ -167,16 +169,16 @@ ET_ReturnCode CNounEndings::eSelect(ET_Number eNumber, ET_Case eCase, ET_StressL
 
         try
         {
-            pDb->PrepareForSelect(sSelectCD);
-            while (pDb->bGetRow())
+            spDb->PrepareForSelect(sSelectCD);
+            while (spDb->bGetRow())
             {
-                pDb->GetData(0, (uint64_t&)m_ullDbKey);
-                pDb->GetData(1, m_sEnding);
+                spDb->GetData(0, (uint64_t&)m_ullDbKey);
+                spDb->GetData(1, m_sEnding);
 
                 m_vecEndings.push_back(pair<uint64_t, CEString>(m_ullDbKey, m_sEnding));
 
             }
-            pDb->Finalize();
+            spDb->Finalize();
         }
         catch (...)
         {
@@ -190,8 +192,8 @@ ET_ReturnCode CNounEndings::eSelect(ET_Number eNumber, ET_Case eCase, ET_StressL
 
 }       // select (nouns)
 
-CAdjLongEndings::CAdjLongEndings(CLexeme * pLexeme, ET_Subparadigm eSubparadigm)
-    : CEndings(pLexeme), m_eSubparadigm(eSubparadigm)
+CAdjLongEndings::CAdjLongEndings(shared_ptr<CLexeme> spLexeme, shared_ptr<CInflection> spInflection, ET_Subparadigm eSubparadigm)
+    : CEndings(spLexeme, spInflection), m_eSubparadigm(eSubparadigm)
 {}
 
 ET_ReturnCode CAdjLongEndings::eSelect(ET_Subparadigm eSubparadigm, ET_Gender eGender, ET_Number eNumber, ET_Case eCase, ET_Animacy eAnimacy)                  // long adjectives, participles & pronouns
@@ -215,7 +217,7 @@ ET_ReturnCode CAdjLongEndings::eSelect(ET_Subparadigm eSubparadigm, ET_Gender eG
     }
     else
     {
-        m_iInflectionType = m_pLexeme->iType();
+        m_iInflectionType = m_spInflection->iType();
     }
 
     m_vecEndings.clear();
@@ -223,7 +225,7 @@ ET_ReturnCode CAdjLongEndings::eSelect(ET_Subparadigm eSubparadigm, ET_Gender eG
     CEString sSelect(L"SELECT DISTINCT d.id, e.ending_string FROM endings AS e INNER JOIN ending_data AS d ON (e.id = d.ending_id)");
     sSelect += L" WHERE d.inflection_class = ";
 
-    if (L"мс-п" == m_pLexeme->sInflectionType())
+    if (L"мс-п" == m_spLexeme->sInflectionType())
     {
         sSelect += CEString::sToString(ENDING_CLASS_PRONOUN);
     }
@@ -274,13 +276,13 @@ ET_ReturnCode CAdjLongEndings::eSelect(ET_Subparadigm eSubparadigm, ET_Gender eG
     {
         if (SUBPARADIGM_LONG_ADJ == eSubparadigm)
         {
-            if (AT_A == m_pLexeme->eAccentType1() || AT_A1 == m_pLexeme->eAccentType1())
+            if (AT_A == m_spInflection->eAccentType1() || AT_A1 == m_spInflection->eAccentType1())
             {
                 m_eStressPos = STRESS_LOCATION_STEM;
             }
             else
             {
-                if (AT_B == m_pLexeme->eAccentType1())
+                if (AT_B == m_spInflection->eAccentType1())
                 {
                     m_eStressPos = STRESS_LOCATION_ENDING;
                 }
@@ -302,13 +304,13 @@ ET_ReturnCode CAdjLongEndings::eSelect(ET_Subparadigm eSubparadigm, ET_Gender eG
     }
 
     ET_Reflexivity eRefl = REFL_UNDEFINED;
-    if (POS_VERB == m_pLexeme->ePartOfSpeech())
+    if (POS_VERB == m_spLexeme->ePartOfSpeech())
     {
-        eRefl = m_pLexeme->eIsReflexive();
+        eRefl = m_spLexeme->eIsReflexive();
     }
     else if (SUBPARADIGM_LONG_ADJ == eSubparadigm)
     {
-        if (m_pLexeme->sSourceForm().bEndsWith(L"ся"))
+        if (m_spLexeme->sSourceForm().bEndsWith(L"ся"))
         {
             eRefl = REFL_YES;
         }
@@ -327,20 +329,20 @@ ET_ReturnCode CAdjLongEndings::eSelect(ET_Subparadigm eSubparadigm, ET_Gender eG
     sSelect += L" AND d.is_reflexive = ";
     sSelect += (REFL_YES == eRefl) ? L"1" : L"0";
 
-    CSqlite * pDb = NULL;
+    shared_ptr<CSqlite> spDb = NULL;
 
     try
     {
-        pDb = m_pLexeme->pGetDb();
-        pDb->PrepareForSelect(sSelect);
-        while (pDb->bGetRow())
+        spDb = m_spLexeme->spGetDb();
+        spDb->PrepareForSelect(sSelect);
+        while (spDb->bGetRow())
         {
-            pDb->GetData(0, (int64_t&)m_ullDbKey);
-            pDb->GetData(1, m_sEnding);
+            spDb->GetData(0, (int64_t&)m_ullDbKey);
+            spDb->GetData(1, m_sEnding);
 
             m_vecEndings.push_back(pair<uint64_t, CEString>(m_ullDbKey, m_sEnding));
         }
-        pDb->Finalize();
+        spDb->Finalize();
     }
     catch (...)
     {
@@ -352,8 +354,8 @@ ET_ReturnCode CAdjLongEndings::eSelect(ET_Subparadigm eSubparadigm, ET_Gender eG
 
 }       //  CAdjLongEndings::eSelect()
 
-CAdjShortEndings::CAdjShortEndings(CLexeme * pLexeme, ET_Subparadigm eSubparadigm) 
-    : CEndings(pLexeme), m_eSubparadigm(eSubparadigm)
+CAdjShortEndings::CAdjShortEndings(shared_ptr<CLexeme> spLexeme, shared_ptr<CInflection> spInflection, ET_Subparadigm eSubparadigm) 
+    : CEndings(spLexeme, spInflection), m_eSubparadigm(eSubparadigm)
 {}
 
 ET_ReturnCode CAdjShortEndings::eSelect(ET_Gender eGender, ET_Number eNumber, ET_StressLocation eStressPos)                                                     // short adjectives
@@ -385,7 +387,7 @@ ET_ReturnCode CAdjShortEndings::eSelect(ET_Gender eGender, ET_Number eNumber, ET
     }
     else if (SUBPARADIGM_SHORT_ADJ == m_eSubparadigm )
     {
-        m_iInflectionType = m_pLexeme->iType();
+        m_iInflectionType = m_spInflection->iType();
     }
     else
     {
@@ -420,20 +422,20 @@ ET_ReturnCode CAdjShortEndings::eSelect(ET_Gender eGender, ET_Number eNumber, ET
     sSelect += L" AND d.stress = ";
     sSelect += CEString::sToString(m_eStressPos);
 
-    CSqlite * pDb = NULL;
+    shared_ptr<CSqlite> spDb;
 
     try
     {
-        pDb = m_pLexeme->pGetDb();
-        pDb->PrepareForSelect(sSelect);
-        while (pDb->bGetRow())
+        spDb = m_spLexeme->spGetDb();
+        spDb->PrepareForSelect(sSelect);
+        while (spDb->bGetRow())
         {
-            pDb->GetData(0, (int64_t&)m_ullDbKey);
-            pDb->GetData(1, m_sEnding);
+            spDb->GetData(0, (int64_t&)m_ullDbKey);
+            spDb->GetData(1, m_sEnding);
 
             m_vecEndings.push_back(pair<uint64_t, CEString>(m_ullDbKey, m_sEnding));
         }
-        pDb->Finalize();
+        spDb->Finalize();
     }
     catch (...)
     {
@@ -445,7 +447,8 @@ ET_ReturnCode CAdjShortEndings::eSelect(ET_Gender eGender, ET_Number eNumber, ET
 
 }       //  CAdjShortEndings::eSelect()
 
-CAdjPronounEndings::CAdjPronounEndings(CLexeme * pLexeme) : CEndings(pLexeme)
+CAdjPronounEndings::CAdjPronounEndings(shared_ptr<CLexeme> spLexeme, shared_ptr<CInflection> spInflection) 
+    : CEndings(spLexeme, spInflection)
 {}
 
 ET_ReturnCode CAdjPronounEndings::eSelect(ET_Gender eGender, ET_Number eNumber, ET_Case eCase, ET_Animacy eAnimacy)
@@ -458,7 +461,7 @@ ET_ReturnCode CAdjPronounEndings::eSelect(ET_Gender eGender, ET_Number eNumber, 
     m_eStressPos = STRESS_LOCATION_UNDEFINED;
     m_eStemAuslaut = STEM_AUSLAUT_UNDEFINED;
     
-    m_iInflectionType = m_pLexeme->iType();
+    m_iInflectionType = m_spInflection->iType();
     m_vecEndings.clear();
     bool bIsStressRelevant = false;
 
@@ -470,16 +473,17 @@ ET_ReturnCode CAdjPronounEndings::eSelect(ET_Gender eGender, ET_Number eNumber, 
 
     int iSubType = 0;
 
-    if ((m_pLexeme->ePartOfSpeech() == POS_ADJ || m_pLexeme->ePartOfSpeech() == POS_NOUN) && m_pLexeme->sInflectionType() == L"мс")     // only п <мс 1...> and п <мс 2...>
+    if ((m_spLexeme->ePartOfSpeech() == POS_ADJ 
+        || m_spLexeme->ePartOfSpeech() == POS_NOUN) && m_spLexeme->sInflectionType() == L"мс")     // only п <мс 1...> and п <мс 2...>
     {
-        if (m_pLexeme->sGraphicStem().bEndsWithNoCase(L"ин"))
+        if (m_spLexeme->sGraphicStem().bEndsWithNoCase(L"ин"))
         {
-            if (m_pLexeme->eAccentType1() == ET_AccentType::AT_A)
+            if (m_spInflection->eAccentType1() == ET_AccentType::AT_A)
             {
 //                sSelect += L" AND d.adjective_pronominal_decl_subtype = 1";
                 iSubType = 1;
             }
-            else if (m_pLexeme->eAccentType1() == ET_AccentType::AT_B)
+            else if (m_spInflection->eAccentType1() == ET_AccentType::AT_B)
             {
                 iSubType = 2;
 //                sSelect += L" AND d.adjective_pronominal_decl_subtype = 2";
@@ -497,9 +501,9 @@ ET_ReturnCode CAdjPronounEndings::eSelect(ET_Gender eGender, ET_Number eNumber, 
                 return H_ERROR_UNEXPECTED;
             }
         }
-        else if (m_pLexeme->sGraphicStem().bEndsWithNoCase(L"ов") ||
-            m_pLexeme->sGraphicStem().bEndsWithNoCase(L"ев") ||
-            m_pLexeme->sGraphicStem().bEndsWithNoCase(L"ёв"))
+        else if (m_spLexeme->sGraphicStem().bEndsWithNoCase(L"ов") ||
+            m_spLexeme->sGraphicStem().bEndsWithNoCase(L"ев") ||
+            m_spLexeme->sGraphicStem().bEndsWithNoCase(L"ёв"))
         {
             if ((GENDER_M == eGender || GENDER_N == eGender) && NUM_SG == eNumber)
             {
@@ -511,7 +515,7 @@ ET_ReturnCode CAdjPronounEndings::eSelect(ET_Gender eGender, ET_Number eNumber, 
             iSubType = 2;
 //            sSelect += L" AND d.adjective_pronominal_decl_subtype = 2";
         }
-        else if (m_pLexeme->iType() == 2)       // господень
+        else if (m_spInflection->iType() == 2)       // господень
         {
             iSubType = 3;
 //            sSelect += L" AND d.adjective_pronominal_decl_subtype = 3";
@@ -580,17 +584,17 @@ ET_ReturnCode CAdjPronounEndings::eSelect(ET_Gender eGender, ET_Number eNumber, 
 
     if (bIsStressRelevant)
     {
-        if (AT_A == m_pLexeme->eAccentType1())
+        if (AT_A == m_spInflection->eAccentType1())
         {
             m_eStressPos = STRESS_LOCATION_STEM;
         }
         else
         {
-            if (AT_B == m_pLexeme->eAccentType1())
+            if (AT_B == m_spInflection->eAccentType1())
             {
                 m_eStressPos = STRESS_LOCATION_ENDING;
             }
-            else if (AT_F == m_pLexeme->eAccentType1())      // only сам
+            else if (AT_F == m_spInflection->eAccentType1())      // only сам
             {
                 if (CASE_NOM == eCase && NUM_PL == eNumber)
                 {
@@ -625,20 +629,20 @@ ET_ReturnCode CAdjPronounEndings::eSelect(ET_Gender eGender, ET_Number eNumber, 
     sSelect += CEString::sToString(eAnimacy);
     sSelect += L" AND d.is_reflexive = 0";
     
-    CSqlite * pDb = NULL;
+    shared_ptr<CSqlite> spDb;
 
     try
     {
-        pDb = m_pLexeme->pGetDb();
-        pDb->PrepareForSelect(sSelect);
-        while (pDb->bGetRow())
+        spDb = m_spLexeme->spGetDb();
+        spDb->PrepareForSelect(sSelect);
+        while (spDb->bGetRow())
         {
-            pDb->GetData(0, (int64_t&)m_ullDbKey);
-            pDb->GetData(1, m_sEnding);
+            spDb->GetData(0, (int64_t&)m_ullDbKey);
+            spDb->GetData(1, m_sEnding);
 
             m_vecEndings.push_back(pair<uint64_t, CEString>(m_ullDbKey, m_sEnding));
         }
-        pDb->Finalize();
+        spDb->Finalize();
     }
     catch (...)
     {
@@ -650,7 +654,8 @@ ET_ReturnCode CAdjPronounEndings::eSelect(ET_Gender eGender, ET_Number eNumber, 
 
 }       //  CAdjPronounEndings::eSelect()
 
-CPersonalEndings::CPersonalEndings(CLexeme * pLexeme) : CEndings(pLexeme)
+CPersonalEndings::CPersonalEndings(shared_ptr<CLexeme> spLexeme, shared_ptr<CInflection> spInflection) 
+    : CEndings(spLexeme, spInflection)
 {}
 
 ET_ReturnCode CPersonalEndings::eSelect(ET_Person ePerson, ET_Number eNumber, ET_StressLocation eStressPos, ET_StemAuslaut eStemAuslaut) 
@@ -669,11 +674,11 @@ ET_ReturnCode CPersonalEndings::eSelect(ET_Person ePerson, ET_Number eNumber, ET
     sSelect += L"WHERE ed.inflection_class = 5";
     sSelect += L" AND ed.number = " + CEString::sToString(eNumber);
     sSelect += L" AND ed.person = " + CEString::sToString(ePerson);
-    sSelect += L" AND ed.inflection_type = " + CEString::sToString(m_pLexeme->iType());
+    sSelect += L" AND ed.inflection_type = " + CEString::sToString(m_spInflection->iType());
     sSelect += L" AND ed.is_reflexive = ";
-    sSelect += ((REFL_YES == m_pLexeme->eIsReflexive()) ? L"1" : L"0");
+    sSelect += ((REFL_YES == m_spLexeme->eIsReflexive()) ? L"1" : L"0");
 
-    if (m_pLexeme->iType() != 4 && m_pLexeme->iType() != 5)
+    if (m_spInflection->iType() != 4 && m_spInflection->iType() != 5)
     {
         if ((PERSON_1 != ePerson || NUM_SG != eNumber) &&
             (PERSON_3 != ePerson || NUM_PL != eNumber))
@@ -682,12 +687,12 @@ ET_ReturnCode CPersonalEndings::eSelect(ET_Person ePerson, ET_Number eNumber, ET
         }
     }
 
-    if (m_pLexeme->iType() == 4 || m_pLexeme->iType() == 5 || m_pLexeme->iType() == 6)
+    if (m_spInflection->iType() == 4 || m_spInflection->iType() == 5 || m_spInflection->iType() == 6)
     {
         if ((PERSON_1 == ePerson && NUM_SG == eNumber) ||
             (PERSON_3 == ePerson && NUM_PL == eNumber))
         {
-            if (m_pLexeme->iType() == 6 && m_pLexeme->iStemAugment() == 1)
+            if (m_spInflection->iType() == 6 && m_spInflection->iStemAugment() == 1)
             {
                 sSelect += L" AND ed.stem_augment = 1";
             }
@@ -698,21 +703,21 @@ ET_ReturnCode CPersonalEndings::eSelect(ET_Person ePerson, ET_Number eNumber, ET
         }
     }
     
-    CSqlite * pDb = NULL;
+    shared_ptr<CSqlite> spDb;
     try
     {
-        pDb = m_pLexeme->pGetDb();
+        spDb = m_spLexeme->spGetDb();
 
-        pDb->PrepareForSelect(sSelect);
-        while (pDb->bGetRow())
+        spDb->PrepareForSelect(sSelect);
+        while (spDb->bGetRow())
         {
-            pDb->GetData(0, (uint64_t&)m_ullDbKey);
-            pDb->GetData(1, m_sEnding);
+            spDb->GetData(0, (uint64_t&)m_ullDbKey);
+            spDb->GetData(1, m_sEnding);
 
             m_vecEndings.push_back(pair<uint64_t, CEString>(m_ullDbKey, m_sEnding));
         }
 
-        pDb->Finalize();
+        spDb->Finalize();
     }
     catch (...)
     {
@@ -726,7 +731,8 @@ ET_ReturnCode CPersonalEndings::eSelect(ET_Person ePerson, ET_Number eNumber, ET
 //
 // Infinitive
 //
-CInfinitiveEndings::CInfinitiveEndings(CLexeme * pLexeme) : CEndings(pLexeme)
+CInfinitiveEndings::CInfinitiveEndings(shared_ptr<CLexeme> spLexeme, shared_ptr<CInflection> spInflection) 
+    : CEndings(spLexeme, spInflection)
 {}
 
 ET_ReturnCode CInfinitiveEndings::eSelect(int iInflectionType)                                                              // infinitive
@@ -742,7 +748,7 @@ ET_ReturnCode CInfinitiveEndings::eSelect(int iInflectionType)                  
 
     m_vecEndings.clear();
 
-    if (POS_VERB != m_pLexeme->ePartOfSpeech())
+    if (POS_VERB != m_spLexeme->ePartOfSpeech())
     {
         ERROR_LOG(L"Bad part of speech value.");
         return H_ERROR_UNEXPECTED;
@@ -752,24 +758,24 @@ ET_ReturnCode CInfinitiveEndings::eSelect(int iInflectionType)                  
     sSelect += L" WHERE d.inflection_class = " + CEString::sToString(ENDING_CLASS_INFINITIVE);
     sSelect += L" AND d.inflection_type = " + CEString::sToString(iInflectionType);
     sSelect += L" AND d.is_reflexive = ";
-    sSelect += (REFL_YES == m_pLexeme->eIsReflexive()) ? L"1" : L"0";
+    sSelect += (REFL_YES == m_spLexeme->eIsReflexive()) ? L"1" : L"0";
 
-    CSqlite * pDb = NULL;
+    shared_ptr<CSqlite> spDb;
 
     try
     {
-        pDb = m_pLexeme->pGetDb();
+        spDb = m_spLexeme->spGetDb();
 
-        pDb->PrepareForSelect(sSelect);
-        while (pDb->bGetRow())
+        spDb->PrepareForSelect(sSelect);
+        while (spDb->bGetRow())
         {
-            pDb->GetData(0, (uint64_t&)m_ullDbKey);
-            pDb->GetData(1, m_sEnding);
+            spDb->GetData(0, (uint64_t&)m_ullDbKey);
+            spDb->GetData(1, m_sEnding);
 
             m_vecEndings.push_back(pair<uint64_t, CEString>(m_ullDbKey, m_sEnding));
         }
 
-        pDb->Finalize();
+        spDb->Finalize();
     }
     catch (...)
     {
@@ -784,7 +790,8 @@ ET_ReturnCode CInfinitiveEndings::eSelect(int iInflectionType)                  
 //
 // Past tense
 //
-CPastTenseEndings::CPastTenseEndings(CLexeme * pLexeme) : CEndings(pLexeme)
+CPastTenseEndings::CPastTenseEndings(shared_ptr<CLexeme> spLexeme, shared_ptr<CInflection> spInflection) 
+    : CEndings(spLexeme, spInflection)
 {}
 
 ET_ReturnCode CPastTenseEndings::eSelect(ET_Gender eGender, ET_Number eNumber, ET_StemAuslaut eAuslaut)                                                          // past tense
@@ -800,7 +807,7 @@ ET_ReturnCode CPastTenseEndings::eSelect(ET_Gender eGender, ET_Number eNumber, E
 
     m_vecEndings.clear();
 
-    if (POS_VERB != m_pLexeme->ePartOfSpeech())
+    if (POS_VERB != m_spLexeme->ePartOfSpeech())
     {
         ERROR_LOG(L"Bad part of speech value.");
         return H_ERROR_UNEXPECTED;
@@ -811,29 +818,29 @@ ET_ReturnCode CPastTenseEndings::eSelect(ET_Gender eGender, ET_Number eNumber, E
     sSelect += L" AND d.gender = " + CEString::sToString(eGender);
     sSelect += L" AND d.number = " + CEString::sToString(eNumber);
     sSelect += L" AND d.is_reflexive = ";
-    sSelect += (REFL_YES == m_pLexeme->eIsReflexive()) ? L"1" : L"0";
+    sSelect += (REFL_YES == m_spLexeme->eIsReflexive()) ? L"1" : L"0";
 
     if (NUM_SG == eNumber && GENDER_M == eGender)
     {
         sSelect += L" AND d.stem_auslaut = " + CEString::sToString(eAuslaut);
     }
 
-    CSqlite * pDb = NULL;
+    shared_ptr<CSqlite> spDb;
 
     try
     {
-        pDb = m_pLexeme->pGetDb();
+        spDb = m_spLexeme->spGetDb();
 
-        pDb->PrepareForSelect(sSelect);
-        while (pDb->bGetRow())
+        spDb->PrepareForSelect(sSelect);
+        while (spDb->bGetRow())
         {
-            pDb->GetData(0, (uint64_t&)m_ullDbKey);
-            pDb->GetData(1, m_sEnding);
+            spDb->GetData(0, (uint64_t&)m_ullDbKey);
+            spDb->GetData(1, m_sEnding);
 
             m_vecEndings.push_back(pair<uint64_t, CEString>(m_ullDbKey, m_sEnding));
         }
 
-        pDb->Finalize();
+        spDb->Finalize();
     }
     catch (...)
     {
@@ -845,7 +852,8 @@ ET_ReturnCode CPastTenseEndings::eSelect(ET_Gender eGender, ET_Number eNumber, E
 
 }   //  eSelect() -- past tense
 
-CImperativeEndings::CImperativeEndings(CLexeme * pLexeme) : CEndings(pLexeme)
+CImperativeEndings::CImperativeEndings(shared_ptr<CLexeme> spLexeme, shared_ptr<CInflection> spInflection) 
+    : CEndings(spLexeme, spInflection)
 {}
 
 ET_ReturnCode CImperativeEndings::eSelect(ET_Number eNumber, int iType, bool bIsVariant)
@@ -855,7 +863,7 @@ ET_ReturnCode CImperativeEndings::eSelect(ET_Number eNumber, int iType, bool bIs
         m_vecEndings.clear();
     }
 
-    if (POS_VERB != m_pLexeme->ePartOfSpeech())
+    if (POS_VERB != m_spLexeme->ePartOfSpeech())
     {
         ERROR_LOG(L"Bad part of speech value.");
         return H_ERROR_UNEXPECTED;
@@ -866,24 +874,24 @@ ET_ReturnCode CImperativeEndings::eSelect(ET_Number eNumber, int iType, bool bIs
     sSelect += L" AND d.number = " + CEString::sToString(eNumber);
     sSelect += L" AND d.inflection_type = " + CEString::sToString(iType);
     sSelect += L" AND d.is_reflexive = ";
-    sSelect += (REFL_YES == m_pLexeme->eIsReflexive()) ? L"1" : L"0";
+    sSelect += (REFL_YES == m_spLexeme->eIsReflexive()) ? L"1" : L"0";
 
-    CSqlite * pDb = NULL;
+    shared_ptr<CSqlite> spDb;
 
     try
     {
-        pDb = m_pLexeme->pGetDb();
+        spDb = m_spLexeme->spGetDb();
 
-        pDb->PrepareForSelect(sSelect);
-        while (pDb->bGetRow())
+        spDb->PrepareForSelect(sSelect);
+        while (spDb->bGetRow())
         {
-            pDb->GetData(0, (uint64_t&)m_ullDbKey);
-            pDb->GetData(1, m_sEnding);
+            spDb->GetData(0, (uint64_t&)m_ullDbKey);
+            spDb->GetData(1, m_sEnding);
 
             m_vecEndings.push_back(pair<uint64_t, CEString>(m_ullDbKey, m_sEnding));
         }
 
-        pDb->Finalize();
+        spDb->Finalize();
     }
     catch (...)
     {
@@ -895,7 +903,8 @@ ET_ReturnCode CImperativeEndings::eSelect(ET_Number eNumber, int iType, bool bIs
 
 }   //  eSelect -- imperative
 
-CAdverbialEndings::CAdverbialEndings(CLexeme * pLexeme) : CEndings(pLexeme)
+CAdverbialEndings::CAdverbialEndings(shared_ptr<CLexeme> spLexeme, shared_ptr<CInflection> spInflection) 
+    : CEndings(spLexeme, spInflection)
 {}
 
 /*
@@ -912,7 +921,7 @@ ET_ReturnCode CAdverbialEndings::eSelect(ET_Subparadigm eSubparadigm, bool bHush
         m_vecEndings.clear();
     }
 
-    if (POS_VERB != m_pLexeme->ePartOfSpeech())
+    if (POS_VERB != m_spLexeme->ePartOfSpeech())
     {
         ERROR_LOG(L"Bad part of speech value.");
         return H_ERROR_UNEXPECTED;
@@ -963,25 +972,25 @@ ET_ReturnCode CAdverbialEndings::eSelect(ET_Subparadigm eSubparadigm, bool bHush
     }
 
     sSelect += L" AND d.is_reflexive = ";
-    sSelect += (REFL_YES == m_pLexeme->eIsReflexive()) ? L"1" : L"0";
+    sSelect += (REFL_YES == m_spLexeme->eIsReflexive()) ? L"1" : L"0";
 
     sSelect += L" AND d.inflection_type = -1";
 
-    CSqlite * pDb = NULL;
+    shared_ptr<CSqlite> spDb;
     try
     {
-        pDb = m_pLexeme->pGetDb();
+        spDb = m_spLexeme->spGetDb();
 
-        pDb->PrepareForSelect(sSelect);
-        while (pDb->bGetRow())
+        spDb->PrepareForSelect(sSelect);
+        while (spDb->bGetRow())
         {
-            pDb->GetData(0, (uint64_t&)m_ullDbKey);
-            pDb->GetData(1, m_sEnding);
+            spDb->GetData(0, (uint64_t&)m_ullDbKey);
+            spDb->GetData(1, m_sEnding);
 
             m_vecEndings.push_back(pair<uint64_t, CEString>(m_ullDbKey, m_sEnding));
         }
 
-        pDb->Finalize();
+        spDb->Finalize();
     }
     catch (...)
     {
@@ -1000,7 +1009,7 @@ ET_ReturnCode CAdverbialEndings::eSelectPastAdvAugmentedEndings(ET_Subparadigm e
         m_vecEndings.clear();
     }
 
-    if (POS_VERB != m_pLexeme->ePartOfSpeech())
+    if (POS_VERB != m_spLexeme->ePartOfSpeech())
     {
         ERROR_LOG(L"Bad part of speech value.");
         return H_ERROR_UNEXPECTED;
@@ -1021,18 +1030,18 @@ ET_ReturnCode CAdverbialEndings::eSelectPastAdvAugmentedEndings(ET_Subparadigm e
 
     sSelect += L" AND d.is_reflexive = 0";
 
-    if (9 == m_pLexeme->iType() || 3 == m_pLexeme->iType())
+    if (9 == m_spInflection->iType() || 3 == m_spInflection->iType())
     {
         sSelect += L" AND d.inflection_type = ";
-        sSelect += CEString::sToString(m_pLexeme->iType());
+        sSelect += CEString::sToString(m_spInflection->iType());
     }
 
-    if (3 == m_pLexeme->iType())
+    if (3 == m_spInflection->iType())
     {
-        if (m_pLexeme->iStemAugment() != 1)
+        if (m_spInflection->iStemAugment() != 1)
         {
             CEString sMsg(L"Stem augment expected for type 3 verb ");
-            sMsg += m_pLexeme->sInfinitive();
+            sMsg += m_spLexeme->sInfinitive();
             sMsg += L".";
             wchar_t * szMsg = sMsg;
             ERROR_LOG(szMsg);
@@ -1042,21 +1051,21 @@ ET_ReturnCode CAdverbialEndings::eSelectPastAdvAugmentedEndings(ET_Subparadigm e
         sSelect += L" AND d.stem_augment = 1";
     }
 
-    CSqlite* pDb = NULL;
+    shared_ptr<CSqlite> spDb;
     try
     {
-        pDb = m_pLexeme->pGetDb();
+        spDb = m_spLexeme->spGetDb();
 
-        pDb->PrepareForSelect(sSelect);
-        while (pDb->bGetRow())
+        spDb->PrepareForSelect(sSelect);
+        while (spDb->bGetRow())
         {
-            pDb->GetData(0, (uint64_t&)m_ullDbKey);
-            pDb->GetData(1, m_sEnding);
+            spDb->GetData(0, (uint64_t&)m_ullDbKey);
+            spDb->GetData(1, m_sEnding);
 
             m_vecEndings.push_back(pair<uint64_t, CEString>(m_ullDbKey, m_sEnding));
         }
 
-        pDb->Finalize();
+        spDb->Finalize();
     }
     catch (...)
     {
@@ -1068,7 +1077,8 @@ ET_ReturnCode CAdverbialEndings::eSelectPastAdvAugmentedEndings(ET_Subparadigm e
 
 }   //  CAdverbialEndings::eSelect()
 
-CComparativeEndings::CComparativeEndings(CLexeme* pLexeme) : CEndings(pLexeme)
+CComparativeEndings::CComparativeEndings(shared_ptr<CLexeme> spLexeme, shared_ptr<CInflection> spInflection)
+    : CEndings(spLexeme, spInflection)
 {}
 
 /*
@@ -1087,7 +1097,7 @@ ET_ReturnCode CComparativeEndings::eSelect(bool bVelarStem, bool bIsVariant)
         m_vecEndings.clear();
     }
 
-    if (POS_ADJ != m_pLexeme->ePartOfSpeech())
+    if (POS_ADJ != m_spLexeme->ePartOfSpeech())
     {
         ERROR_LOG(L"Bad part of speech value.");
         return H_ERROR_UNEXPECTED;
@@ -1100,21 +1110,21 @@ ET_ReturnCode CComparativeEndings::eSelect(bool bVelarStem, bool bIsVariant)
     sSelect += L" AND stem_auslaut = ";
     sSelect += CEString::sToString(m_eStemAuslaut);
 
-    CSqlite* pDb = NULL;
+    shared_ptr<CSqlite> spDb;
     try
     {
-        pDb = m_pLexeme->pGetDb();
+        spDb = m_spLexeme->spGetDb();
 
-        pDb->PrepareForSelect(sSelect);
-        while (pDb->bGetRow())
+        spDb->PrepareForSelect(sSelect);
+        while (spDb->bGetRow())
         {
-            pDb->GetData(0, (uint64_t&)m_ullDbKey);
-            pDb->GetData(1, m_sEnding);
+            spDb->GetData(0, (uint64_t&)m_ullDbKey);
+            spDb->GetData(1, m_sEnding);
 
             m_vecEndings.push_back(pair<uint64_t, CEString>(m_ullDbKey, m_sEnding));
         }
 
-        pDb->Finalize();
+        spDb->Finalize();
     }
     catch (...)
     {

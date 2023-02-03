@@ -7,39 +7,42 @@
 
 #include "Enums.h"
 #include "EString.h"
-#include "IDictionary.h"
+//#include "IDictionary.h"
 #include "LexemeProperties.h"
+#include "InflectionProperties.h"
 
 namespace Hlib
 {
 
+class CDictionary;
 class CLexeme;
+class CInflection;
 class CSqlite;
-struct CWordForm;
+class CWordForm;
 class CParser;
 class CAnalytics;
 class CVerifier;
 
-class CLexemeEnumerator : public ILexemeEnumerator
+typedef void(*PROGRESS_CALLBACK_CLR) (int iPercentDone, bool bOperationComplete);
+typedef void(*PROGRESS_CALLBACK_PYTHON) (int iPercentDone, bool bOperationComplete, int iRecord, double dDuration);
+
+class CLexemeEnumerator
 {
 public:
     CLexemeEnumerator() = delete;
-    CLexemeEnumerator(CDictionary * dict) : m_pDictionary(dict) {}
+    CLexemeEnumerator(shared_ptr<CDictionary> spDict) : m_spDictionary(spDict) {}
 
-    virtual ET_ReturnCode eReset();
+    ET_ReturnCode eReset();
 
-    virtual ET_ReturnCode eGetFirstLexeme(ILexeme*& pLexemeItf);
-    virtual ET_ReturnCode eGetNextLexeme(ILexeme*& pLexemeItf);
-
-    virtual ET_ReturnCode eGetFirstLexeme(CLexeme*& pLexeme);
-    virtual ET_ReturnCode eGetNextLexeme(CLexeme*& pLexeme);
+    ET_ReturnCode eGetFirstLexeme(shared_ptr<CLexeme>& pLexeme);
+    ET_ReturnCode eGetNextLexeme(shared_ptr<CLexeme>& pLexeme);
 
 private:
     vector<shared_ptr<CLexeme>>::iterator m_itCurrentLexeme;
-    CDictionary * m_pDictionary;
+    shared_ptr<CDictionary> m_spDictionary;
 };
 
-class CDictionary : public IDictionary
+class CDictionary : public enable_shared_from_this<CDictionary>
 {
     friend class CLexemeEnumerator;
 
@@ -48,71 +51,70 @@ public:
     ~CDictionary();
 
 public:
-    virtual ET_ReturnCode eSetDbPath(const CEString& sDbPath);
-    virtual CEString sGetDbPath();
-    shared_ptr<CSqlite> pGetDb();               //  non-virtual
-    virtual ET_ReturnCode eCreateLexemeForEdit(ILexeme *&);
-    virtual ET_ReturnCode eCopyLexemeForEdit(const ILexeme * pSource, ILexeme *& pCopy);
-    virtual ET_ReturnCode eGetLexemeById(long long Id, ILexeme *& pLexeme);
-    ET_ReturnCode eGetLexemeById(long long Id, shared_ptr<CLexeme>& spLexeme);       // non-virtual overload
-    virtual ET_ReturnCode eGetLexemesByHash(const CEString& sMd5);
-    virtual ET_ReturnCode eGetLexemesByGraphicStem(const CEString&);
-    virtual ET_ReturnCode eGetLexemesByInitialForm(const CEString&);
-    virtual ET_ReturnCode eGenerateAllForms();
-    virtual ET_ReturnCode eGenerateFormsForSelectedLexemes();
-    virtual ET_ReturnCode eCountLexemes(int64_t& iLexemes);
+    ET_ReturnCode eSetDbPath(const CEString& sDbPath);
+    CEString sGetDbPath();
+    shared_ptr<CSqlite> spGetDb();
+    ET_ReturnCode eCreateLexemeForEdit(shared_ptr<CLexeme>&, shared_ptr<CInflection>&);
+    ET_ReturnCode eCopyEntryForEdit(const shared_ptr<CLexeme> spLSource, const shared_ptr<CInflection> spISource, 
+                                    shared_ptr<CLexeme>& spLCopy, shared_ptr<CInflection>& spICopy);
+    ET_ReturnCode eGetLexemeById(long long Id, shared_ptr<CLexeme>& spLexeme);
+    ET_ReturnCode eGetLexemesByHash(const CEString& sMd5);
+//    ET_ReturnCode eGetLexemesByGraphicStem(const CEString&);
+    ET_ReturnCode eGetLexemesByInitialForm(const CEString&);
+    ET_ReturnCode eGenerateAllForms();
+//    ET_ReturnCode eGenerateFormsForSelectedLexemes();
+    ET_ReturnCode eCountLexemes(int64_t& iLexemes);
 
-//    virtual ET_ReturnCode eGetFirstLexeme(ILexeme *& pLexemeItf);
-//    virtual ET_ReturnCode eGetNextLexeme(ILexeme *& pLexemeItf);
+//    ET_ReturnCode eGetFirstLexeme(shared_ptr<CLexeme>& pLexemeItf);
+//    ET_ReturnCode eGetNextLexeme(shared_ptr<CLexeme>& pLexemeItf);
 
-    virtual int nLexemesFound();
-//    virtual ET_ReturnCode eGetFirstLexeme(CLexeme *& pLexeme);
-//    virtual ET_ReturnCode eGetNextLexeme(CLexeme *& pLexeme);
+    int nLexemesFound();
+//    ET_ReturnCode eGetFirstLexeme(shared_ptr<CLexeme>& pLexeme);
+//    ET_ReturnCode eGetNextLexeme(shared_ptr<CLexeme>& pLexeme);
 
-    virtual void Clear();
-    virtual ET_ReturnCode Clear(ILexeme *);
+    void Clear();
+    ET_ReturnCode Clear(shared_ptr<CLexeme>);
 
-    virtual ET_ReturnCode eCreateLexemeEnumerator(ILexemeEnumerator*&);
-    virtual void DeleteLexemeEnumerator(ILexemeEnumerator*);
+    ET_ReturnCode eCreateLexemeEnumerator(shared_ptr<CLexemeEnumerator>&);
+    void DeleteLexemeEnumerator(shared_ptr<CLexemeEnumerator>);
 
-    virtual ET_ReturnCode eGetParser(IParser *& p);
-    virtual ET_ReturnCode eGetAnalytics(IAnalytics*& p);
-    virtual ET_ReturnCode eGetVerifier(IVerifier *& pVerifier);
+    ET_ReturnCode eGetParser(shared_ptr<CParser>&);
+    ET_ReturnCode eGetAnalytics(shared_ptr<CAnalytics>&);
+    ET_ReturnCode eGetVerifier(shared_ptr<CVerifier>&);
 
 #ifdef WIN32
-    virtual ET_ReturnCode eExportTestData(CEString& sPath, PROGRESS_CALLBACK_CLR);
-    virtual ET_ReturnCode eImportTestData(CEString& sPath, PROGRESS_CALLBACK_CLR);
+    ET_ReturnCode eExportTestData(CEString& sPath, PROGRESS_CALLBACK_CLR);
+    ET_ReturnCode eImportTestData(CEString& sPath, PROGRESS_CALLBACK_CLR);
 #endif
 
-    virtual ET_ReturnCode eDeleteLexeme(ILexeme * pLexeme);
-    virtual ET_ReturnCode eUpdateHeadword(ILexeme* pLexeme);
-    virtual ET_ReturnCode eSaveNewHeadword(ILexeme* pLexeme);
-    virtual ET_ReturnCode eSaveHeadwordStress(ILexeme* pLexeme);
-    virtual ET_ReturnCode eSaveHomonyms(ILexeme* pLexeme);
-    virtual ET_ReturnCode eSaveAspectPairInfo(ILexeme * pLexeme);
-    virtual ET_ReturnCode eSaveP2Info(ILexeme * pLexeme);
-    virtual ET_ReturnCode eUpdateDescriptorInfo(ILexeme * pLexeme);
-    virtual ET_ReturnCode eSaveDescriptorInfo(ILexeme* pLexeme);
-    virtual ET_ReturnCode eSaveCommonDeviation(ILexeme * pLexeme);
-    virtual ET_ReturnCode eSaveInflectionInfo(ILexeme* pLexeme);
-//    virtual ET_ReturnCode eSaveMissingFormHashes(ILexeme * pLexeme);
-//    virtual ET_ReturnCode eSaveLexeme(ILexeme * pLexeme);
+    ET_ReturnCode eDeleteLexeme(shared_ptr<CLexeme>);
+    ET_ReturnCode eUpdateHeadword(shared_ptr<CLexeme>);
+    ET_ReturnCode eSaveNewHeadword(shared_ptr<CLexeme>);
+    ET_ReturnCode eSaveHeadwordStress(shared_ptr<CLexeme>);
+    ET_ReturnCode eSaveHomonyms(shared_ptr<CLexeme>);
+    ET_ReturnCode eSaveAspectPairInfo(shared_ptr<CLexeme>);
+    ET_ReturnCode eSaveP2Info(shared_ptr<CLexeme>);
+    ET_ReturnCode eUpdateDescriptorInfo(shared_ptr<CLexeme>);
+    ET_ReturnCode eSaveDescriptorInfo(shared_ptr<CLexeme>);
+    ET_ReturnCode eSaveCommonDeviation(shared_ptr<CInflection>);
+    ET_ReturnCode eSaveInflectionInfo(shared_ptr<CInflection>);
+//    ET_ReturnCode eSaveMissingFormHashes(shared_ptr<CLexeme> pLexeme);
+//    ET_ReturnCode eSaveLexeme(shared_ptr<CLexeme> pLexeme);
 
-    virtual ET_ReturnCode ePopulateHashToDescriptorTable(PROGRESS_CALLBACK_CLR, PROGRESS_CALLBACK_PYTHON=nullptr);
+    ET_ReturnCode ePopulateHashToDescriptorTable(PROGRESS_CALLBACK_CLR, PROGRESS_CALLBACK_PYTHON=nullptr);
 
-    // Not part ot interface:
-    CSqlite * pGetDbHandle();
+//    shared_ptr<CSqlite> spGetDbHandle();
 
-//    ET_ReturnCode eGetSecondPart(long long Id, CLexeme* pLexeme);       // non-virtual version used to get second part of a xurda-murda compound
+//    ET_ReturnCode eGetSecondPart(long long Id, shared_ptr<CLexeme>& pLexeme);       // non-itf version used to get second part of a xurda-murda compound
     ET_ReturnCode eGetSecondPart(long long llId, shared_ptr<CLexeme>& pLexeme);
 
 
 private:
     CEString m_sDbPath;
-    shared_ptr<CSqlite> m_pDb;
-    shared_ptr<CParser> m_pParser;
-    shared_ptr<CAnalytics> m_pAnalytics;
-    shared_ptr<CVerifier> m_pVerifier;
+    shared_ptr<CSqlite> m_spDb;
+    shared_ptr<CParser> m_spParser;
+    shared_ptr<CAnalytics> m_spAnalytics;
+    shared_ptr<CVerifier> m_spVerifier;
     vector<shared_ptr<CLexeme>> m_vecLexemes;
     vector<shared_ptr<CLexeme>>::iterator m_itCurrentLexeme;
     vector<shared_ptr<CWordForm>>::iterator m_itCurrentWordForm;
@@ -124,7 +126,8 @@ private:
 
     // Execute DB query and retrieve results
     ET_ReturnCode eQueryDb(const CEString& sSelect, uint64_t& uiQuertHandle);
-    ET_ReturnCode eGetSingleRow(StLexemeProperties&, uint64_t uiQuertHandle, bool bIsSpryazhSm = false);
+    ET_ReturnCode eReadDescriptorData(shared_ptr<CLexeme>, uint64_t uiQuertHandle, bool bIsSpryazhSm = false);
+    ET_ReturnCode eReadInflectionData(shared_ptr<CLexeme>, uint64_t uiQueryHandle, bool bIsSpryazhSm);
 
     ET_ReturnCode eReadFromDb(int64_t llLexemeId);
     ET_ReturnCode eReadFromDb(const CEString& sStem);
@@ -132,7 +135,7 @@ private:
     ET_ReturnCode eGetP2Data(int64_t llLexemeId, StLexemeProperties& properties);
     ET_ReturnCode eGetWordIdFromLemexeId(int64_t llLexemeId, int64_t& llWordId);
 
-    ET_ReturnCode eMarkLexemeAsEdited(ILexeme * pLexeme);
+    ET_ReturnCode eMarkLexemeAsEdited(shared_ptr<CLexeme> pLexeme);
 
 //    ET_ReturnCode eDifficultFormLabelToGramHash(const CEString sLabel);
 

@@ -17,8 +17,8 @@ namespace Hlib
 class CFormBuilderImperative : public CFormBuilderConj
 {
 public:
-    CFormBuilderImperative (CLexeme * pLexeme) : 
-        CFormBuilderConj (pLexeme, SUBPARADIGM_IMPERATIVE), m_bIrregularFormsOptional(false)
+    CFormBuilderImperative (shared_ptr<CLexeme> spLexeme, shared_ptr<CInflection> spInflection) : 
+        CFormBuilderConj (spLexeme, spInflection, SUBPARADIGM_IMPERATIVE), m_bIrregularFormsOptional(false)
     {}
 
 public:
@@ -33,7 +33,7 @@ public:
                                        CEString& sEnding,
                                        int64_t llEndingDataId,
                                        ET_Number eNumber,
-                                       CWordForm *& pWordForm);
+                                       shared_ptr<CWordForm>& pWordForm);
     ET_ReturnCode eHandleCommonDeviations (const CEString& sStem, int& iVariantEndingType);
     ET_ReturnCode eCheckForIrregularForms (bool& bIsVariant); // check if irregular forms were built and
                                                         // regular processing must be skipped

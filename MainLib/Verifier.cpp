@@ -1,19 +1,20 @@
 #include "IDictionary.h"
+#include "IDictionary.h"
 #include "WordForm.h"
 #include "Lexeme.h"
 #include "Verifier.h"
 
 using namespace Hlib;
 
-CVerifier::CVerifier(CDictionary * pDict) : m_pDictionary(pDict), m_pDb(NULL), m_eResult(TEST_RESULT_UNDEFINED)
+CVerifier::CVerifier(shared_ptr<CDictionary> spDict) : m_spDictionary(spDict), m_eResult(TEST_RESULT_UNDEFINED)
 {
-    if (NULL == m_pDictionary)
+    if (nullptr == m_spDictionary)
     {
         throw CException(H_ERROR_POINTER, L"Dictionary object is not available.");
     }
 
-    m_pDb = m_pDictionary->pGetDbHandle();
-    if (NULL == m_pDb)
+    m_spDb = m_spDictionary->spGetDb();
+    if (nullptr == m_spDb)
     {
         throw CException(H_ERROR_POINTER, L"Database object is not available.");
     }
@@ -38,17 +39,17 @@ ET_ReturnCode CVerifier::eVerify (const CEString& sLexemeHash)
         return hr;
     }
 
-    m_pDictionary->Clear();
-    hr = m_pDictionary->eGetLexemesByHash(sLexemeHash);
+    m_spDictionary->Clear();
+    hr = m_spDictionary->eGetLexemesByHash(sLexemeHash);
     if (H_NO_ERROR != hr)
     {
         ERROR_LOG (L"GetLexemesByHash() failed.");
         return hr;
     }
     
-    CLexemeEnumerator le(m_pDictionary);
-    ILexeme * pLexeme  = NULL;
-    hr = le.eGetFirstLexeme(pLexeme);
+    CLexemeEnumerator le(m_spDictionary);
+    shared_ptr<CLexeme> spLexeme;
+    hr = le.eGetFirstLexeme(spLexeme);
     if (hr != H_NO_ERROR)
     {
         ERROR_LOG(L"Expected lexeme not found.");
@@ -58,14 +59,14 @@ ET_ReturnCode CVerifier::eVerify (const CEString& sLexemeHash)
     while (H_NO_ERROR == hr)
     {
         bool bRet = false;
-        hr = eCheckLexeme(*pLexeme, sLexemeHash, bRet);
+        hr = eCheckLexeme(spLexeme, sLexemeHash, bRet);
         if (H_NO_ERROR == hr)
         {
             m_eResult = bRet ? TEST_RESULT_OK : TEST_RESULT_FAIL;
             return H_NO_ERROR;
         }
 
-        hr = le.eGetNextLexeme(pLexeme);
+        hr = le.eGetNextLexeme(spLexeme);
         if (hr != H_NO_ERROR)
         {
             ERROR_LOG(L"Expected lexeme not found.");
@@ -94,13 +95,13 @@ ET_ReturnCode CVerifier::eLoadStoredForms(const CEString& sLexemeHash)
 {
     m_mmapStoredForms.clear();
 
-    if (NULL == m_pDictionary)
+    if (nullptr == m_spDictionary)
     {
         throw CException(H_ERROR_POINTER, L"Dictionary object is not available.");
     }
 
-    m_pDb = m_pDictionary->pGetDbHandle();
-    if (NULL == m_pDb)
+    m_spDb = m_spDictionary->spGetDb();
+    if (nullptr == m_spDb)
     {
         throw CException(H_ERROR_POINTER, L"Database object is not available.");
     }
@@ -112,48 +113,47 @@ ET_ReturnCode CVerifier::eLoadStoredForms(const CEString& sLexemeHash)
 
     try
     {
-        m_pDb->PrepareForSelect (sQuery);
-        while (m_pDb->bGetRow())
+        m_spDb->PrepareForSelect (sQuery);
+        while (m_spDb->bGetRow())
         {
             int64_t llFormId = -1;
             CEString sHash;
             CEString sSavedWf;
-            m_pDb->GetData (0, llFormId);
-            m_pDb->GetData (1, sHash);
-            m_pDb->GetData (2, sSavedWf);
+            m_spDb->GetData (0, llFormId);
+            m_spDb->GetData (1, sHash);
+            m_spDb->GetData (2, sSavedWf);
 
             CEString sStressQuery (L"SELECT position, is_primary FROM test_data_stress WHERE test_data_id = ");
             sStressQuery += CEString::sToString(llFormId);
-            uint64_t uiStressHandle = m_pDb->uiPrepareForSelect (sStressQuery);
+            uint64_t uiStressHandle = m_spDb->uiPrepareForSelect (sStressQuery);
 //            map<int, bool> mapSavedStress;
-            while (m_pDb->bGetRow (uiStressHandle))
+            while (m_spDb->bGetRow (uiStressHandle))
             {
                 int iPos = -1;
                 bool bPrimary = false;
-                m_pDb->GetData (0, iPos, uiStressHandle);
-                m_pDb->GetData (1, bPrimary, uiStressHandle);
+                m_spDb->GetData (0, iPos, uiStressHandle);
+                m_spDb->GetData (1, bPrimary, uiStressHandle);
 
-                CWordForm * pSavedWf = new CWordForm();
+                auto spSavedWf = make_shared<CWordForm>();
                 CHasher hasher;
-                ET_ReturnCode rc = hasher.eFromHash(sHash, *pSavedWf);
+                ET_ReturnCode rc = hasher.eFromHash(sHash, *spSavedWf);
                 if (rc != H_NO_ERROR)
                 {
                     return rc;
                 }
-                pSavedWf->m_sWordForm = sSavedWf;
-                pSavedWf->m_mapStress[iPos] = bPrimary ? STRESS_PRIMARY : STRESS_SECONDARY;
-                m_mmapStoredForms.insert (pair<CEString, IWordForm *>(sHash, pSavedWf));
+                spSavedWf->m_sWordForm = sSavedWf;
+                spSavedWf->m_mapStress[iPos] = bPrimary ? STRESS_PRIMARY : STRESS_SECONDARY;
+                m_mmapStoredForms.insert (pair<CEString, shared_ptr<CWordForm>>(sHash, spSavedWf));
             }
-            m_pDb->Finalize (uiStressHandle);
+            m_spDb->Finalize (uiStressHandle);
 
         }   // while (...)
         
-        m_pDb->Finalize();
+        m_spDb->Finalize();
     }
     catch (CException& exc)
     {
         ERROR_LOG (exc.szGetDescription());
- 
         return H_ERROR_GENERAL;
     }
     catch (...)
@@ -162,7 +162,7 @@ ET_ReturnCode CVerifier::eLoadStoredForms(const CEString& sLexemeHash)
         try
         {
             CEString sError;
-            m_pDb->GetLastError (sError);
+            m_spDb->GetLastError(sError);
             sMsg = L"DB error: ";
             sMsg += sError;
         }
@@ -172,7 +172,7 @@ ET_ReturnCode CVerifier::eLoadStoredForms(const CEString& sLexemeHash)
         }
     
         CEString sError;
-        m_pDb->GetLastError(sMsg);
+        m_spDb->GetLastError(sMsg);
         sMsg += sError;
         ERROR_LOG (sMsg);
  
@@ -183,11 +183,12 @@ ET_ReturnCode CVerifier::eLoadStoredForms(const CEString& sLexemeHash)
 
 }   //  eLoadStoredForms (...)
 
-ET_ReturnCode CVerifier::eCheckLexeme (ILexeme& Lexeme, [[maybe_unused]]const CEString& sLexemeHash, bool& bCheckedOut)
+ET_ReturnCode CVerifier::eCheckLexeme (shared_ptr<CLexeme>& spLexeme, [[maybe_unused]]const CEString& sLexemeHash, bool& bCheckedOut)
 {
     ET_ReturnCode hr = H_NO_ERROR;
-
-    hr = Lexeme.eGenerateParadigm();
+    return hr;
+/*
+    hr = spLexeme->eGenerateParadigm();
     if (H_NO_ERROR != hr)
     {
         ERROR_LOG (L"GenerateWordForms() failed.");
@@ -203,7 +204,7 @@ ET_ReturnCode CVerifier::eCheckLexeme (ILexeme& Lexeme, [[maybe_unused]]const CE
             continue;
         }
 
-        auto nForms = Lexeme.iFormCount(itHash->first);
+        auto nForms = Inflection.iFormCount(itHash->first);
         if (nForms < 1)
         {
             bCheckedOut = false;
@@ -216,8 +217,8 @@ ET_ReturnCode CVerifier::eCheckLexeme (ILexeme& Lexeme, [[maybe_unused]]const CE
         bool bFormMatch = false;
         for (auto nGeneratedForm = 0; nGeneratedForm < nForms; ++nGeneratedForm)
         {
-            IWordForm * pItf = NULL;
-            hr = Lexeme.eWordFormFromHash(itHash->first, nGeneratedForm, pItf);
+            shared_ptr<CWordForm> spWf;
+            hr = Inflection.eWordFormFromHash(itHash->first, nGeneratedForm, pItf);
             if (hr != H_NO_ERROR)
             {
                 bCheckedOut = false;
@@ -260,7 +261,7 @@ ET_ReturnCode CVerifier::eCheckLexeme (ILexeme& Lexeme, [[maybe_unused]]const CE
     }       //  for (auto itHash = ...)
 
     IWordForm * pItf = NULL;
-    hr = Lexeme.eGetFirstWordForm(pItf);
+    hr = Inflection.eGetFirstWordForm(pItf);
     if (hr != H_NO_ERROR)
     {
         ERROR_LOG(L"eGetFirstWordForm() failed.");
@@ -301,7 +302,7 @@ ET_ReturnCode CVerifier::eCheckLexeme (ILexeme& Lexeme, [[maybe_unused]]const CE
             return H_NO_ERROR;
         }
 
-        hr = Lexeme.eGetNextWordForm(pItf);
+        hr = Inflection.eGetNextWordForm(pItf);
         if (H_NO_MORE == hr)
         {
             bIterate = false;
@@ -312,12 +313,12 @@ ET_ReturnCode CVerifier::eCheckLexeme (ILexeme& Lexeme, [[maybe_unused]]const CE
     bCheckedOut = true;
 
     // Check aspect pair(s) if available
-    if (Lexeme.bHasAspectPair())
+    if (Inflection.bHasAspectPair())
     {
         bCheckedOut = false;
 
         vector<CEString> vecHashes = { L"AspectPair" };
-        if (Lexeme.bHasAltAspectPair())
+        if (Inflection.bHasAltAspectPair())
         {
             vecHashes.push_back(L"AltAspectPair");
         }
@@ -335,7 +336,7 @@ ET_ReturnCode CVerifier::eCheckLexeme (ILexeme& Lexeme, [[maybe_unused]]const CE
             int iGeneratedAspectPairStressPos = -1;
             if (vecHashes.begin() == itHash)
             {
-                auto eRet = Lexeme.eGetAspectPair(sGeneratedAspectPair, iGeneratedAspectPairStressPos);
+                auto eRet = Inflection.eGetAspectPair(sGeneratedAspectPair, iGeneratedAspectPairStressPos);
                 if (eRet != H_NO_ERROR)
                 {
                     return eRet;
@@ -343,7 +344,7 @@ ET_ReturnCode CVerifier::eCheckLexeme (ILexeme& Lexeme, [[maybe_unused]]const CE
             }
             else
             {
-                auto eRet = Lexeme.eGetAltAspectPair(sGeneratedAspectPair, iGeneratedAspectPairStressPos);
+                auto eRet = Inflection.eGetAltAspectPair(sGeneratedAspectPair, iGeneratedAspectPairStressPos);
                 if (eRet != H_NO_ERROR)
                 {
                     return eRet;
@@ -364,42 +365,42 @@ ET_ReturnCode CVerifier::eCheckLexeme (ILexeme& Lexeme, [[maybe_unused]]const CE
     }       //  if (Lexeme.bHasAspectPair())
 
     return H_NO_ERROR;
-
+    */
 }   //  eCheckLexeme (CLexeme& Lexeme, bool& bCheckedOut)
 
-bool CVerifier::bWordFormsMatch(IWordForm * pLhs,IWordForm * pRhs)
+bool CVerifier::bWordFormsMatch(shared_ptr<CWordForm> spLhs, shared_ptr<CWordForm> spRhs)
 {
-    if (pLhs->sGramHash() != pRhs->sGramHash())
+    if (spLhs->sGramHash() != spRhs->sGramHash())
     {
         return false;
     }
 
-    if (pLhs->sWordForm() != pRhs->sWordForm())
+    if (spLhs->sWordForm() != spRhs->sWordForm())
     {
         return false;
     }
 
-    if (pLhs->sStem() != pRhs->sStem())
+    if (spLhs->sStem() != spRhs->sStem())
     {
         return false;
     }
 
     int iLeftStressPos, iRightStressPos = 0;
     ET_StressType eLeftStressType, eRightStressType = STRESS_TYPE_UNDEFINED;
-    ET_ReturnCode eGotLeftStress = pLhs->eGetFirstStressPos(iLeftStressPos, eLeftStressType);
+    ET_ReturnCode eGotLeftStress = spLhs->eGetFirstStressPos(iLeftStressPos, eLeftStressType);
     while (H_NO_ERROR == eGotLeftStress)
     {
-        ET_ReturnCode eGotRightStress = pRhs->eGetFirstStressPos(iRightStressPos, eRightStressType);
+        ET_ReturnCode eGotRightStress = spRhs->eGetFirstStressPos(iRightStressPos, eRightStressType);
         while (H_NO_ERROR == eGotRightStress)
         {
             if (iLeftStressPos == iRightStressPos && eLeftStressType == eRightStressType)
             {
                 return true;
             }
-            eGotRightStress = pRhs->eGetNextStressPos(iRightStressPos, eRightStressType);
+            eGotRightStress = spRhs->eGetNextStressPos(iRightStressPos, eRightStressType);
         }
 
-        eGotLeftStress = pLhs->eGetNextStressPos(iLeftStressPos, eLeftStressType);
+        eGotLeftStress = spLhs->eGetNextStressPos(iLeftStressPos, eLeftStressType);
     }
 
     return false;
@@ -408,13 +409,13 @@ bool CVerifier::bWordFormsMatch(IWordForm * pLhs,IWordForm * pRhs)
 
 ET_ReturnCode CVerifier::eLoadStoredLexemes()
 {
-    if (NULL == m_pDictionary)
+    if (nullptr == m_spDictionary)
     {
         throw CException(H_ERROR_POINTER, L"Dictionary object is not available.");
     }
 
-    m_pDb = m_pDictionary->pGetDbHandle();
-    if (NULL == m_pDb)
+    m_spDb = m_spDictionary->spGetDb();
+    if (nullptr == m_spDb)
     {
         throw CException(H_ERROR_POINTER, L"Database object is not available.");
     }
@@ -432,13 +433,13 @@ ET_ReturnCode CVerifier::eLoadStoredLexemes()
 
 ET_ReturnCode CVerifier::eDeleteStoredLexeme(const CEString& sLexemeHash)
 {
-    if (NULL == m_pDictionary)
+    if (nullptr == m_spDictionary)
     {
         throw CException(H_ERROR_POINTER, L"Dictionary object is not available.");
     }
 
-    m_pDb = m_pDictionary->pGetDbHandle();
-    if (NULL == m_pDb)
+    m_spDb = m_spDictionary->spGetDb();
+    if (nullptr == m_spDb)
     {
         throw CException(H_ERROR_POINTER, L"Database object is not available.");
     }
@@ -451,11 +452,11 @@ ET_ReturnCode CVerifier::eDeleteStoredLexeme(const CEString& sLexemeHash)
 
     try
     {
-        m_pDb->PrepareForSelect(sSelectQuery);
-        while (m_pDb->bGetRow())
+        m_spDb->PrepareForSelect(sSelectQuery);
+        while (m_spDb->bGetRow())
         {
             int iId = 0;
-            m_pDb->GetData(0, iId);
+            m_spDb->GetData(0, iId);
             vecFormIds.push_back(iId);
         }
 
@@ -468,7 +469,7 @@ ET_ReturnCode CVerifier::eDeleteStoredLexeme(const CEString& sLexemeHash)
         CEString sDelQuery1(L"DELETE FROM test_data WHERE lexeme_id = \"");
         sDelQuery1 += sLexemeHash;
         sDelQuery1 += L"\";";
-        m_pDb->Exec(sDelQuery1);
+        m_spDb->Exec(sDelQuery1);
 
         vector<int>::iterator itFormId = vecFormIds.begin();
         for (; itFormId != vecFormIds.end(); ++itFormId)
@@ -476,7 +477,7 @@ ET_ReturnCode CVerifier::eDeleteStoredLexeme(const CEString& sLexemeHash)
             CEString sDelQuery2(L"DELETE FROM test_data_stress WHERE lexeme_id = \"");
             sDelQuery2 += sLexemeHash;
             sDelQuery2 += L"\";";
-            m_pDb->Exec(sDelQuery2);
+            m_spDb->Exec(sDelQuery2);
         }
     }
     catch (...)
@@ -485,7 +486,7 @@ ET_ReturnCode CVerifier::eDeleteStoredLexeme(const CEString& sLexemeHash)
         try
         {
             CEString sError;
-            m_pDb->GetLastError(sError);
+            m_spDb->GetLastError(sError);
             sMsg = L"DB error %d: ";
             sMsg += sError;
         }
@@ -494,7 +495,7 @@ ET_ReturnCode CVerifier::eDeleteStoredLexeme(const CEString& sLexemeHash)
             sMsg = L"Apparent DB error ";
         }
 
-        sMsg = CEString::sToString(m_pDb->iGetLastError());
+        sMsg = CEString::sToString(m_spDb->iGetLastError());
         ERROR_LOG(sMsg);
 
         return H_ERROR_GENERAL;
@@ -537,7 +538,7 @@ ET_ReturnCode CVerifier::eGetNextLexemeData(CEString& sHash, CEString& sHeadword
     return H_NO_ERROR;
 }
 
-ET_ReturnCode CVerifier::eGetFirstWordForm(IWordForm *& pWordForm)
+ET_ReturnCode CVerifier::eGetFirstWordForm(shared_ptr<CWordForm>& spWordForm)
 {
     m_itCurrentForm = m_mmapStoredForms.begin();
     if (m_mmapStoredForms.end() == m_itCurrentForm)
@@ -545,12 +546,12 @@ ET_ReturnCode CVerifier::eGetFirstWordForm(IWordForm *& pWordForm)
         return H_FALSE;
     }
 
-    pWordForm = (*m_itCurrentForm).second;
+    spWordForm = (*m_itCurrentForm).second;
 
     return H_NO_ERROR;
 }
 
-ET_ReturnCode CVerifier::eGetNextWordForm(IWordForm *& pWordForm)
+ET_ReturnCode CVerifier::eGetNextWordForm(shared_ptr<CWordForm>& spWordForm)
 {
     if (m_itCurrentForm != m_mmapStoredForms.end())
     {
@@ -562,20 +563,20 @@ ET_ReturnCode CVerifier::eGetNextWordForm(IWordForm *& pWordForm)
         return H_NO_MORE;
     }
 
-    pWordForm = (*m_itCurrentForm).second;
+    spWordForm = (*m_itCurrentForm).second;
 
     return H_NO_ERROR;
 }
 
 ET_ReturnCode CVerifier::eGetStoredLexemeData(const CEString& sSelect)
 {
-    if (NULL == m_pDictionary)
+    if (nullptr == m_spDictionary)
     {
         throw CException(H_ERROR_POINTER, L"Dictionary object is not available.");
     }
 
-    m_pDb = m_pDictionary->pGetDbHandle();
-    if (NULL == m_pDb)
+    m_spDb = m_spDictionary->spGetDb();
+    if (nullptr == m_spDb)
     {
         throw CException(H_ERROR_POINTER, L"Database object is not available.");
     }
@@ -584,24 +585,24 @@ ET_ReturnCode CVerifier::eGetStoredLexemeData(const CEString& sSelect)
 
     try
     {
-        m_pDb->PrepareForSelect(sSelect);
-        while (m_pDb->bGetRow())
+        m_spDb->PrepareForSelect(sSelect);
+        while (m_spDb->bGetRow())
         {
             CEString sLexemeHash;
-            m_pDb->GetData(0, sLexemeHash);
+            m_spDb->GetData(0, sLexemeHash);
             //            m_pDb->GetData (1, pco_v->i_DescriptorId);
             CEString sHeadword;
-            m_pDb->GetData(2, sHeadword);
+            m_spDb->GetData(2, sHeadword);
 
             m_vecStoredLexemes.push_back(StStoredLexeme(sLexemeHash, sHeadword));
 
         }   //  while (m_pDb->bGetRow())
 
-        m_pDb->Finalize();
+        m_spDb->Finalize();
     }
     catch (...)
     {
-        CEString sMsg = CEString::sToString (m_pDb->iGetLastError());
+        CEString sMsg = CEString::sToString (m_spDb->iGetLastError());
         ERROR_LOG((wchar_t *)sMsg);
 
         return H_ERROR_GENERAL;

@@ -8,11 +8,11 @@ using namespace Hlib;
 
 ET_ReturnCode CFormBuilderPersonal::eGetStressType (ET_Number eNumber, ET_Person ePerson,  ET_StressLocation& eStress)
 {
-    assert(m_pLexeme);   // we assume base class ctor took care of this
+    assert(m_spLexeme);   // we assume base class ctor took care of this
 
     ET_ReturnCode rc = H_NO_ERROR;
 
-    switch (m_pLexeme->eAccentType1())
+    switch (m_spInflection->eAccentType1())
     {
         case AT_A:
         {
@@ -62,13 +62,13 @@ ET_ReturnCode CFormBuilderPersonal::eGetStressType (ET_Number eNumber, ET_Person
 
 ET_ReturnCode CFormBuilderPersonal::eGetAuslautType (ET_Number eNumber, ET_Person ePerson, ET_StemAuslaut& eAuslaut)
 {
-    assert(m_pLexeme);   // we assume base class ctor took care of this
+    assert(m_spLexeme);   // we assume base class ctor took care of this
 
-    if (m_pLexeme->iType() >= 4 && m_pLexeme->iType() <= 6)
+    if (m_spInflection->iType() >= 4 && m_spInflection->iType() <= 6)
     {
         if ((PERSON_1 == ePerson) && (NUM_SG == eNumber))
         {
-            if (m_pLexeme->s1SgStem().bEndsWithOneOf (L"шжчщц"))
+            if (m_spLexeme->s1SgStem().bEndsWithOneOf (L"шжчщц"))
             {
                 eAuslaut = STEM_AUSLAUT_SH;
             }
@@ -79,7 +79,7 @@ ET_ReturnCode CFormBuilderPersonal::eGetAuslautType (ET_Number eNumber, ET_Perso
         }
         if ((PERSON_3 == ePerson) && (NUM_PL == eNumber))
         {
-            if (m_pLexeme->s3SgStem().bEndsWithOneOf (L"шжчщц"))
+            if (m_spLexeme->s3SgStem().bEndsWithOneOf (L"шжчщц"))
             {
                 eAuslaut = STEM_AUSLAUT_SH;
             }
@@ -96,29 +96,29 @@ ET_ReturnCode CFormBuilderPersonal::eGetAuslautType (ET_Number eNumber, ET_Perso
 
 ET_ReturnCode CFormBuilderPersonal::eGetStem(ET_Number eNumber, ET_Person ePerson, CEString& sStem)
 {
-    assert(m_pLexeme);   // we assume base class ctor took care of this
+    assert(m_spLexeme);   // we assume base class ctor took care of this
 
     ET_ReturnCode rc = H_NO_ERROR;
 
     if (PERSON_1 == ePerson && NUM_SG == eNumber)
     {
-        sStem = m_pLexeme->s1SgStem();
+        sStem = m_spLexeme->s1SgStem();
     }
     else
     {
-        if (4 == m_pLexeme->iType() || 5 == m_pLexeme->iType())
+        if (4 == m_spInflection->iType() || 5 == m_spInflection->iType())
         {
-            sStem = m_pLexeme->s3SgStem();
+            sStem = m_spLexeme->s3SgStem();
         }
         else
         {
             if (PERSON_3 == ePerson && NUM_PL == eNumber)
             {
-                sStem = m_pLexeme->s1SgStem();
+                sStem = m_spLexeme->s1SgStem();
             }
             else
             {
-                sStem = m_pLexeme->s3SgStem();
+                sStem = m_spLexeme->s3SgStem();
             }
         }
     }
@@ -136,7 +136,7 @@ ET_ReturnCode CFormBuilderPersonal::eGetStressPositions (const CEString& sStem,
 
     if (STRESS_LOCATION_STEM == eStressType)
     {
-        rc = m_pLexeme->eGetStemStressPositions (const_cast<CEString&>(sStem), vecStressPositions);
+        rc = m_spLexeme->eGetStemStressPositions (const_cast<CEString&>(sStem), vecStressPositions);
                                     // needed to set vowels
     }
     else if (STRESS_LOCATION_ENDING == eStressType)
@@ -156,12 +156,12 @@ ET_ReturnCode CFormBuilderPersonal::eGetStressPositions (const CEString& sStem,
 
 }   //  eGetStressPositions (...)
 
-ET_ReturnCode CFormBuilderPersonal::eCreateFormTemplate (ET_Number eNumber, ET_Person ePerson, CWordForm *& pWordForm)
+ET_ReturnCode CFormBuilderPersonal::eCreateFormTemplate (ET_Number eNumber, ET_Person ePerson, shared_ptr<CWordForm>& spWordForm)
 {
     ET_ReturnCode rc = H_NO_ERROR;
 
-    pWordForm = new CWordForm;
-    if (NULL == pWordForm)
+    spWordForm = make_shared<CWordForm>();
+    if (nullptr == spWordForm)
     {
         assert(0);
         CEString sMsg;
@@ -169,14 +169,14 @@ ET_ReturnCode CFormBuilderPersonal::eCreateFormTemplate (ET_Number eNumber, ET_P
         return H_ERROR_POINTER;
     }
 
-    pWordForm->m_pLexeme = m_pLexeme;
-    pWordForm->m_ePos = m_pLexeme->ePartOfSpeech();
-    pWordForm->m_eSubparadigm = SUBPARADIGM_PRESENT_TENSE;
-    pWordForm->m_eReflexivity = m_pLexeme->eIsReflexive();
-    pWordForm->m_eNumber = eNumber;
-    pWordForm->m_ePerson = ePerson;
-    pWordForm->m_eAspect = m_pLexeme->eAspect();
-    pWordForm->m_llLexemeId = m_pLexeme->llLexemeId();
+    spWordForm->m_spLexeme = m_spLexeme;
+    spWordForm->m_ePos = m_spLexeme->ePartOfSpeech();
+    spWordForm->m_eSubparadigm = SUBPARADIGM_PRESENT_TENSE;
+    spWordForm->m_eReflexivity = m_spLexeme->eIsReflexive();
+    spWordForm->m_eNumber = eNumber;
+    spWordForm->m_ePerson = ePerson;
+    spWordForm->m_eAspect = m_spLexeme->eAspect();
+    spWordForm->m_llLexemeId = m_spLexeme->llLexemeId();
 
     return rc;
 
@@ -184,7 +184,7 @@ ET_ReturnCode CFormBuilderPersonal::eCreateFormTemplate (ET_Number eNumber, ET_P
 
 ET_ReturnCode CFormBuilderPersonal::eBuild()
 {
-    assert(m_pLexeme);   // we assume base class ctor took care of this
+    assert(m_spLexeme);   // we assume base class ctor took care of this
 
     ET_ReturnCode rc = H_NO_ERROR;
 
@@ -192,7 +192,7 @@ ET_ReturnCode CFormBuilderPersonal::eBuild()
     {
 //        bool bNoRegularStems = false;
 
-        if (m_pLexeme->bHasIrregularForms())
+        if (m_spLexeme->bHasIrregularForms())
         {
             rc = eHandleIrregularForms();
             if (rc != H_NO_ERROR)
@@ -211,8 +211,8 @@ ET_ReturnCode CFormBuilderPersonal::eBuild()
 //            bNoRegularStems = true;
 //        }
 
-        m_pEndings = new CPersonalEndings(m_pLexeme);
-        if (NULL == m_pEndings)
+        m_spEndings = make_shared<CPersonalEndings>(m_spLexeme, m_spInflection);
+        if (NULL == m_spEndings)
         {
             return rc;
         }
@@ -226,30 +226,30 @@ ET_ReturnCode CFormBuilderPersonal::eBuild()
                                     GENDER_UNDEFINED, 
                                     ePerson, 
                                     ANIM_UNDEFINED,                                       
-                                    m_pLexeme->eAspect(),
+                                    m_spLexeme->eAspect(),
                                     CASE_UNDEFINED, 
-                                    m_pLexeme->eIsReflexive());
+                                    m_spLexeme->eIsReflexive());
 
-//                if (m_pLexeme->bHasMissingForms() || m_pLexeme->bImpersonal() || m_pLexeme->bIterative())
-                if (m_pLexeme->bImpersonal() || m_pLexeme->bIterative())
+//                if (m_spLexeme->bHasMissingForms() || m_spLexeme->bImpersonal() || m_spLexeme->bIterative())
+                if (m_spLexeme->bImpersonal() || m_spLexeme->bIterative())
                     {
-                    if (m_pLexeme->eFormExists(hasher.sGramHash()) != H_TRUE)
+                    if (m_spInflection->eFormExists(hasher.sGramHash()) != H_TRUE)
                     {
                         continue;
                     }
                 }
 
-                if (m_pLexeme->bHasMissingForms())
+                if (m_spLexeme->bHasMissingForms())
                 {
                     auto sHash = hasher.sGramHash();
-                    if (m_pLexeme->eFormExists(sHash) != H_TRUE)
+                    if (m_spInflection->eFormExists(sHash) != H_TRUE)
                     {
-                        m_pLexeme->SetHypotheticalForm(sHash);
+                        m_spInflection->SetHypotheticalForm(sHash);
                     }
                 }
 
                 // Irregular forms will be handled separately 
-                if (m_pLexeme->bNoRegularForms(hasher.sGramHash()))
+                if (m_spInflection->bNoRegularForms(hasher.sGramHash()))
                 {
                     continue;
                 }
@@ -269,7 +269,7 @@ ET_ReturnCode CFormBuilderPersonal::eBuild()
                 }
 
 //                int iConjugation = INFLECTION_TYPE_UNDEFINED;
-//                if ((4 == m_pLexeme->iType() || 5 == m_pLexeme->iType()) ||
+//                if ((4 == m_spLexeme->iType() || 5 == m_spLexeme->iType()) ||
 //                    (PERSON_1 == ePerson && NUM_SG == eNumber) || 
 //                    (PERSON_3 == ePerson && NUM_PL == eNumber))
 //                {
@@ -285,8 +285,8 @@ ET_ReturnCode CFormBuilderPersonal::eBuild()
                     }
 //                }
 
-                ((CPersonalEndings *)m_pEndings)->eSelect(ePerson, eNumber, eStress, eAuslaut);
-                int64_t iNumEndings = m_pEndings->iCount();
+                static_pointer_cast<CPersonalEndings>(m_spEndings)->eSelect(ePerson, eNumber, eStress, eAuslaut);
+                int64_t iNumEndings = m_spEndings->iCount();
                 if (iNumEndings < 1)
                 {
                     ERROR_LOG (L"No endings");
@@ -297,13 +297,13 @@ ET_ReturnCode CFormBuilderPersonal::eBuild()
                 {
                     CEString sEnding;
                     int64_t llEndingKey = -1;
-                    rc = m_pEndings->eGetEnding (iEnding, sEnding, llEndingKey);
+                    rc = m_spEndings->eGetEnding (iEnding, sEnding, llEndingKey);
                     if (rc != H_NO_ERROR)
                     {
                         continue;
                     }
 
-                    //if (6 == m_pLexeme->iType() && 1 == m_pLexeme->iStemAugment())
+                    //if (6 == m_spLexeme->iType() && 1 == m_spLexeme->iStemAugment())
                     //{
                     //    if ((PERSON_1 == ePerson && NUM_SG == eNumber) ||
                     //        (PERSON_3 == ePerson && NUM_PL == eNumber))
@@ -318,7 +318,7 @@ ET_ReturnCode CFormBuilderPersonal::eBuild()
                     //    }
                     //}
 
-                    //if (REFL_YES == m_pLexeme->eIsReflexive())
+                    //if (REFL_YES == m_spLexeme->eIsReflexive())
                     //{
                     //    if (sEnding.bEndsWithOneOf (g_szRusVowels))
                     //    {
@@ -349,26 +349,26 @@ ET_ReturnCode CFormBuilderPersonal::eBuild()
                         continue;
                     }
 
-                    CWordForm * pWordForm = NULL;
-                    rc = eCreateFormTemplate (eNumber, ePerson, pWordForm);
-                    if (rc != H_NO_ERROR || NULL == pWordForm)
+                    shared_ptr<CWordForm> spWordForm;
+                    rc = eCreateFormTemplate (eNumber, ePerson, spWordForm);
+                    if (rc != H_NO_ERROR || nullptr == spWordForm)
                     {
                         continue;
                     }
 
-                    pWordForm->m_sStem = sStem;
-                    pWordForm->m_sWordForm = sStem + sEnding;
-                    pWordForm->m_sEnding = sEnding;
-                    pWordForm->m_llEndingDataId = llEndingKey;
+                    spWordForm->m_sStem = sStem;
+                    spWordForm->m_sWordForm = sStem + sEnding;
+                    spWordForm->m_sEnding = sEnding;
+                    spWordForm->m_llEndingDataId = llEndingKey;
 
-                    if (1 == vecStress.size() || m_pLexeme->bIsMultistressedCompound())
+                    if (1 == vecStress.size() || m_spInflection->bIsMultistressedCompound())
                     {
                         vector<int>::iterator itStressPos = vecStress.begin();
                         for (; itStressPos != vecStress.end(); ++itStressPos)
                         {
-                            pWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;
+                            spWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;
                         }
-                        m_pLexeme->AddWordForm (pWordForm);
+                        m_spInflection->AddWordForm (spWordForm);
                     }
                     else
                     {
@@ -377,12 +377,12 @@ ET_ReturnCode CFormBuilderPersonal::eBuild()
                         {
                             if (itStressPos != vecStress.begin())
                             {
-                                CWordForm * pWfVariant = NULL;
-                                CloneWordForm (pWordForm, pWfVariant);
-                                pWordForm = pWfVariant;
+                                shared_ptr<CWordForm> spWfVariant;
+                                CloneWordForm (spWordForm, spWfVariant);
+                                spWordForm = spWfVariant;
                             }
-                            pWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;
-                            m_pLexeme->AddWordForm (pWordForm);
+                            spWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;
+                            m_spInflection->AddWordForm(spWordForm);
                         }
                     }
 
@@ -410,7 +410,7 @@ ET_ReturnCode CFormBuilderPersonal::eBuild()
 //
 ET_ReturnCode CFormBuilderPersonal::eHandleIrregularForms()
 {
-    assert(m_pLexeme);   // we assume base class ctor took care of this
+    assert(m_spLexeme);   // we assume base class ctor took care of this
 
     ET_ReturnCode rc = H_NO_ERROR;
 
@@ -426,28 +426,28 @@ ET_ReturnCode CFormBuilderPersonal::eHandleIrregularForms()
                     GENDER_UNDEFINED,
                     ePerson,
                     ANIM_UNDEFINED,
-                    m_pLexeme->eAspect(),
+                    m_spLexeme->eAspect(),
                     CASE_UNDEFINED,
-                    m_pLexeme->eIsReflexive());
+                    m_spLexeme->eIsReflexive());
 
-                if (!m_pLexeme->bHasIrregularForm(hasher.sGramHash()))
+                if (!m_spInflection->bHasIrregularForm(hasher.sGramHash()))
                 {
                     continue;
                 }
 
-                map<CWordForm *, bool> mapResult;
-                rc = m_pLexeme->eGetIrregularForms(hasher.sGramHash(), mapResult);
+                map<shared_ptr<CWordForm>, bool> mapResult;
+                rc = m_spInflection->eGetIrregularForms(hasher.sGramHash(), mapResult);
                 if (rc != H_NO_ERROR)
                 {
                     return rc;
                 }
 
-                map<CWordForm *, bool>::iterator itIf = mapResult.begin();
+                auto itIf = mapResult.begin();
                 for (; itIf != mapResult.end(); ++itIf)
                 {
                     if (mapResult.end() != itIf)    // form exists
                     {
-                        m_pLexeme->AddWordForm(itIf->first);
+                        m_spInflection->AddWordForm(itIf->first);
                     }
                     else                            // form needs to be constructed per GDRL rules
                     {
@@ -466,15 +466,15 @@ ET_ReturnCode CFormBuilderPersonal::eHandleIrregularForms()
                     }
 
                     // Not sure if this is correct...
-                    if (PERSON_1 == ePerson && m_pLexeme->s1SgStem().bIsEmpty())
+                    if (PERSON_1 == ePerson && m_spLexeme->s1SgStem().bIsEmpty())
                     {
                         CreateIrregular1SgStem((itIf->first)->sWordForm());
-                        (itIf->first)->m_sStem = m_pLexeme->s1SgStem();
+                        (itIf->first)->m_sStem = m_spLexeme->s1SgStem();
                     }
-                    if (PERSON_3 == ePerson && m_pLexeme->s3SgStem().bIsEmpty())
+                    if (PERSON_3 == ePerson && m_spLexeme->s3SgStem().bIsEmpty())
                     {
                         CreateIrregular3SgStem((itIf->first)->sWordForm());
-                        (itIf->first)->m_sStem = m_pLexeme->s3SgStem();
+                        (itIf->first)->m_sStem = m_spLexeme->s3SgStem();
                     }
                 }   //  for (; itIf != mapResult.end(); ++itIf)
 
@@ -495,7 +495,7 @@ ET_ReturnCode CFormBuilderPersonal::eHandleIrregularForms()
 
 ET_ReturnCode CFormBuilderPersonal::eBuildIrregularForms (ET_Number eNumber, ET_Person ePerson)
 {
-    assert(m_pLexeme);   // we assume base class ctor took care of this
+    assert(m_spLexeme);   // we assume base class ctor took care of this
 
     // GDRL p. 89
 
@@ -506,18 +506,18 @@ ET_ReturnCode CFormBuilderPersonal::eBuildIrregularForms (ET_Number eNumber, ET_
                           GENDER_UNDEFINED, 
                           PERSON_3, 
                           ANIM_UNDEFINED,
-                          m_pLexeme->eAspect(),
+                          m_spLexeme->eAspect(),
                           CASE_UNDEFINED, 
-                          m_pLexeme->eIsReflexive());
+                          m_spLexeme->eIsReflexive());
     
-    vector<CWordForm *> vecSg3Irreg;
+    vector<shared_ptr<CWordForm>> vecSg3Irreg;
     rc = eGetIrregularForms(Sg3Hasher.sGramHash(), vecSg3Irreg);
     if (H_NO_ERROR != rc)
     {
         return rc;
     }
 
-    vector<CWordForm *>::iterator itSg3Irreg = vecSg3Irreg.begin();
+    auto itSg3Irreg = vecSg3Irreg.begin();
     for (; itSg3Irreg != vecSg3Irreg.end(); ++itSg3Irreg)
     {
         CEString sWordForm = (*itSg3Irreg)->m_sWordForm;
@@ -536,22 +536,22 @@ ET_ReturnCode CFormBuilderPersonal::eBuildIrregularForms (ET_Number eNumber, ET_
         {
             sWordForm += L"шь";
             
-            CWordForm * pWordForm = new CWordForm;
-            if (NULL == pWordForm)
+            auto spWordForm = make_shared<CWordForm>();
+            if (nullptr == spWordForm)
             {
                 assert(0);
                 ERROR_LOG (L"Unable to instantiate CWordForm.");
                 return H_ERROR_POINTER;
             }
             
-            pWordForm->m_pLexeme = m_pLexeme;
-            pWordForm->m_mapStress = (*itSg3Irreg)->m_mapStress;
-            pWordForm->m_sWordForm = sWordForm;
+            spWordForm->m_spLexeme = m_spLexeme;
+            spWordForm->m_mapStress = (*itSg3Irreg)->m_mapStress;
+            spWordForm->m_sWordForm = sWordForm;
 //            pWordForm->m_llLexemeId;
 
             try
             {
-                m_pLexeme->AddWordForm(pWordForm);
+                m_spInflection->AddWordForm(spWordForm);
             }
             catch (CException& ex)
             {
@@ -593,17 +593,17 @@ ET_ReturnCode CFormBuilderPersonal::eBuildIrregularForms (ET_Number eNumber, ET_
                                           GENDER_UNDEFINED, 
                                           PERSON_1, 
                                           ANIM_UNDEFINED,
-                                          m_pLexeme->eAspect(),
+                                          m_spLexeme->eAspect(),
                                           CASE_UNDEFINED, 
-                                          m_pLexeme->eIsReflexive());
-                    vector<CWordForm *> vecSg1Irreg;
+                                          m_spLexeme->eIsReflexive());
+                    vector<shared_ptr<CWordForm>> vecSg1Irreg;
                     rc = eGetIrregularForms(Sg1Hasher.sGramHash(), vecSg1Irreg);
                     if (H_NO_ERROR != rc)
                     {
                         return rc;
                     }
 
-                    vector<CWordForm *>::iterator itSg1Irreg = vecSg1Irreg.begin();
+                    auto itSg1Irreg = vecSg1Irreg.begin();
                     if (vecSg1Irreg.end() == itSg1Irreg)
                     {
                         assert(0);
@@ -644,22 +644,22 @@ ET_ReturnCode CFormBuilderPersonal::eBuildIrregularForms (ET_Number eNumber, ET_
     
         }       //  switch
 
-        CWordForm * pWordForm = new CWordForm;
-        if (NULL == pWordForm)
+        auto spWordForm = make_shared<CWordForm>();
+        if (nullptr == spWordForm)
         {
             assert(0);
             ERROR_LOG (L"Unable to instantiate CWordForm.");
             return H_ERROR_POINTER;
         }
 
-        pWordForm->m_pLexeme = m_pLexeme;
-        pWordForm->m_mapStress = (*itSg3Irreg)->m_mapStress;
-        pWordForm->m_sWordForm = sWordForm;
-        pWordForm->m_llLexemeId = m_pLexeme->llLexemeId();
+        spWordForm->m_spLexeme = m_spLexeme;
+        spWordForm->m_mapStress = (*itSg3Irreg)->m_mapStress;
+        spWordForm->m_sWordForm = sWordForm;
+        spWordForm->m_llLexemeId = m_spLexeme->llLexemeId();
 
         try
         {
-            m_pLexeme->AddWordForm(pWordForm);
+            m_spInflection->AddWordForm(spWordForm);
         }
         catch (CException& ex)
         {
@@ -674,7 +674,7 @@ ET_ReturnCode CFormBuilderPersonal::eBuildIrregularForms (ET_Number eNumber, ET_
 
 void CFormBuilderPersonal::CreateIrregular1SgStem(const CEString& s1SgForm)
 {
-    StLexemeProperties stProps = m_pLexeme->stGetPropertiesForWriteAccess();
+    StLexemeProperties stProps = m_spLexeme->stGetPropertiesForWriteAccess();
     if (s1SgForm.uiLength() < 2)
     {
         assert(0);
@@ -688,7 +688,7 @@ void CFormBuilderPersonal::CreateIrregular1SgStem(const CEString& s1SgForm)
 
 void CFormBuilderPersonal::CreateIrregular3SgStem(const CEString& s3SgForm)
 {
-    StLexemeProperties stProps = m_pLexeme->stGetPropertiesForWriteAccess();
+    StLexemeProperties stProps = m_spLexeme->stGetPropertiesForWriteAccess();
     if (s3SgForm.uiLength() < 3)
     {
         assert(0);

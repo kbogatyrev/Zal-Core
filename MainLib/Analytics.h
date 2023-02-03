@@ -18,7 +18,7 @@ namespace Hlib
     class CSqlite;
     class CParser;
     class CTranscriber;
-//    struct CWordForm;
+//    class CWordForm;
     class CEString;
 
     struct StWordParse
@@ -135,8 +135,8 @@ namespace Hlib
         ET_ReturnCode eAddParsesToTactGroup(shared_ptr<StTactGroup>, int iLinePos);
 
     private:
-        shared_ptr<CSqlite> m_pDb;
-        shared_ptr<CParser> m_pParser;
+        shared_ptr<CSqlite> m_spDb;
+        shared_ptr<CParser> m_spParser;
         unique_ptr<CTranscriber> m_spTranscriber;
         CEString m_sTextName;
         CEString m_sTextTitle;
