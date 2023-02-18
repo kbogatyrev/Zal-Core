@@ -75,9 +75,6 @@ public:
     void Clear();
     ET_ReturnCode Clear(shared_ptr<CLexeme>);
 
-    ET_ReturnCode eCreateLexemeEnumerator(shared_ptr<CLexemeEnumerator>&);
-    void DeleteLexemeEnumerator(shared_ptr<CLexemeEnumerator>);
-
     ET_ReturnCode eGetParser(shared_ptr<CParser>&);
     ET_ReturnCode eGetAnalytics(shared_ptr<CAnalytics>&);
     ET_ReturnCode eGetVerifier(shared_ptr<CVerifier>&);
@@ -116,8 +113,11 @@ private:
     shared_ptr<CAnalytics> m_spAnalytics;
     shared_ptr<CVerifier> m_spVerifier;
     vector<shared_ptr<CLexeme>> m_vecLexemes;
+    shared_ptr<CLexemeEnumerator> m_spLexemeEnumerator;
     vector<shared_ptr<CLexeme>>::iterator m_itCurrentLexeme;
     vector<shared_ptr<CWordForm>>::iterator m_itCurrentWordForm;
+
+    ET_ReturnCode eInit();
 
     // Populate DB tables
     ET_ReturnCode ePopulateStemsTable();

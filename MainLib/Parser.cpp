@@ -79,7 +79,7 @@ ET_ReturnCode CParser::eParseWord(const CEString& sWord)
             continue;
         }
         spWf->SetPos(spLexeme->ePartOfSpeech());
-        spWf->m_spLexeme = spLexeme;
+//        spWf->SetInflection(&&&&)
     }
 
     return m_vecWordForms.empty() ? H_FALSE : H_NO_ERROR;
@@ -206,7 +206,7 @@ ET_ReturnCode CParser::eQueryDb(const CEString& sSelect, uint64_t& uiQueryHandle
 
 ET_ReturnCode CParser::eIrregularFormLookup(const CEString& sWord, bool bSpryazhSm)
 {
-    CEString sIrregFormQuery(L"SELECT DISTINCT id, descriptor_id, gram_hash, wordform, is_alternative FROM ");
+    CEString sIrregFormQuery(L"SELECT DISTINCT id, inflection_id, gram_hash, wordform, is_alternative FROM ");
     if (bSpryazhSm)
     {
         sIrregFormQuery += L"irregular_forms_spryazh_sm WHERE wordform = \"";
@@ -227,8 +227,8 @@ ET_ReturnCode CParser::eIrregularFormLookup(const CEString& sWord, bool bSpryazh
             uint64_t llFormId = -1;
             m_spDb->GetData(0, llFormId, uiFormQueryHandle);
 
-            uint64_t llDescriptorId = -1;
-            m_spDb->GetData(1, llDescriptorId, uiFormQueryHandle);
+            uint64_t llInflectionId = -1;
+            m_spDb->GetData(1, llInflectionId, uiFormQueryHandle);
 
             CEString sGramHash = -1;
             m_spDb->GetData(2, sGramHash, uiFormQueryHandle);
@@ -241,10 +241,10 @@ ET_ReturnCode CParser::eIrregularFormLookup(const CEString& sWord, bool bSpryazh
             m_spDb->GetData(4, bIsAlternative, uiFormQueryHandle);       // what to do with this one?
 
             unique_ptr<CWordForm> pWf = make_unique<CWordForm>(sGramHash);
-            pWf->m_bIrregular = true;
-            pWf->m_llLexemeId = llDescriptorId;
-            pWf->m_llIrregularFormId = llFormId;
-            pWf->m_sWordForm = sWordForm;
+            pWf->SetIrregular(true);
+            pWf->SetInflectionId(llInflectionId);
+            pWf->SetIrregularFormId(llFormId);
+            pWf->SetWordForm(sWordForm);
 
             CEString sIrregStressQuery(L"SELECT position, is_primary FROM ");
             if (bSpryazhSm)
@@ -267,7 +267,7 @@ ET_ReturnCode CParser::eIrregularFormLookup(const CEString& sWord, bool bSpryazh
                 int iType = (int)eType;
                 m_spDb->GetData(1, iType, uiStressHandle);
                 int iStressedSyll = sWordForm.uiGetSyllableFromVowelPos(iPosition);
-                pWf->m_mapStress[iStressedSyll] = (ET_StressType)iType;
+                pWf->SetStressPos(iStressedSyll, (ET_StressType)iType);
             }
             m_spDb->Finalize(uiStressHandle);
 
@@ -287,7 +287,7 @@ ET_ReturnCode CParser::eIrregularFormLookup(const CEString& sWord, bool bSpryazh
 
 }       //  eIrregularFormLookup()
 
-static CEString s_sWholeWordQuery(L"SELECT DISTINCT sd.gram_hash, sd.lexeme_id, wf.id, wf.ending_data_id \
+static CEString s_sWholeWordQuery(L"SELECT DISTINCT sd.gram_hash, sd.inflection_id, wf.id, wf.ending_data_id \
                                    FROM stems AS s INNER JOIN stem_data as sd \
                                    ON (sd.stem_id = s.id) INNER JOIN wordforms as wf \
                                    ON sd.id = wf.stem_data_id  \
@@ -303,8 +303,8 @@ ET_ReturnCode CParser::eWholeWordLookup(const CEString& sWord)
         CEString sGramHash;
         m_spDb->GetData(0, sGramHash, uiFormQueryHandle);
 
-        int64_t llLexemeId = -1;
-        m_spDb->GetData(1, llLexemeId, uiFormQueryHandle);
+        int64_t llInflectionId = -1;
+        m_spDb->GetData(1, llInflectionId, uiFormQueryHandle);
 
         int64_t llFormId = -1;
         m_spDb->GetData(2, llFormId, uiFormQueryHandle);
@@ -336,10 +336,10 @@ ET_ReturnCode CParser::eWholeWordLookup(const CEString& sWord)
                 return H_ERROR_GENERAL;
             }
 
-            pWf->m_bIrregular = false;
-            pWf->m_llLexemeId = llLexemeId;
-            pWf->m_llDbKey = llFormId;
-            pWf->m_sWordForm = sWord;
+            pWf->SetIrregular(false);
+            pWf->SetInflectionId(llInflectionId);
+            pWf->SetDbKey(llFormId);
+            pWf->SetWordForm(sWord);
 
             CEString sStressQuery(L"SELECT position, is_primary FROM stress_data WHERE form_id = \"");
             sStressQuery += CEString::sToString(llFormId);
@@ -353,7 +353,7 @@ ET_ReturnCode CParser::eWholeWordLookup(const CEString& sWord)
                 bool bIsPrimary = false;
                 m_spDb->GetData(1, bIsPrimary, uiStressHandle);
                 ET_StressType eType = bIsPrimary ? STRESS_PRIMARY : STRESS_SECONDARY;
-                pWf->m_mapStress[iPosition] = eType;
+                pWf->SetStressPos(iPosition, eType);
             }
             m_spDb->Finalize(uiStressHandle);
 
@@ -408,14 +408,14 @@ ET_ReturnCode CParser::eFormLookup(const CEString& sWord)
                     CEString sGramHash;
                     m_spDb->GetData(1, sGramHash, uiFormQueryHandle);
 
-                    int64_t llLexemeId = -1;
-                    m_spDb->GetData(2, llLexemeId, uiFormQueryHandle);
+                    int64_t llInflectionId = -1;
+                    m_spDb->GetData(2, llInflectionId, uiFormQueryHandle);
 
                     unique_ptr<CWordForm> pWf = make_unique<CWordForm>(sGramHash);
-                    pWf->m_llDbKey = llFormId;
-                    pWf->m_bIrregular = false;
-                    pWf->m_llLexemeId = llLexemeId;
-                    pWf->m_sWordForm = sWord;
+                    pWf->SetDbKey(llFormId);
+                    pWf->SetIrregular(false);
+                    pWf->SetInflectionId(llInflectionId);
+                    pWf->SetWordForm(sWord);
 
                     CEString sStressQuery(L"SELECT position, is_primary FROM stress_data WHERE form_id = \"");
                     sStressQuery += CEString::sToString(llFormId);
@@ -429,8 +429,7 @@ ET_ReturnCode CParser::eFormLookup(const CEString& sWord)
 
                         bool bIsPrimary = false;
                         m_spDb->GetData(1, bIsPrimary, uiStressHandle);
-//                        ET_StressType eType = STRESS_TYPE_UNDEFINED;
-                        pWf->m_mapStress[iPosition] = bIsPrimary ? STRESS_PRIMARY : STRESS_SECONDARY;
+                        pWf->SetStressPos(iPosition, bIsPrimary ? STRESS_PRIMARY : STRESS_SECONDARY);
                     }
                     m_spDb->Finalize(uiStressHandle);
                     m_vecWordForms.push_back(move(pWf));

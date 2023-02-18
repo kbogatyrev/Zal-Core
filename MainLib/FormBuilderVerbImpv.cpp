@@ -37,7 +37,7 @@ ET_ReturnCode CFormBuilderImperative::eGetStem (CEString& sStem)
             return H_ERROR_POINTER;
         }
 
-        sStem = spTemplate->m_sStem;
+        sStem = spTemplate->sStem();
 
         if (11 == m_spInflection->iType())
         {
@@ -252,7 +252,7 @@ ET_ReturnCode CFormBuilderImperative::eCreateFormTemplate (const CEString& sStem
 {
     ET_ReturnCode rc = H_NO_ERROR;
 
-    m_spWordForm = make_shared<CWordForm>();
+    m_spWordForm = make_shared<CWordForm>(m_spInflection);
     if (NULL == m_spWordForm)
     {
         assert(0);
@@ -260,18 +260,18 @@ ET_ReturnCode CFormBuilderImperative::eCreateFormTemplate (const CEString& sStem
         return H_ERROR_POINTER;
     }
 
-    m_spWordForm->m_spLexeme = m_spLexeme;
-    m_spWordForm->m_ePos = m_spLexeme->ePartOfSpeech();
-    m_spWordForm->m_eSubparadigm = SUBPARADIGM_IMPERATIVE;
-    m_spWordForm->m_eAspect = m_spLexeme->eAspect();
-    m_spWordForm->m_eReflexivity = m_spLexeme->eIsReflexive();
-    m_spWordForm->m_sStem = sStem;
-    m_spWordForm->m_llEndingDataId = llEndingDataId;
-    m_spWordForm->m_sWordForm = sStem + sEnding;
+//    m_spWordForm->m_spLexeme = m_spLexeme;
+    m_spWordForm->SetPos(POS_VERB);
+    m_spWordForm->SetSubparadigm(SUBPARADIGM_IMPERATIVE);
+    m_spWordForm->SetAspect(m_spLexeme->eAspect());
+    m_spWordForm->SetReflexivity(m_spLexeme->eIsReflexive());
+    m_spWordForm->SetStem(sStem);
+    m_spWordForm->SetEndingDataId(llEndingDataId);
+    m_spWordForm->SetWordForm(sStem + sEnding);
 
-    m_spWordForm->m_eNumber = eNumber;
-    m_spWordForm->m_ePerson = PERSON_2;
-    m_spWordForm->m_llLexemeId = m_spLexeme->llLexemeId();
+    m_spWordForm->SetNumber(eNumber);
+    m_spWordForm->SetPerson(PERSON_2);
+    m_spWordForm->SetInflectionId(m_spInflection->llInflectionId());
 
 //    rc = eAssignSecondaryStress (m_spWordForm);
 
@@ -475,7 +475,8 @@ ET_ReturnCode CFormBuilderImperative::eBuild()
                     vector<int>::iterator itStressPos = vecStress.begin();
                     for (; itStressPos != vecStress.end(); ++itStressPos)
                     {
-                        m_spWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;  // primary
+//                        m_spWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;  // primary
+                        m_spWordForm->SetStressPos(*itStressPos, STRESS_PRIMARY);
                     }
 
                     m_spInflection->AddWordForm(m_spWordForm);
@@ -488,10 +489,12 @@ ET_ReturnCode CFormBuilderImperative::eBuild()
                         if (itStressPos != vecStress.begin())
                         {
                             shared_ptr<CWordForm> spWfVariant;
-                            CloneWordForm(m_spWordForm, spWfVariant);
+//                            CloneWordForm(m_spWordForm, spWfVariant);
+                            spWfVariant->eCloneFrom(m_spWordForm);
                             m_spWordForm = spWfVariant;
                         }
-                        m_spWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;
+//                        m_spWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;
+                        m_spWordForm->SetStressPos(*itStressPos, STRESS_PRIMARY);
                         m_spInflection->AddWordForm(m_spWordForm);
                     
                     }   //  for (; itStressPos != vecSourceStressPos.end(); ...)
@@ -568,22 +571,24 @@ ET_ReturnCode CFormBuilderImperative::eBuildIrregularForms()
 //                }
 //            }
 
-            spSgWf->m_llLexemeId = m_spLexeme->llLexemeId();
+//            spSgWf->m_llLexemeId = m_spLexeme->llLexemeId();
+            spSgWf->SetInflectionId(m_spInflection->llInflectionId());
             m_spInflection->AddWordForm(spSgWf);
 
             auto spPlWf = shared_ptr<CWordForm>(spSgWf);
-            spPlWf->m_eNumber = NUM_PL;
-            spPlWf->m_llLexemeId = m_spLexeme->llLexemeId();
+            spPlWf->SetNumber(NUM_PL);
+//            spPlWf->m_llLexemeId = m_spLexeme->llLexemeId();
 
+            auto sWordForm = spPlWf->sWordForm();
             if (REFL_YES == m_spLexeme->eIsReflexive())
             {
-                spPlWf->m_sWordForm.sRemoveCharsFromEnd(2);
-                spPlWf->m_sWordForm += L"тесь";
+                sWordForm.sRemoveCharsFromEnd(2);
             }
             else
             {
-                spPlWf->m_sWordForm += L"те";
+                sWordForm += L"те";
             }
+            spPlWf->SetWordForm(sWordForm);
             m_spInflection->AddWordForm(spPlWf);
         }
         
@@ -628,7 +633,7 @@ ET_ReturnCode CFormBuilderImperative::eBuildIrregularForms()
     auto it = mapPl3.begin();
     for (; it != mapPl3.end(); ++it)
     {
-        CEString s3Pl ((*it).first->m_sWordForm);
+        CEString s3Pl ((*it).first->sWordForm());
         s3Pl.SetVowels(CEString::g_szRusVowels);
         if (REFL_NO == m_spLexeme->eIsReflexive())
         {
@@ -671,11 +676,12 @@ ET_ReturnCode CFormBuilderImperative::eBuildIrregularForms()
         s3Pl.sErase (s3Pl.uiLength()-iCharsToErase);
 
         auto spSg = make_shared<CWordForm>(sg2ImpvHash.sGramHash());
-        spSg->m_spLexeme = m_spLexeme;
-        spSg->m_llLexemeId = m_spLexeme->llLexemeId();
+//        spSg->m_spLexeme = m_spLexeme;
+//        spSg->m_llLexemeId = m_spLexeme->llLexemeId();
         auto spPl = make_shared<CWordForm>(pl2ImpvHash.sGramHash());
-        spPl->m_spLexeme = m_spLexeme;
-        spPl->m_llLexemeId = m_spLexeme->llLexemeId();
+//        spPl->m_spLexeme = m_spLexeme;
+//        spPl->m_llLexemeId = m_spLexeme->llLexemeId();
+        spPl->SetInflectionId(m_spInflection->llInflectionId());
         if (nullptr == spSg || nullptr == spPl)
         {
             assert(0);
@@ -687,30 +693,30 @@ ET_ReturnCode CFormBuilderImperative::eBuildIrregularForms()
 
         if (s3Pl.bEndsWithOneOf (CEString::g_szRusConsonants))
         {
-            spSg->m_sWordForm = s3Pl + L"и";
-            spSg->m_mapStress[s3Pl.uiGetNumOfSyllables()] = STRESS_PRIMARY;
+            spSg->SetWordForm(s3Pl + L"и");
+            spSg->SetStressPos(s3Pl.uiGetNumOfSyllables(), STRESS_PRIMARY);
         }
         else
         {
-            spSg->m_sWordForm = s3Pl + L"й";
-            spSg->m_mapStress = (*it).first->m_mapStress;
+            spSg->SetWordForm(s3Pl + L"й");
+            spSg->AssignStress((*it).first->mapGetStressPositions());
         }
 
-        spPl->m_sWordForm = spSg->m_sWordForm + L"те";
-        spPl->m_mapStress = spSg->m_mapStress;
+        spPl->SetWordForm(spSg->sWordForm() + L"те");
+        spPl->AssignStress(spSg->mapGetStressPositions());
 
         if (REFL_YES == m_spLexeme->eIsReflexive())
         {
-            int iAt = spSg->m_sWordForm.uiLength()-1;
-            if (CEString::bIn(spSg->m_sWordForm[iAt], CEString::g_szRusVowels))
+            int iAt = spSg->sWordForm().uiLength() - 1;
+            if (CEString::bIn(spSg->sWordForm()[iAt], CEString::g_szRusVowels))
             {
-                spSg->m_sWordForm += L"сь";
+                spSg->SetWordForm(spSg->sWordForm() + L"сь");
             }
             else
             {
-                spSg->m_sWordForm += L"ся";
+                spSg->SetWordForm(spSg->sWordForm() + L"ся");
             }
-            spPl->m_sWordForm += L"сь";
+            spPl->SetWordForm(spPl->sWordForm() + L"сь");
         }
 
         m_spInflection->AddWordForm (spSg);

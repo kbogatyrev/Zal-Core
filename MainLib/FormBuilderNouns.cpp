@@ -438,7 +438,7 @@ ET_ReturnCode CFormBuilderNouns::eCreateFormTemplate (ET_Number eNumber,
                                                       const CEString& sStem,
                                                       shared_ptr<CWordForm>& spWordForm)
 {
-    spWordForm = make_shared<CWordForm>();
+    spWordForm = make_shared<CWordForm>(m_spInflection);
     if (nullptr == spWordForm)
     {
         assert(0);
@@ -446,19 +446,20 @@ ET_ReturnCode CFormBuilderNouns::eCreateFormTemplate (ET_Number eNumber,
         return H_ERROR_POINTER;
     }
 
-    spWordForm->m_spLexeme = m_spLexeme;
-    spWordForm->m_ePos = m_spLexeme->ePartOfSpeech();
-    spWordForm->m_eSubparadigm = SUBPARADIGM_NOUN;
-    spWordForm->m_eCase = eCase;
-    spWordForm->m_sStem = sStem;
-    spWordForm->m_eNumber = eNumber;
-    spWordForm->m_eGender = m_spLexeme->eInflectionTypeToGender();
-    spWordForm->m_eAnimacy = m_spLexeme->eInflectionTypeToAnimacy();
+//    spWordForm-> m_spLexeme = m_spLexeme;
+    spWordForm->SetInflectionId(m_spInflection->llInflectionId());
+    spWordForm->SetPos(POS_NOUN);
+    spWordForm->SetSubparadigm(SUBPARADIGM_NOUN);
+    spWordForm->SetCase(eCase);
+    spWordForm->SetStem(sStem);
+    spWordForm->SetNumber(eNumber);
+    spWordForm->SetGender(m_spInflection->spLexeme()->eInflectionTypeToGender());
+    spWordForm->SetAnimacy(m_spInflection->spLexeme()->eInflectionTypeToAnimacy());
     if (NUM_PL == eNumber && m_spLexeme->bAssumedForms())
     {
-        spWordForm->m_eStatus = STATUS_ASSUMED;
+        spWordForm->SetStatus(STATUS_ASSUMED);
     }
-    spWordForm->m_llLexemeId = m_spLexeme->llLexemeId();
+//    spWordForm->m_llLexemeId = m_spLexeme->llLexemeId();
     //rc = eAssignSecondaryStress (pWordForm);
     //if (rc != H_NO_ERROR)
     //{
@@ -515,7 +516,7 @@ ET_ReturnCode CFormBuilderNouns::eCheckIrregularForms (ET_Gender eoGender,
         }
 
         shared_ptr<CWordForm> spWordForm = make_shared<CWordForm>(((*it).first));
-        spWordForm->m_eCase = eCase;   // ending case may differ from actual case, e.g. A.Sg.
+        spWordForm->SetCase(eCase);   // ending case may differ from actual case, e.g. A.Sg.
         m_spInflection->AddWordForm(spWordForm);
     }
 
@@ -815,30 +816,32 @@ void CFormBuilderNouns::CreateWordForm(vector<int>& vecStressPositions,
         if (itStressPos != vecStressPositions.begin() && m_spInflection->bIsMultistressedCompound())
         {
             shared_ptr<CWordForm> spwfVariant;
-            CloneWordForm(spWordForm, spwfVariant);
-            spwfVariant->m_mapStress.clear();
+//            CloneWordForm(spWordForm, spwfVariant);
+            spwfVariant->eCloneFrom(spWordForm);
+            spwfVariant->ClearStress();
             spWordForm = spwfVariant;
         }
 
-        spWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;  // primary
+        spWordForm->SetStressPos(*itStressPos, STRESS_PRIMARY);
+//        spWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;  // primary
 
         if (m_spInflection->iType() == 0)
         {
 //            pWordForm->m_sWordForm = m_spLexeme->sSourceForm();
-            spWordForm->m_sWordForm = m_spLexeme->sGraphicStem();
+            spWordForm->SetWordForm(m_spLexeme->sGraphicStem());
         }
         else
         {
-            rc = eHandleYoAlternation(eStressType, *itStressPos, spWordForm->m_sStem, sEnding);
+            rc = eHandleYoAlternation(eStressType, *itStressPos, spWordForm->sStem(), sEnding);
             if (rc != H_NO_ERROR)
             {
                 continue;
             }
-            spWordForm->m_sWordForm = spWordForm->m_sStem + sEnding;
+            spWordForm->SetWordForm(spWordForm->sStem() + sEnding);
         }
 
-        spWordForm->m_sEnding = sEnding;
-        spWordForm->m_llEndingDataId = llEndingKey;
+        spWordForm->SetEnding(sEnding);
+        spWordForm->SetEndingDataId(llEndingKey);
 
         m_spInflection->AddWordForm(spWordForm);
     }

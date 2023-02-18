@@ -6,58 +6,90 @@
 
 using namespace Hlib;
 
-CWordForm::CWordForm() : m_spInflection(0),
-                         m_ullDbInsertHandle(0),
-                         m_llDbKey(-1),
-                         m_sWordForm(L""),
-                         m_sStem(L""),
-                         m_llStemId(0),
-                         m_sEnding(L""),
-                         m_llEndingDataId(-1),
+CWordForm::CWordForm() : 
+    m_spInflection(0),
+    m_ullDbInsertHandle(0),
+    m_llDbKey(-1),
+    m_sWordForm(L""),
+    m_sStem(L""),
+    m_llStemId(0),
+    m_sEnding(L""),
+    m_llEndingDataId(-1),
 //                         m_llLexemeId(-1),
-                         m_ePos(POS_UNDEFINED),
-                         m_eCase(CASE_UNDEFINED),
-                         m_eNumber(NUM_UNDEFINED),
-                         m_eSubparadigm(SUBPARADIGM_UNDEFINED),
-                         m_eGender(GENDER_UNDEFINED),
-                         m_ePerson(PERSON_UNDEFINED),
-                         m_eAnimacy(ANIM_UNDEFINED),
-                         m_eReflexivity(REFL_UNDEFINED),
-                         m_eAspect(ASPECT_UNDEFINED),
-                         m_eStatus(STATUS_COMMON),
-                         m_bIrregular(false),
-                         m_bIsDifficult(false),
-                         m_eStressType(WORD_STRESS_TYPE_UNDEFINED),
-                         m_bIsEdited(false)
+    m_ePos(POS_UNDEFINED),
+    m_eCase(CASE_UNDEFINED),
+    m_eNumber(NUM_UNDEFINED),
+    m_eSubparadigm(SUBPARADIGM_UNDEFINED),
+    m_eGender(GENDER_UNDEFINED),
+    m_ePerson(PERSON_UNDEFINED),
+    m_eAnimacy(ANIM_UNDEFINED),
+    m_eReflexivity(REFL_UNDEFINED),
+    m_eAspect(ASPECT_UNDEFINED),
+    m_eStatus(STATUS_COMMON),
+    m_bIrregular(false),
+    m_bIsDifficult(false),
+    m_eStressType(WORD_STRESS_TYPE_UNDEFINED),
+    m_bIsEdited(false)
 {
     m_sWordForm.SetVowels(CEString::g_szRusVowels);
     m_sStem.SetVowels(CEString::g_szRusVowels);
     m_sEnding.SetVowels(CEString::g_szRusVowels);
 }
 
-CWordForm::CWordForm(const CEString& sHash) : m_spInflection(0),
-                                              m_ullDbInsertHandle(0),
-                                              m_llDbKey(-1),
-                                              m_sWordForm(L""),
-                                              m_sStem(L""),
-                                              m_llStemId(0),
-                                              m_sEnding(L""),
-                                              m_llEndingDataId(-1),
-//                                              m_llLexemeId(-1),
-                                              m_ePos(POS_UNDEFINED),
-                                              m_eCase(CASE_UNDEFINED),
-                                              m_eNumber(NUM_UNDEFINED),
-                                              m_eSubparadigm(SUBPARADIGM_UNDEFINED),
-                                              m_eGender(GENDER_UNDEFINED),
-                                              m_ePerson(PERSON_UNDEFINED),
-                                              m_eAnimacy(ANIM_UNDEFINED),
-                                              m_eReflexivity(REFL_UNDEFINED),
-                                              m_eAspect(ASPECT_UNDEFINED),
-                                              m_eStatus(STATUS_COMMON),
-                                              m_bIrregular(false),
-                                              m_bIsDifficult(false),
-                                              m_eStressType(WORD_STRESS_TYPE_UNDEFINED),
-                                              m_bIsEdited(false)
+CWordForm::CWordForm(const shared_ptr<CInflection> spInflection) :  
+    m_spInflection(spInflection),
+    m_ullDbInsertHandle(0),
+    m_llDbKey(-1),
+    m_sWordForm(L""),
+    m_sStem(L""),
+    m_llStemId(0),
+    m_sEnding(L""),
+    m_llEndingDataId(-1),
+    //                                              m_llLexemeId(-1),
+    m_ePos(POS_UNDEFINED),
+    m_eCase(CASE_UNDEFINED),
+    m_eNumber(NUM_UNDEFINED),
+    m_eSubparadigm(SUBPARADIGM_UNDEFINED),
+    m_eGender(GENDER_UNDEFINED),
+    m_ePerson(PERSON_UNDEFINED),
+    m_eAnimacy(ANIM_UNDEFINED),
+    m_eReflexivity(REFL_UNDEFINED),
+    m_eAspect(ASPECT_UNDEFINED),
+    m_eStatus(STATUS_COMMON),
+    m_bIrregular(false),
+    m_bIsDifficult(false),
+    m_eStressType(WORD_STRESS_TYPE_UNDEFINED),
+    m_bIsEdited(false)
+{
+    m_sWordForm.SetVowels(CEString::g_szRusVowels);
+    m_sStem.SetVowels(CEString::g_szRusVowels);
+    m_sEnding.SetVowels(CEString::g_szRusVowels);
+}
+
+CWordForm::CWordForm(const CEString& sHash) : 
+    m_spInflection(0),
+    m_ullDbInsertHandle(0),
+    m_llDbKey(-1),
+    m_sWordForm(L""),
+    m_sStem(L""),
+    m_llStemId(0),
+    m_sEnding(L""),
+    m_llEndingDataId(-1),
+//  m_llLexemeId(-1),
+    m_ePos(POS_UNDEFINED),
+    m_eCase(CASE_UNDEFINED),
+    m_eNumber(NUM_UNDEFINED),
+    m_eSubparadigm(SUBPARADIGM_UNDEFINED),
+    m_eGender(GENDER_UNDEFINED),
+    m_ePerson(PERSON_UNDEFINED),
+    m_eAnimacy(ANIM_UNDEFINED),
+    m_eReflexivity(REFL_UNDEFINED),
+    m_eAspect(ASPECT_UNDEFINED),
+    m_eStatus(STATUS_COMMON),
+    m_bIrregular(false),
+    m_bIsDifficult(false),
+    m_eStressType(WORD_STRESS_TYPE_UNDEFINED),
+    m_bIsEdited(false)
 {
     ET_ReturnCode rc = eInitFromHash(sHash);
     if (rc != H_NO_ERROR)
@@ -100,6 +132,11 @@ const CWordForm& CWordForm::operator=(const CWordForm& rhs)
 //    m_pLexeme = dynamic_cast<CLexeme *>(pLexeme);
 //}
 
+void CWordForm::SetInflection(shared_ptr<CInflection> spInflection)
+{
+    m_spInflection = spInflection;
+}
+
 CEString CWordForm::sGramHash()
 {
     CHasher h_ (const_cast<CWordForm&>(*this));
@@ -132,21 +169,69 @@ ET_ReturnCode CWordForm::eInitFromHash (const CEString& sHash)
 
 }   //  eInitFromHash (...)
 
-ET_ReturnCode CWordForm::eClone(shared_ptr<CWordForm>& spClonedObject)
+//ET_ReturnCode CWordForm::eClone(shared_ptr<CWordForm>& spClonedObject)
+//{
+//    spClonedObject = make_shared<CWordForm>(const_cast<const CWordForm&>(*this));
+//
+//    return H_NO_ERROR;
+//}
+
+// Partial copy
+// TODO: can it be replaced with a copy ctor?
+ET_ReturnCode CWordForm::eCloneFrom(const shared_ptr<CWordForm> spSource)
 {
-    spClonedObject = make_shared<CWordForm>(const_cast<const CWordForm&>(*this));
+    if (nullptr == spSource)
+    {
+        CEString sMsg(L"Copy instance is NULL.");
+        assert(0);
+        return H_ERROR_POINTER;
+    }
+
+    m_spInflection = spSource->m_spInflection;
+    m_sWordForm = spSource->m_sWordForm;
+    m_sStem = spSource->m_sStem;
+    m_llLexemeId = spSource->m_llLexemeId;
+    m_mapStress = spSource->m_mapStress;
+    m_ePos = spSource->m_ePos;
+    m_eCase = spSource->m_eCase;
+    m_eNumber = spSource->m_eNumber;
+    m_eSubparadigm = spSource->m_eSubparadigm;
+    m_eGender = spSource->m_eGender;
+    //    pClone->m_eTense = pSource->m_eTense;
+    m_ePerson = spSource->m_ePerson;
+    m_eAnimacy = spSource->m_eAnimacy;
+    m_eReflexivity = spSource->m_eReflexivity;
+    //    pClone->m_eVoice = pSource->m_eVoice;
+    //    pClone->m_eSpecialForm = pSource->m_eSpecialForm;
+    //    pClone->m_eAspect = pSource->m_eAspect;
+    m_eStatus = spSource->m_eStatus;
 
     return H_NO_ERROR;
 }
 
 shared_ptr<CLexeme> CWordForm::spLexeme()
 {
-    return m_spLexeme;
+    return m_spInflection->spLexeme();
 }
 
 shared_ptr<CInflection> CWordForm::spInflection()
 {
     return m_spInflection;
+}
+
+void CWordForm::ClearStress()
+{
+    m_mapStress.clear();
+}
+
+void CWordForm::AssignStress(const map<int, ET_StressType>& mapStress)
+{
+    m_mapStress = mapStress;
+}
+
+int CWordForm::iStressPositions()
+{
+    return (int)m_mapStress.size();
 }
 
 ET_ReturnCode CWordForm::eGetFirstStressPos(int& iPos, ET_StressType& eType)
@@ -169,6 +254,7 @@ ET_ReturnCode CWordForm::eGetFirstStressPos(int& iPos, ET_StressType& eType)
     catch (CException& ex)
     {
         ERROR_LOG(ex.szGetDescription());
+        return H_EXCEPTION;
         return H_EXCEPTION;
     }
 
@@ -202,11 +288,42 @@ ET_ReturnCode CWordForm::eGetNextStressPos(int& iPos, ET_StressType& eType)
     return H_NO_ERROR;
 }
 
+ET_ReturnCode CWordForm::eFindStressPos(int iPos, ET_StressType& eType)
+{
+    auto itStress = m_mapStress.find(iPos);
+    if (itStress != m_mapStress.end())
+    {
+        eType = itStress->second;
+        return ET_ReturnCode::H_NO_ERROR;
+    }
+    eType = ET_StressType::STRESS_TYPE_UNDEFINED;
+    return ET_ReturnCode::H_FALSE;
+}
+
+ET_ReturnCode CWordForm::eRemoveStressPos(int iPos)
+{
+    auto num_removed = m_mapStress.erase(iPos);
+    if (num_removed != 1)
+    {
+        return H_ERROR_UNEXPECTED;
+    }
+    return H_NO_ERROR;
+}
+
+const map<int, ET_StressType>& CWordForm::mapGetStressPositions()
+{
+    return m_mapStress;
+}
+
 ET_ReturnCode CWordForm::eSetStressPositions(map<int, ET_StressType> mapStress)
 {
     m_mapStress = mapStress;
-
     return H_NO_ERROR;
+}
+
+void CWordForm::SetStressPos(int iPos, ET_StressType eType)
+{
+    m_mapStress[iPos] = STRESS_PRIMARY;
 }
 
 //
@@ -214,22 +331,14 @@ ET_ReturnCode CWordForm::eSetStressPositions(map<int, ET_StressType> mapStress)
 //
 ET_ReturnCode CWordForm::eSaveIrregularForm()
 {
-    shared_ptr<CLexeme> spLexeme;
-    auto rc = m_spInflection->eGetLexeme(spLexeme);
-    if (rc != H_NO_ERROR && nullptr == spLexeme)
-    {
-        ERROR_LOG(L"Unable to access lexeme interface.");
-        return H_ERROR_POINTER;
-    }
-
-    shared_ptr<CSqlite> spDbHandle = m_spLexeme->spGetDb();
+    shared_ptr<CSqlite> spDbHandle = spLexeme()->spGetDb();
     if (nullptr == spDbHandle)
     {
         ERROR_LOG(L"No database access.");
         return H_ERROR_DB;
     }
 
-    const StLexemeProperties& stProps = m_spLexeme->stGetProperties();
+    const StLexemeProperties& stProps = spLexeme()->stGetProperties();
 
     if (m_llDbKey >= 0)
     {
@@ -269,10 +378,10 @@ ET_ReturnCode CWordForm::eSaveIrregularForm()
         }
     }
 
-    if (!m_spLexeme->bHasIrregularForms())
+    if (!spLexeme()->bHasIrregularForms())
     {
-        m_spLexeme->SetHasIrregularForms(true);
-        m_spLexeme->eUpdateDescriptorInfo(m_spLexeme);
+        spLexeme()->SetHasIrregularForms(true);
+        spLexeme()->eUpdateDescriptorInfo(spLexeme());
     }
 
     try
@@ -360,14 +469,14 @@ bool CWordForm::bSaveStemToDb()
     shared_ptr<CSqlite> spDbHandle;
     try
     {
-        if (nullptr == m_spLexeme)
+        if (nullptr == spLexeme())
         {
             ERROR_LOG(L"No lexeme.");
             return false;
         }
 
-        spDbHandle = m_spLexeme->spGetDb();
-        if (NULL == spDbHandle)
+        spDbHandle = spLexeme()->spGetDb();
+        if (nullptr == spDbHandle)
         {
             ERROR_LOG(L"No database access.");
             return false;
@@ -419,11 +528,11 @@ bool CWordForm::bSaveToDb()
 {
     long long llStemDataId = -1;
     shared_ptr<CSqlite> spDbHandle;
-    const StLexemeProperties& stLexemeProperties = m_spLexeme->stGetProperties();
+    const StLexemeProperties& stLexemeProperties = spLexeme()->stGetProperties();
 
     try
     {
-        spDbHandle = m_spLexeme->spGetDb();
+        spDbHandle = spLexeme()->spGetDb();
         if (nullptr == spDbHandle)
         {
             ERROR_LOG(L"No database access.");
@@ -439,12 +548,13 @@ bool CWordForm::bSaveToDb()
         if (0 == m_ullDbInsertHandle)
         {
             sqlite3_stmt * pStmt = nullptr;     // TODO: smart ptr??
-            spDbHandle->uiPrepareForInsert(L"stem_data", 3, pStmt, false);
+            spDbHandle->uiPrepareForInsert(L"stem_data", 4, pStmt, false);
             m_ullDbInsertHandle = (unsigned long long)pStmt;
         }
         spDbHandle->Bind(1, (int64_t)m_llStemId, m_ullDbInsertHandle);
         spDbHandle->Bind(2, sGramHash(), m_ullDbInsertHandle);
         spDbHandle->Bind(3, (int64_t)stLexemeProperties.llDescriptorId, m_ullDbInsertHandle);
+        spDbHandle->Bind(4, (int64_t)m_spInflection->llInflectionId(), m_ullDbInsertHandle);
         spDbHandle->InsertRow(m_ullDbInsertHandle);
         spDbHandle->Finalize(m_ullDbInsertHandle);
         llStemDataId = spDbHandle->llGetLastKey();
@@ -498,11 +608,11 @@ bool CWordForm::bSaveIrregularForm() // currently intended for spryazh. sm verbs
 {
 //    long long llStemDataId = -1;
     shared_ptr<CSqlite> spDbHandle;
-    const StLexemeProperties& stLexemeProperties = m_spLexeme->stGetProperties();
+    const StLexemeProperties& stLexemeProperties = spLexeme()->stGetProperties();
 
     try
     {
-        spDbHandle = m_spLexeme->spGetDb();
+        spDbHandle = spLexeme()->spGetDb();
         if (nullptr == spDbHandle)
         {
             ERROR_LOG(L"No database access.");
@@ -565,12 +675,12 @@ bool CWordForm::bSaveIrregularForm() // currently intended for spryazh. sm verbs
 
 ET_ReturnCode CWordForm::eSaveTestData()
 {
-    if (nullptr == m_spLexeme)
+    if (nullptr == spLexeme())
     {
         return H_ERROR_POINTER;
     }
 
-    CSqlite& db = *m_spLexeme->spGetDb();
+    CSqlite& db = *spLexeme()->spGetDb();
     CEString sHash = sGramHash();
 
     try
@@ -623,7 +733,8 @@ ET_ReturnCode CWordForm::eSaveTestData()
 
 void CWordForm::Copy(const CWordForm& source)
 {
-    m_spLexeme = source.m_spLexeme;
+//    m_spLexeme = source.m_spLexeme;
+    m_spInflection = source.m_spInflection;
     m_ullDbInsertHandle = source.m_ullDbInsertHandle;
     m_llDbKey = source.m_llDbKey;
     m_sWordForm = source.m_sWordForm;

@@ -30,9 +30,9 @@ CInflection::CInflection(const CInflection& source)
     auto it = source.m_mmWordForms.begin();
     for (; it != source.m_mmWordForms.end(); ++it)
     {
-        CWordForm* pWfCopy = new CWordForm(*(*it).second);
-        pWfCopy->m_spInflection = shared_from_this();
-        pair<CEString, CWordForm*> pairHW(pWfCopy->sGramHash(), pWfCopy);
+        auto spWfCopy = make_shared<CWordForm>(*(*it).second);
+        spWfCopy->m_spInflection = shared_from_this();
+        pair<CEString, shared_ptr<CWordForm>> pairHW(spWfCopy->sGramHash(), spWfCopy);
         m_mmWordForms.insert(pairHW);
     }
 }
@@ -1034,7 +1034,6 @@ ET_ReturnCode CInflection::eGenerateParadigm()
             || POS_PARENTH == stLexemeProperties.ePartOfSpeech || POS_NULL == stLexemeProperties.ePartOfSpeech)
         {
             shared_ptr<CWordForm> spWordForm = make_shared<CWordForm>();
-            spWordForm->m_spLexeme = m_spLexeme;
             spWordForm->m_spInflection = shared_from_this();
             spWordForm->m_ePos = stLexemeProperties.ePartOfSpeech;
             spWordForm->m_sStem = stLexemeProperties.sGraphicStem;
@@ -1535,8 +1534,7 @@ bool CInflection::bIsMultistressedCompound()
 
 ET_ReturnCode CInflection::eCreateWordForm(shared_ptr<CWordForm>& spWf)
 {
-    spWf = make_shared<CWordForm>();
-    spWf->m_spLexeme = m_spLexeme;
+    spWf = make_shared<CWordForm>(shared_from_this());
     spWf->m_spInflection = shared_from_this();
     spWf->m_llLexemeId = m_spLexeme->stGetProperties().llDescriptorId;
 

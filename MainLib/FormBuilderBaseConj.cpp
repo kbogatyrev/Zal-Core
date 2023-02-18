@@ -893,9 +893,10 @@ ET_ReturnCode CFormBuilderConj::eGetIrregularForms (CEString sHash, vector<share
     for (; it != mapIrregularForms.end(); ++it)
     {
         auto spWf = it->first;
-        if (spWf->m_mapStress.empty())
+//        if (spWf->m_mapStress.empty())
+        if (spWf->iStressPositions() < 1)
         {
-            CEString sWf(spWf->m_sWordForm);
+            CEString sWf(spWf->sWordForm());
             sWf.SetVowels (CEString::g_szRusVowels);
             if (sWf.uiGetNumOfSyllables() != 1)
             {
@@ -905,7 +906,8 @@ ET_ReturnCode CFormBuilderConj::eGetIrregularForms (CEString sHash, vector<share
                 throw CException(H_ERROR_UNEXPECTED, sMsg);
             }
             int iStressPos = sWf.uiFindFirstOf(CEString::g_szRusVowels);
-            spWf->m_mapStress[iStressPos] = STRESS_PRIMARY;
+//            spWf->m_mapStress[iStressPos] = STRESS_PRIMARY;
+            spWf->SetStressPos(iStressPos, STRESS_PRIMARY);
         }
         vecForms.push_back(spWf);
     }

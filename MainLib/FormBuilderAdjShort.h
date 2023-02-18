@@ -16,11 +16,11 @@ class CFormBuilderShortAdj : public CFormBuilderDecl
 public:
 
     // Use with adjectives
-    CFormBuilderShortAdj (shared_ptr<CLexeme> spLexeme, shared_ptr<CInflection> spInflection);
+    CFormBuilderShortAdj (shared_ptr<CLexeme>, shared_ptr<CInflection>);
 
     // Use with participles
-    CFormBuilderShortAdj (shared_ptr<CLexeme> spLexeme, 
-                          shared_ptr<CInflection> spInflection,
+    CFormBuilderShortAdj (shared_ptr<CLexeme>,
+                          shared_ptr<CInflection>,
                           bool bYoAlternation, 
                           const CEString& sStem,
                           ET_Subparadigm eSubparadigm,

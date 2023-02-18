@@ -21,8 +21,12 @@ namespace Hlib
 
     class CWordForm
     {
+        friend class CHasher;
+        friend class CInflection;
+
     public:
         CWordForm();
+        CWordForm(shared_ptr<CInflection>);
         CWordForm(const CEString& sHash);
         CWordForm(const CWordForm&);
         CWordForm(const shared_ptr<CWordForm>);
@@ -31,7 +35,9 @@ namespace Hlib
 
         ET_ReturnCode eInitFromHash(const CEString& sHash);
 
-        ET_ReturnCode eClone(shared_ptr<CWordForm>&);
+        // Partial copy
+        // TODO: Can we use copy ctor instead?
+        ET_ReturnCode eCloneFrom(const shared_ptr<CWordForm>);
 
 //        ILexeme* pLexemeItf() override;
 //        IInflection * pInflectionItf() override;
@@ -39,7 +45,7 @@ namespace Hlib
         shared_ptr<CLexeme> spLexeme();
         shared_ptr<CInflection> spInflection();
 
-        void SetLexeme(shared_ptr<CLexeme>);
+//        void SetLexeme(shared_ptr<CLexeme>);
         void SetInflection(shared_ptr<CInflection>);
 
         CEString sWordForm()
@@ -72,9 +78,39 @@ namespace Hlib
             return m_llDbKey;
         }
 
+        void SetDbKey(long long llDbKey)
+        {
+            m_llDbKey = llDbKey;
+        }
+
         long long llStemId()
         {
             return m_llStemId;
+        }
+
+        void SetStemId(long long llStemId)
+        {
+            m_llStemId = llStemId;
+        }
+
+        long long llStemDataId()
+        {
+            return m_llStemDataId;
+        }
+
+        void SetStemDataId(long long llStemDataId)
+        {
+            m_llStemDataId = llStemDataId;
+        }
+
+        long long llIrregularFormId()
+        {
+            return m_llIrregularFormId;
+        }
+
+        void SetIrregularFormId(long long llIrregularFormId)
+        {
+            m_llIrregularFormId = llIrregularFormId;
         }
 
         CEString sEnding()
@@ -82,9 +118,19 @@ namespace Hlib
             return m_sEnding;
         }
 
+        void SetEnding(const CEString& sEnding)
+        {
+            m_sEnding = sEnding;
+        }
+
         long long llEndingDataId()
         {
             return m_llEndingDataId;
+        }
+
+        void SetEndingDataId(long long llEndingDataId)
+        {
+            m_llEndingDataId = llEndingDataId;
         }
 
 //        long long llLexemeId()
@@ -95,6 +141,11 @@ namespace Hlib
         long long llInflectionId()
         {
             return m_llInflectionId;
+        }
+
+        void SetInflectionId(long long llInflectionId)
+        {
+            m_llInflectionId = llInflectionId;
         }
 
         ET_PartOfSpeech ePos()
@@ -172,7 +223,7 @@ namespace Hlib
             return m_eReflexivity;
         }
 
-        void SetReflexive(ET_Reflexivity eReflexivity)
+        void SetReflexivity(ET_Reflexivity eReflexivity)
         {
             m_eReflexivity = eReflexivity;
         }
@@ -259,24 +310,29 @@ namespace Hlib
 
         CEString sGramHash();
 
-        ET_ReturnCode eGetFirstStressPos(int& iPos, ET_StressType& eType);
-        ET_ReturnCode eGetNextStressPos(int& iPos, ET_StressType& eType);
+        void ClearStress();
+        void AssignStress(const map<int, ET_StressType>&);
+        int iStressPositions();
+        ET_ReturnCode eGetFirstStressPos(int& iPos, ET_StressType&);
+        ET_ReturnCode eGetNextStressPos(int& iPos, ET_StressType&);
+        ET_ReturnCode eFindStressPos(int iPos, ET_StressType&);
+        ET_ReturnCode eRemoveStressPos(int);
 
+        const map<int, ET_StressType>& mapGetStressPositions();
         ET_ReturnCode eSetStressPositions(map<int, ET_StressType> mapStress);
+        void SetStressPos(int iPos, ET_StressType);
 
         ET_ReturnCode eSaveIrregularForm();
 
-        // Not exposed thru itf??? 
+        // Should not be exposed thru itf??? 
         bool bSaveStemToDb();
         bool bSaveToDb();
         bool bSaveIrregularForm();
         ET_ReturnCode eSaveTestData();
         void Copy(const CWordForm&);
 
-        //
-        // Member variables; public to facilitate access from internal consumers
-        //
-        shared_ptr<CLexeme> m_spLexeme;
+    private:
+//        shared_ptr<CLexeme> m_spLexeme;
         shared_ptr<CInflection> m_spInflection;
         unsigned long long m_ullDbInsertHandle;
         long long m_llDbKey;
@@ -355,7 +411,7 @@ namespace Hlib
         }
 
     private:
-        shared_ptr<CLexeme> m_spLexeme;
+//        shared_ptr<CLexeme> m_spLexeme;
         shared_ptr<CInflection> m_spInflection;
         long long m_llLexemeId;
         long long m_llInflectionId;

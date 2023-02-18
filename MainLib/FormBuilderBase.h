@@ -39,7 +39,7 @@ public:
 
 protected:
     void ReportDbError();
-    void CloneWordForm (const shared_ptr<CWordForm> spSource, shared_ptr<CWordForm>& spClone);
+//    void CloneWordForm (const shared_ptr<CWordForm> spSource, shared_ptr<CWordForm>& spClone);
 
 protected:
     shared_ptr<CLexeme> m_spLexeme;

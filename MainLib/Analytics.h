@@ -8,7 +8,7 @@
 
 #include "Enums.h"
 #include "EString.h"
-#include "IAnalytics.h"
+//#include "IAnalytics.h"
 #include "WordForm.h"
 
 using namespace std;
@@ -102,7 +102,7 @@ namespace Hlib
         }
     };      //  StTactGroup
 
-    class CAnalytics : public IAnalytics
+    class CAnalytics
     {
     public:
         CAnalytics();

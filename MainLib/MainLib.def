@@ -3,4 +3,3 @@
 LIBRARY      "ZalMainLib.DLL"
 
 EXPORTS
-	GetDictionary	@1

@@ -5,9 +5,11 @@
 
 using namespace Hlib;
 
-CFormBuilderShortAdj::CFormBuilderShortAdj (shared_ptr<CLexeme> spLexeme, shared_ptr<CInflection> spInflection) 
-    : CFormBuilderDecl(spLexeme, spInflection, SUBPARADIGM_SHORT_ADJ),
-    m_sStem(spLexeme->sGraphicStem()),
+CFormBuilderShortAdj::CFormBuilderShortAdj(shared_ptr<CLexeme> spLexeme, 
+                                           shared_ptr<CInflection> spInflection) 
+    : CFormBuilderDecl(spLexeme, spInflection, 
+                       SUBPARADIGM_SHORT_ADJ),
+                       m_sStem(spLexeme->sGraphicStem()),
     m_iType (m_spInflection->iType()),
     m_iVerbDeviation(0),
     m_eAccentType1 (m_spInflection->eAccentType1()),
@@ -32,7 +34,7 @@ CFormBuilderShortAdj::CFormBuilderShortAdj (shared_ptr<CLexeme> spLexeme, shared
             {
                 m_eAccentType2 = AT_B;
                 break;
-            }
+            }   
             default:
             {
 //                assert(0);
@@ -80,6 +82,45 @@ CFormBuilderShortAdj::CFormBuilderShortAdj (shared_ptr<CLexeme> spLexeme,
     }
 }
 
+ET_ReturnCode CFormBuilderShortAdj::eCreateFormTemplate(const CEString& sStem,
+                                                        const CEString& sEnding,
+                                                        int64_t llEndingKey,
+                                                        ET_Gender eGender,
+                                                        ET_Number eNumber,
+                                                        shared_ptr<CWordForm>& spWordForm)
+{
+    ET_ReturnCode rc = H_NO_ERROR;
+
+    if (spWordForm)
+    {
+        ERROR_LOG(L"Existing wordfrom instance passsed to eCreateFormTemplate().");
+        return H_ERROR_UNEXPECTED;
+    }
+
+    spWordForm = make_shared<CWordForm>(m_spInflection);
+
+    spWordForm->SetPos(m_spLexeme->ePartOfSpeech());
+    spWordForm->SetSubparadigm(m_eSubparadigm);
+    spWordForm->SetStem(sStem);
+    spWordForm->SetEnding(sEnding);
+    spWordForm->SetEndingDataId(llEndingKey);
+    spWordForm->SetWordForm(sStem + sEnding);
+    spWordForm->SetGender(eGender);
+    spWordForm->SetNumber(eNumber);
+    spWordForm->SetStatus(m_eStatus);
+    if (POS_VERB == m_spLexeme->ePartOfSpeech())
+    {
+        spWordForm->SetAspect(m_spLexeme->eAspect());
+        spWordForm->SetReflexivity(m_spLexeme->eIsReflexive());
+    }
+    spWordForm->SetInflectionId(m_spInflection->llInflectionId());
+
+    //    rc = eAssignSecondaryStress (pWordForm);
+
+    return rc;
+
+}   //  eCreateFormTemplate (...)
+
 ET_ReturnCode CFormBuilderShortAdj::eGetStressTypes (ET_Number eNumber, 
                                                      ET_Gender eGender, 
                                                      vector<ET_StressLocation>& vecStressType)
@@ -124,27 +165,35 @@ ET_ReturnCode CFormBuilderShortAdj::eGetStressTypes (ET_Number eNumber,
         {
             return rc;
         }
-        if (NULL == spNSgMLong)
+        if (nullptr == spNSgMLong)
         {
             assert(0);
             ERROR_LOG (L"Failed to obtain N Sg m of the long form.");
             return H_ERROR_POINTER;
         }
         
-        CEString sNSgMLong (spNSgMLong->m_sWordForm);
+        CEString sNSgMLong(spNSgMLong->sWordForm());
         if (sNSgMLong.bEndsWith (L"анный") || sNSgMLong.bEndsWith (L"янный") ||
             sNSgMLong.bEndsWith (L"енный"))
         {
-            map<int, ET_StressType>::iterator itStress = spNSgMLong->m_mapStress.begin();
-            for (; itStress != spNSgMLong->m_mapStress.end(); ++itStress)
+            int iPos{ -1 };
+            ET_StressType eType{ ET_StressType::STRESS_TYPE_UNDEFINED };
+            auto rc = spNSgMLong->eGetFirstStressPos(iPos, eType);
+            while (rc == H_NO_ERROR)
             {
-                if (sNSgMLong.uiNSyllables()-2 == (*itStress).first 
-                    && STRESS_PRIMARY == (*itStress).second)
+                if (sNSgMLong.uiNSyllables()-2 == iPos && STRESS_PRIMARY == eType)
                 {
 // 1. -at'/-jat' [7] -- 1a, p. 83
 // 2. monosyll verbs -- same as past: zvannyj (113) and dannyj 117
     // &&&& TODO
                 }
+                rc = spNSgMLong->eGetNextStressPos(iPos, eType);
+            }
+            if (rc != H_NO_MORE)
+            {
+                assert(0);
+                ERROR_LOG(L"Failed to obtain stress info.");
+                return H_ERROR_UNEXPECTED;
             }
         }
     }
@@ -344,46 +393,6 @@ ET_ReturnCode CFormBuilderShortAdj::eGetStressTypes (ET_Number eNumber,
 
 }   // eGetStressType()
 
-ET_ReturnCode CFormBuilderShortAdj::eCreateFormTemplate (const CEString& sStem,
-                                                         const CEString& sEnding,
-                                                         int64_t llEndingKey,
-                                                         ET_Gender eGender,
-                                                         ET_Number eNumber,
-                                                         shared_ptr<CWordForm>& spWordForm)
-{
-    ET_ReturnCode rc = H_NO_ERROR;
-
-    spWordForm = make_shared<CWordForm>();
-    if (nullptr == spWordForm)
-    {
-        assert(0);
-        ERROR_LOG (L"Unable to create an instance of CWordForm");
-        return H_ERROR_POINTER;
-    }
-
-    spWordForm->m_spLexeme = m_spLexeme;
-    spWordForm->m_ePos = m_spLexeme->ePartOfSpeech();
-    spWordForm->m_eSubparadigm = m_eSubparadigm;
-    spWordForm->m_sStem = sStem;
-    spWordForm->m_sEnding = sEnding;
-    spWordForm->m_llEndingDataId = llEndingKey;
-    spWordForm->m_sWordForm = sStem + sEnding;
-    spWordForm->m_eGender = eGender;
-    spWordForm->m_eNumber = eNumber;
-    spWordForm->m_eStatus = m_eStatus;
-    if (POS_VERB == m_spLexeme->ePartOfSpeech())
-    {
-        spWordForm->m_eAspect = m_spLexeme->eAspect();
-        spWordForm->m_eReflexivity = m_spLexeme->eIsReflexive();
-    }
-    spWordForm->m_llLexemeId = m_spLexeme->llLexemeId();
-
-//    rc = eAssignSecondaryStress (pWordForm);
-
-    return rc;
-
-}   //  eCreateFormTemplate (...)
-
 ET_ReturnCode CFormBuilderShortAdj::eHandleDeviations(shared_ptr<CWordForm> spWordForm)
 {
     assert(m_spLexeme);   // we assume base class ctor took care of this
@@ -418,32 +427,48 @@ ET_ReturnCode CFormBuilderShortAdj::eHandleDeviations(shared_ptr<CWordForm> spWo
             if (bOptionalCD && SUBPARADIGM_SHORT_ADJ == m_eSubparadigm)   // store both forms
             {
                 shared_ptr<CWordForm> spMVariant;
-                CloneWordForm(spWordForm, spMVariant);
+                spMVariant->eCloneFrom(spWordForm);
+//                CloneWordForm(spWordForm, spMVariant);
                 m_spInflection->AddWordForm(spMVariant);
                 spWordForm = spMVariant;
             }
 
-            if (GENDER_M == spWordForm->m_eGender)
+            if (GENDER_M == spWordForm->eGender())
             {
-                spWordForm->m_sWordForm.sErase(spWordForm->m_sWordForm.uiLength() - 1);
+                auto& sWf = spWordForm->sWordForm().sErase(spWordForm->sWordForm().uiLength() - 1);
+//                spWordForm->SetWordForm(sWf);
                 if (m_bFleetingVowel)
                 {
-                    spWordForm->m_sWordForm.sErase(spWordForm->m_sWordForm.uiLength() - 1);
-                }
-                auto nSyll = spWordForm->m_sWordForm.uiNSyllables();
-                if (spWordForm->m_mapStress.find(nSyll) != spWordForm->m_mapStress.end())
-                {
-                    if (spWordForm->m_mapStress[nSyll] == STRESS_PRIMARY)
-                    {
-                        spWordForm->m_mapStress.erase(nSyll);
-                        spWordForm->m_mapStress[nSyll - 1] = STRESS_PRIMARY;
-                    }
+//                    spWordForm->m_sWordForm.sErase(spWordForm->m_sWordForm.uiLength() - 1);
+                    sWf.sErase(spWordForm->sWordForm().uiLength()-1);
                 }
 
+                auto nSyll = sWf.uiNSyllables();
+                ET_StressType eType = ET_StressType::STRESS_TYPE_UNDEFINED;
+                auto rc = spWordForm->eFindStressPos(nSyll, eType);
+                if (H_NO_ERROR == rc)
+                {
+                    if (STRESS_PRIMARY == eType)
+                    {
+//                        spWordForm->m_mapStress.erase(nSyll);
+//                        spWordForm->m_mapStress[nSyll - 1] = STRESS_PRIMARY;
+                        rc = spWordForm->eRemoveStressPos(nSyll);
+                        if (rc != H_NO_ERROR)
+                        {
+                            assert(0);
+                            ERROR_LOG(L"Unable to remove stress pos.");
+                            return H_ERROR_UNEXPECTED;
+                        }
+                        spWordForm->SetStressPos(nSyll-1, STRESS_PRIMARY);
+                    }
+                }
+                spWordForm->SetWordForm(sWf);
             }
             else if (2 == iCd || (2 == m_iVerbDeviation && SUBPARADIGM_PART_PAST_PASS_SHORT == m_eSubparadigm))
             {
-                spWordForm->m_sWordForm.sErase(spWordForm->m_sWordForm.uiLength() - 2, 1);
+                auto sWf = spWordForm->sWordForm();
+                sWf.sErase(sWf.uiLength()-2, 1);
+                spWordForm->SetWordForm(sWf);
             }
         }
 
@@ -454,9 +479,9 @@ ET_ReturnCode CFormBuilderShortAdj::eHandleDeviations(shared_ptr<CWordForm> spWo
         {
             iCd = 7;
         }
-        else if (m_spInflection->bHasCommonDeviation(8))  // TODO -- what's that??
+        else if (m_spInflection->bHasCommonDeviation(8))
         {
-            iCd = -1;
+            iCd = 8;
         }
         else
         {
@@ -468,29 +493,26 @@ ET_ReturnCode CFormBuilderShortAdj::eHandleDeviations(shared_ptr<CWordForm> spWo
             if (m_spInflection->bDeviationOptional(iCd))   // store both forms
             {
                 shared_ptr<CWordForm> spMVariant;
-                CloneWordForm (spWordForm, spMVariant);
+//                CloneWordForm (spWordForm, spMVariant);
+                spMVariant->eCloneFrom(spWordForm);
                 m_spInflection->AddWordForm(spMVariant);
                 spWordForm = spMVariant;
             }
 
             map<int, ET_StressType> mapCorrectedStress;
-            auto itStressPos = spWordForm->m_mapStress.begin();
-            for (; itStressPos != spWordForm->m_mapStress.end(); ++itStressPos)
+            int iPos = -1;
+            auto eType = ET_StressType::STRESS_TYPE_UNDEFINED;
+            auto rc = spWordForm->eGetFirstStressPos(iPos, eType);
+            while (H_NO_ERROR == rc)
             {
-                if (!(*itStressPos).second)
+                if (ET_StressType::STRESS_PRIMARY == eType)
                 {
-                    mapCorrectedStress[(*itStressPos).first] = STRESS_SECONDARY;
                     continue;
                 }
-                if ((*itStressPos).first < 1)
-                {
-                    assert(0);
-                    ERROR_LOG (L"Unexpected stress position in cd-7 or cd-8 participle.");
-                    return H_ERROR_UNEXPECTED;
-                }
-                CEString sWf (spWordForm->m_sWordForm);
-                mapCorrectedStress[sWf.uiNSyllables()-1] = STRESS_PRIMARY;
+                mapCorrectedStress[spWordForm->sWordForm().uiNSyllables()-1] = STRESS_PRIMARY;
             }
+// TODO: regression!!
+            spWordForm->AssignStress(mapCorrectedStress);
         }
     }
     catch (CException& ex)
@@ -699,14 +721,15 @@ ET_ReturnCode CFormBuilderShortAdj::eBuild()
                         vector<int>::iterator itStressPos = vecStressPos.begin();
                         for (; itStressPos != vecStressPos.end(); ++itStressPos)
                         {
-                            spWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;
+//                            spWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;
+                            spWordForm->SetStressPos(*itStressPos, STRESS_PRIMARY);
                             rc = eHandleYoAlternation(*itStressType, *itStressPos, sStem, sEnding);
                             if (rc != H_NO_ERROR)
                             {
                                 return rc;
                             }
                         }
-                        spWordForm->m_sWordForm = sStem + sEnding;
+                        spWordForm->SetWordForm(sStem + sEnding);
                         rc = eHandleDeviations(spWordForm);
                         if (rc != H_NO_ERROR)
                         {
@@ -723,17 +746,19 @@ ET_ReturnCode CFormBuilderShortAdj::eBuild()
                             if (itStressPos != vecStressPos.begin())
                             {
                                 shared_ptr<CWordForm> spWfVariant;
-                                CloneWordForm(spWordForm, spWfVariant);
+//                                CloneWordForm(spWordForm, spWfVariant);
+                                spWfVariant->eCloneFrom(spWordForm);
                                 spWordForm = spWfVariant;
                             }
-                            spWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;
+//                            spWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;
+                            spWordForm->SetStressPos(*itStressPos, STRESS_PRIMARY);
                             rc = eHandleYoAlternation(*itStressType, *itStressPos, sStem, sEnding);
                             if (rc != H_NO_ERROR)
                             {
                                 return rc;
                             }
 
-                            spWordForm->m_sWordForm = sStem + sEnding;
+                            spWordForm->SetWordForm(sStem + sEnding);
                             rc = eHandleDeviations (spWordForm);
                             if (rc != H_NO_ERROR)
                             {

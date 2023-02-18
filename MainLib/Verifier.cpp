@@ -1,5 +1,3 @@
-#include "IDictionary.h"
-#include "IDictionary.h"
 #include "WordForm.h"
 #include "Lexeme.h"
 #include "Verifier.h"
@@ -141,8 +139,8 @@ ET_ReturnCode CVerifier::eLoadStoredForms(const CEString& sLexemeHash)
                 {
                     return rc;
                 }
-                spSavedWf->m_sWordForm = sSavedWf;
-                spSavedWf->m_mapStress[iPos] = bPrimary ? STRESS_PRIMARY : STRESS_SECONDARY;
+                spSavedWf->SetWordForm(sSavedWf);
+                spSavedWf->SetStressPos(iPos, bPrimary ? STRESS_PRIMARY : STRESS_SECONDARY);
                 m_mmapStoredForms.insert (pair<CEString, shared_ptr<CWordForm>>(sHash, spSavedWf));
             }
             m_spDb->Finalize (uiStressHandle);

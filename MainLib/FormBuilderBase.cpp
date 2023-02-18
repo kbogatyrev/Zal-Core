@@ -53,6 +53,7 @@ void CFormBuilder::ReportDbError()
     ERROR_LOG (sMsg);
 }
 
+/*
 void CFormBuilder::CloneWordForm(const  shared_ptr<CWordForm> spSource, shared_ptr<CWordForm>& spClone)
 {
     spClone = make_shared<CWordForm>();
@@ -83,3 +84,4 @@ void CFormBuilder::CloneWordForm(const  shared_ptr<CWordForm> spSource, shared_p
     spClone->m_eStatus = spSource->m_eStatus;
 
 }  // CloneWordForm (...)
+*/

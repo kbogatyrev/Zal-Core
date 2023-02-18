@@ -44,6 +44,11 @@ namespace Hlib
             return H_NO_ERROR;
         }
 
+        shared_ptr<CLexeme> spLexeme()
+        {
+            return m_spLexeme;
+        }
+
         const StInflectionProperties& stGetProperties()
         {
             return m_stProperties;

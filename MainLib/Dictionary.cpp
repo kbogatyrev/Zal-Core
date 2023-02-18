@@ -135,12 +135,31 @@ static CEString sQueryBaseInflection
                                inflection.fleeting_vowel, \
                                inflection.stem_augment ");
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 CDictionary::CDictionary()
-{}
+{
+    auto rc = eInit();
+    if (rc != H_NO_ERROR)
+    {
+        throw CException(H_ERROR_UNEXPECTED, L"Lexeme enumerator not initialized.");
+    }
+}
 
 CDictionary::~CDictionary()
 {
     Clear();
+}
+
+ET_ReturnCode CDictionary::eInit()
+{
+    m_spLexemeEnumerator = make_shared<CLexemeEnumerator>(shared_from_this());
+    if (!m_spLexemeEnumerator)
+    {
+        ERROR_LOG(L"Error retrieving ILexemeEnumerator.");
+        return H_ERROR_POINTER;
+    }
+
+    return H_NO_ERROR;
 }
 
 ET_ReturnCode CDictionary::eSetDbPath(const CEString& sPath)
@@ -336,6 +355,7 @@ ET_ReturnCode CDictionary::eGetSecondPart(long long llId, shared_ptr<CLexeme>& s
         }
     }
 
+// TOD: WHAT'S THAT??????
     uiQueryHandle = 0;
     for (auto spLexeme : m_vecLexemes)
     {
@@ -637,6 +657,7 @@ ET_ReturnCode CDictionary::Clear(shared_ptr<CLexeme> spLexeme)
     return H_ERROR_UNEXPECTED;
 }
 
+/*
 ET_ReturnCode CDictionary::eCreateLexemeEnumerator(shared_ptr<CLexemeEnumerator>& spLe)
 {
     spLe = make_shared<CLexemeEnumerator>(shared_from_this());
@@ -653,6 +674,7 @@ void CDictionary::DeleteLexemeEnumerator(shared_ptr<CLexemeEnumerator> spLe)
 {
 //    delete pLe;
 }
+*/
 
 ET_ReturnCode CDictionary::eGetParser(shared_ptr<CParser>& spParser)
 {
@@ -1215,10 +1237,10 @@ ET_ReturnCode CDictionary::ePopulateWordFormDataTables()
                             continue;
                         }
 
-                        if (0 == spWf->m_llStemId)
+                        if (0 == spWf->llStemId())
                         {
                             CEString sMsg(L"Unable to find stem id for \"");
-                            sMsg += spWf->m_sStem;
+                            sMsg += spWf->sStem();
                             sMsg += L'"';
                             sMsg += L" lexeme = " + (*itLexeme)->sSourceForm();
                             ERROR_LOG(sMsg);
@@ -1986,12 +2008,12 @@ ET_ReturnCode CDictionary::eReadInflectionData(shared_ptr<CLexeme>spLexeme, uint
     ET_ReturnCode rc = H_NO_ERROR;
 
     /*
-                static CEString sQueryBaseInflection(L"SELECT inflection.id, inflection.is_primary, inflection.inflection_type, inflection.accent_type1,
-                                                                    0                       1                       2                           3
-                                                       inflection.accent_type2, inflection.short_form_restrictions, inflection.past_part_restrictions,
-                                                                      4                               5                                    6
-                                                       inflection.no_short_form, inflection.no_past_part, inflection.fleeting_vowel, inflection.stem_augment ");
-                                                                       7                           8                      9                         10
+        static CEString sQueryBaseInflection(L"SELECT inflection.id, inflection.is_primary, inflection.inflection_type, inflection.accent_type1,
+                                                            0                       1                       2                           3
+                                               inflection.accent_type2, inflection.short_form_restrictions, inflection.past_part_restrictions,
+                                                              4                               5                                    6
+                                               inflection.no_short_form, inflection.no_past_part, inflection.fleeting_vowel, inflection.stem_augment ");
+                                                               7                           8                      9                         10
     */
     try
     {

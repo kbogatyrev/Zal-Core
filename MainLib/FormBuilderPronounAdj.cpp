@@ -94,7 +94,7 @@ ET_ReturnCode CFormBuilderPronounAdj::eCreateFormTemplate (ET_Gender eGender,
 {
     ET_ReturnCode rc = H_NO_ERROR;
     
-    spWordForm = make_shared<CWordForm>();
+    spWordForm = make_shared<CWordForm>(m_spInflection);
     if (nullptr == spWordForm)
     {
 		assert(0);
@@ -102,19 +102,19 @@ ET_ReturnCode CFormBuilderPronounAdj::eCreateFormTemplate (ET_Gender eGender,
         return H_ERROR_POINTER;
     }
 
-    spWordForm->m_spLexeme = m_spLexeme;
-    spWordForm->m_ePos = m_spLexeme->ePartOfSpeech();
-    spWordForm->m_eSubparadigm = SUBPARADIGM_PRONOUN_ADJ;
-    spWordForm->m_sStem = sStem;
-    spWordForm->m_sEnding = sEnding;
-    spWordForm->m_llEndingDataId = llEndingKey;
-    spWordForm->m_eGender = eGender;
-    spWordForm->m_eCase = eCase;
-    spWordForm->m_eNumber = eNumber;
-    spWordForm->m_eAnimacy = eAnimacy;
-    spWordForm->m_sWordForm = sStem + sEnding;
-    spWordForm->m_eStatus = m_eStatus;
-    spWordForm->m_llLexemeId = m_spLexeme->llLexemeId();
+//    spWordForm->m_spLexeme = m_spLexeme;
+    spWordForm->SetPos(m_spLexeme->ePartOfSpeech());
+    spWordForm->SetSubparadigm(SUBPARADIGM_PRONOUN_ADJ);
+    spWordForm->SetStem(sStem);
+    spWordForm->SetEnding(sEnding);
+    spWordForm->SetEndingDataId(llEndingKey);
+    spWordForm->SetGender(eGender);
+    spWordForm->SetCase(eCase);
+    spWordForm->SetNumber(eNumber);
+    spWordForm->SetAnimacy(eAnimacy);
+    spWordForm->SetWordForm(sStem + sEnding);
+    spWordForm->SetStatus(m_eStatus);
+    spWordForm->SetInflectionId(m_spInflection->llInflectionId());
 
 //    rc = eAssignSecondaryStress (pWordForm);
 
@@ -364,7 +364,8 @@ ET_ReturnCode CFormBuilderPronounAdj::eBuild()
                 vector<int>::iterator itStressPos = vecStress.begin();
                 for (; itStressPos != vecStress.end(); ++itStressPos)
                 {
-                    spWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;
+//                    spWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;
+                    spWordForm->SetStressPos(*itStressPos, STRESS_PRIMARY);
                 }
                 m_spInflection->AddWordForm (spWordForm);
             }
@@ -376,10 +377,12 @@ ET_ReturnCode CFormBuilderPronounAdj::eBuild()
                     if (itStressPos != vecStress.begin())
                     {
                         shared_ptr<CWordForm> spWfVariant;
-                        CloneWordForm(spWordForm, spWfVariant);
+//                        CloneWordForm(spWordForm, spWfVariant);
+                        spWfVariant->eCloneFrom(spWordForm);
                         spWordForm = spWfVariant;
                     }
-                    spWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;
+                    // spWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;
+                    spWordForm->SetStressPos(*itStressPos, STRESS_PRIMARY);
                     m_spInflection->AddWordForm (spWordForm);
                 }
             }

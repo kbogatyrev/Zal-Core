@@ -482,7 +482,7 @@ void CLexeme::AssignPrimaryStress (shared_ptr<CWordForm> spWordForm)
     vector<int>::iterator itStressPos = m_stProperties.vecSourceStressPos.begin();
     for (; itStressPos != m_stProperties.vecSourceStressPos.end(); ++itStressPos)
     {
-        spWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;
+        spWordForm->SetStressPos(*itStressPos, STRESS_PRIMARY);
     }
 }
 
@@ -498,7 +498,7 @@ void CLexeme::AssignSecondaryStress (shared_ptr<CWordForm> spWordForm)
             throw CException (H_ERROR_UNEXPECTED, L"Secondary stress position out of bounds.");
         }
 
-        spWordForm->m_mapStress[iStressedSyll] = STRESS_SECONDARY;
+        spWordForm->SetStressPos(iStressedSyll, STRESS_SECONDARY);
     }
 }
 
@@ -2509,11 +2509,11 @@ ET_ReturnCode CLexeme::eSaveIrregularForms(const CEString& sGramHash)
 }   //  eSaveIrregularForms()
 */
 
-ET_ReturnCode CLexeme::eClone(shared_ptr<CLexeme>& spClonedObject)
-{
-    spClonedObject = make_shared<CLexeme>(const_cast<const CLexeme&>(*this));
-    return H_NO_ERROR;
-}
+//ET_ReturnCode CLexeme::eClone(shared_ptr<CLexeme>& spClonedObject)
+//{
+//    spClonedObject = make_shared<CLexeme>(const_cast<const CLexeme&>(*this));
+//    return H_NO_ERROR;
+//}
 
 ET_ReturnCode CLexeme::eCheckLexemeProperties()
 {

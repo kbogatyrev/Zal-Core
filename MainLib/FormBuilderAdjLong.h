@@ -34,6 +34,10 @@ public:
         m_sStem.SetVowels(CEString::g_szRusVowels);
     }
 
+public:
+    ET_ReturnCode eBuild();
+    ET_ReturnCode eBuildParticiple();
+
 protected:
     CEString sGramHash (ET_PartOfSpeech ePos, ET_Subparadigm eSubparadigm, ET_Case eCase, 
                         ET_Number eNum, ET_Gender eGender, ET_Animacy eAnimacy, 
@@ -44,10 +48,6 @@ protected:
                                        const CEString& sEnding, int64_t llEndingKey, shared_ptr<CWordForm>&);
     ET_ReturnCode eCheckIrregularForms(const CEString& sHash, bool& bHandled);
     ET_ReturnCode eHandleCommonDeviations (shared_ptr<CWordForm>);
-
-public:
-    ET_ReturnCode eBuild();
-    ET_ReturnCode eBuildParticiple();
 
 private:
     CEString m_sStem;

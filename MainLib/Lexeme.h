@@ -819,7 +819,7 @@ namespace Hlib
 //        virtual ET_ReturnCode eMakeGraphicStem();
 //        virtual ET_ReturnCode eMakeGraphicStem(const CEString& sSource, CEString& sGraphicStem);
 
-        ET_ReturnCode eClone(shared_ptr<CLexeme>&);
+//        ET_ReturnCode eClone(shared_ptr<CLexeme>&);
         ET_ReturnCode eCheckLexemeProperties();
         ET_ReturnCode eGetErrorMsg(CEString& sErrorMsg);
 

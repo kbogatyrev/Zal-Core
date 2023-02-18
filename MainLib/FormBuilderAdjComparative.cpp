@@ -10,17 +10,19 @@ using namespace Hlib;
 
 ET_ReturnCode CFormBuilderComparative::eCreateFormTemplate (const CEString& sStem, shared_ptr<CWordForm>& spWordForm)
 {
-    spWordForm = make_shared<CWordForm>();
-    if (NULL == spWordForm)
+    spWordForm = make_shared<CWordForm>(m_spInflection);
+    if (nullptr == spWordForm)
     {
         return H_ERROR_POINTER;
     }
 
-    spWordForm->m_spLexeme = m_spLexeme;
-    spWordForm->m_ePos = m_spLexeme->ePartOfSpeech();
-    spWordForm->m_eSubparadigm = SUBPARADIGM_COMPARATIVE;
-    spWordForm->m_sStem = sStem;
-    spWordForm->m_llLexemeId = m_spLexeme->llLexemeId();
+//    spWordForm->m_spLexeme = m_spLexeme;
+    spWordForm->SetInflection(m_spInflection);
+    spWordForm->SetPos(POS_ADJ);
+    spWordForm->SetSubparadigm(SUBPARADIGM_COMPARATIVE);
+    spWordForm->SetStem(sStem);
+//    spWordForm->m_llLexemeId = m_spLexeme->llLexemeId();
+    spWordForm->SetInflectionId(m_spInflection->llInflectionId());
 
     return H_NO_ERROR;
 
@@ -46,7 +48,8 @@ ET_ReturnCode CFormBuilderComparative::eHandleStressAndAdd(shared_ptr<CWordForm>
             vector<int>::iterator itStressPos = vecStress.begin();
             for (; itStressPos != vecStress.end(); ++itStressPos)
             {
-                spWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;
+//                spWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;
+                spWordForm->SetStressPos(*itStressPos, STRESS_PRIMARY);
                 rc = eHandleYoAlternation(eStressType, *itStressPos, sStem, sEnding);
                 if (rc != H_NO_ERROR)
                 {
@@ -54,10 +57,10 @@ ET_ReturnCode CFormBuilderComparative::eHandleStressAndAdd(shared_ptr<CWordForm>
                 }
             }
 
-            spWordForm->m_sStem = sStem;
-            spWordForm->m_sEnding = sEnding;
-            spWordForm->m_llEndingDataId = llEndingKey;
-            spWordForm->m_sWordForm = sStem + sEnding;
+            spWordForm->SetStem(sStem);
+            spWordForm->SetEnding(sEnding);
+            spWordForm->SetEndingDataId(llEndingKey);
+            spWordForm->SetWordForm(sStem + sEnding);
 
             m_spInflection->AddWordForm(spWordForm);
         }
@@ -68,21 +71,23 @@ ET_ReturnCode CFormBuilderComparative::eHandleStressAndAdd(shared_ptr<CWordForm>
             {
                 if (itStressPos != vecStress.begin())
                 {
-                    shared_ptr<CWordForm> spWfVariant = NULL;
-                    CloneWordForm (spWordForm, spWfVariant);
+                    shared_ptr<CWordForm> spWfVariant;
+                    spWfVariant->eCloneFrom(spWordForm);
+//                    CloneWordForm (spWordForm, spWfVariant);
                     spWordForm = spWfVariant;
                 }
-                spWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;
+//                spWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;
+                spWordForm->SetStressPos(*itStressPos, STRESS_PRIMARY);
                 rc = eHandleYoAlternation(eStressType, *itStressPos, sStem, sEnding);
                 if (rc != H_NO_ERROR)
                 {
                     return rc;
                 }
 
-                spWordForm->m_sStem = sStem;
-                spWordForm->m_sEnding = sEnding;
-                spWordForm->m_llEndingDataId = llEndingKey;
-                spWordForm->m_sWordForm = sStem + sEnding;
+                spWordForm->SetStem(sStem);
+                spWordForm->SetEnding(sEnding);
+                spWordForm->SetEndingDataId(llEndingKey);
+                spWordForm->SetWordForm(sStem + sEnding);
 
                 m_spInflection->AddWordForm(spWordForm);
             }
@@ -179,7 +184,7 @@ ET_ReturnCode CFormBuilderComparative::eBuild()
             {
                 return rc;
             }
-            spWordForm->m_sStem = sStem;
+            spWordForm->SetStem(sStem);
             
             static_pointer_cast<CComparativeEndings>(m_spEndings)->eSelect(bVelarStemAuslaut, bIsVariant);
             int iNumEndings = m_spEndings->iCount();
@@ -201,16 +206,17 @@ ET_ReturnCode CFormBuilderComparative::eBuild()
                 return H_ERROR_UNEXPECTED;
             }
 
-            spWordForm->m_sStem = sStem;
-            spWordForm->m_sEnding = sEnding;
-            spWordForm->m_llEndingDataId = llEndingKey;
-            spWordForm->m_sWordForm = sStem + sEnding;
+            spWordForm->SetStem(sStem);
+            spWordForm->SetEnding(sEnding);
+            spWordForm->SetEndingDataId(llEndingKey);
+            spWordForm->SetWordForm(sStem + sEnding);
 
             unsigned int uiLastStemVowel = sStem.uiFindLastOf (CEString::g_szRusVowels);
             if (ecNotFound != uiLastStemVowel)
             {
                 unsigned int uiStressedSyllable = sStem.uiGetSyllableFromVowelPos(uiLastStemVowel);
-                spWordForm->m_mapStress[uiStressedSyllable] = STRESS_PRIMARY;
+//                spWordForm->m_mapStress[uiStressedSyllable] = STRESS_PRIMARY;
+                spWordForm->SetStressPos(uiStressedSyllable, STRESS_PRIMARY);
             }
             else
             {
