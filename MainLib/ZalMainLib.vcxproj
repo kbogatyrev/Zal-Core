@@ -38,8 +38,6 @@
     <ClInclude Include="FormBuilderVerbPast.h" />
     <ClInclude Include="FormBuilderVerbPers.h" />
     <ClInclude Include="Inflection.h" />
-    <ClInclude Include="IVerifier.h" />
-    <ClInclude Include="IWordForm.h" />
     <ClInclude Include="Lexeme.h" />
     <ClInclude Include="LexemeProperties.h" />
     <ClInclude Include="Parser.h" />

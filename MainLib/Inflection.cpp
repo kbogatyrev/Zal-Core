@@ -51,17 +51,6 @@ CInflection::~CInflection()
     }
 }
 
-void CInflection::SetLexeme(shared_ptr<CLexeme> spLexeme)
-{
-    if (nullptr == spLexeme)
-    {
-        throw CException(H_EXCEPTION, L"Lexeme pointer is NULL.");
-    }
-
-    m_spLexeme = spLexeme;
-}
-
-
 bool CInflection::bHasCommonDeviation(int iCd)
 {
     //    bool bRet = false;

@@ -56,7 +56,7 @@ public:
         return H_NO_ERROR;
     }
 
-    ET_ReturnCode GetDictionarySmart(shared_ptr<CDictionary>& spDict)
+    ET_ReturnCode GetDictionary(shared_ptr<CDictionary>& spDict)
     {
         if (nullptr == m_spDictionary)
         {

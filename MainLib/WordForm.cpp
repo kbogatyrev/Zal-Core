@@ -209,16 +209,6 @@ ET_ReturnCode CWordForm::eCloneFrom(const shared_ptr<CWordForm> spSource)
     return H_NO_ERROR;
 }
 
-shared_ptr<CLexeme> CWordForm::spLexeme()
-{
-    return m_spInflection->spLexeme();
-}
-
-shared_ptr<CInflection> CWordForm::spInflection()
-{
-    return m_spInflection;
-}
-
 void CWordForm::ClearStress()
 {
     m_mapStress.clear();

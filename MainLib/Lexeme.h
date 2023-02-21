@@ -59,6 +59,11 @@ namespace Hlib
         CLexeme(const CLexeme&);
         ~CLexeme();
 
+        CLexeme* pGetLexemePtr()
+        {
+            return this;
+        }
+
         ET_ReturnCode eCreateInflectionEnumerator(shared_ptr<CInflectionEnumerator>&);
 
         void DeleteInflectionEnumerator(shared_ptr<CInflectionEnumerator>);

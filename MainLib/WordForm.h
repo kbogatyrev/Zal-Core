@@ -42,8 +42,15 @@ namespace Hlib
 //        ILexeme* pLexemeItf() override;
 //        IInflection * pInflectionItf() override;
 
-        shared_ptr<CLexeme> spLexeme();
-        shared_ptr<CInflection> spInflection();
+        shared_ptr<CLexeme> spLexeme()
+        {
+            return m_spInflection->spLexeme();
+        }
+
+        shared_ptr<CInflection> spInflection()
+        {
+            return m_spInflection;
+        }
 
 //        void SetLexeme(shared_ptr<CLexeme>);
         void SetInflection(shared_ptr<CInflection>);

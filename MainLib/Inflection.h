@@ -31,7 +31,24 @@ namespace Hlib
         CInflection(const CInflection&);
         ~CInflection();
 
-        void SetLexeme(shared_ptr<CLexeme>);
+        CInflection* pGetInflectionPtr()
+        {
+            return this;
+        }
+
+        shared_ptr<CLexeme> spGetLexeme()
+        {
+            return m_spLexeme;
+        }
+
+        void SetLexeme(shared_ptr<CLexeme> spLexeme)
+        {
+            if (nullptr == spLexeme)
+            {
+                throw CException(H_EXCEPTION, L"Lexeme pointer is NULL.");
+            }
+            m_spLexeme = spLexeme;
+        }
 
         long long llDescriptorId()
         {
