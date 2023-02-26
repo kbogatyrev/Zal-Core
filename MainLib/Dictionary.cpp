@@ -657,7 +657,6 @@ ET_ReturnCode CDictionary::Clear(shared_ptr<CLexeme> spLexeme)
     return H_ERROR_UNEXPECTED;
 }
 
-/*
 ET_ReturnCode CDictionary::eCreateLexemeEnumerator(shared_ptr<CLexemeEnumerator>& spLe)
 {
     spLe = make_shared<CLexemeEnumerator>(shared_from_this());
@@ -674,7 +673,6 @@ void CDictionary::DeleteLexemeEnumerator(shared_ptr<CLexemeEnumerator> spLe)
 {
 //    delete pLe;
 }
-*/
 
 ET_ReturnCode CDictionary::eGetParser(shared_ptr<CParser>& spParser)
 {

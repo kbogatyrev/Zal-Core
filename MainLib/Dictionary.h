@@ -7,7 +7,7 @@
 
 #include "Enums.h"
 #include "EString.h"
-//#include "IDictionary.h"
+#include "IDictionary.h"
 #include "LexemeProperties.h"
 #include "InflectionProperties.h"
 
@@ -34,8 +34,8 @@ public:
 
     ET_ReturnCode eReset();
 
-    ET_ReturnCode eGetFirstLexeme(shared_ptr<CLexeme>& pLexeme);
-    ET_ReturnCode eGetNextLexeme(shared_ptr<CLexeme>& pLexeme);
+    ET_ReturnCode eGetFirstLexeme(shared_ptr<CLexeme>&);
+    ET_ReturnCode eGetNextLexeme(shared_ptr<CLexeme>&);
 
 private:
     vector<shared_ptr<CLexeme>>::iterator m_itCurrentLexeme;
@@ -74,6 +74,9 @@ public:
 
     void Clear();
     ET_ReturnCode Clear(shared_ptr<CLexeme>);
+
+    ET_ReturnCode eCreateLexemeEnumerator(shared_ptr<CLexemeEnumerator>&);
+    void DeleteLexemeEnumerator(shared_ptr<CLexemeEnumerator>);
 
     ET_ReturnCode eGetParser(shared_ptr<CParser>&);
     ET_ReturnCode eGetAnalytics(shared_ptr<CAnalytics>&);

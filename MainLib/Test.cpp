@@ -1,31 +1,31 @@
 #include <iostream>
+#include <memory>
+#include "MainLib.h"
 #include "Dictionary.h"
 
 using namespace Hlib;
 
-extern "C"
-{
-    ET_ReturnCode GetDictionary(Hlib::IDictionary*&);        // the only external function defined in MainLib
-}
+//extern "C"
+//{
+//    ET_ReturnCode GetDictionary(Hlib::IDictionary*&);        // the only external function defined in MainLib
+//}
 
 int main() {
     std::cout << "Hello world!" << std::endl;
      
-    IDictionary * d;
-    auto rc = GetDictionary(d);
+    Hlib::Singleton singleton;
+
+    shared_ptr<CDictionary> spDictionary;
+    auto rc = singleton.GetDictionary(spDictionary);
 
 #ifdef WIN32
-    d->eSetDbPath(L"C:\\dev_win\\Zal\\Zal-Data\\ZalData\\ZalData_Master.db3");
+    spDictionary->eSetDbPath(L"C:\\dev_win\\Zal\\Zal-Data\\ZalData\\ZalData_Master.db3");
 #else
-    d->eSetDbPath(L"/home/konstantin/zal/ZalData_demo.db3");
+    spDictionary->eSetDbPath(L"/home/konstantin/zal/ZalData_demo.db3");
 #endif
-    rc = d->eGetLexemesByInitialForm(L"мама");
+    rc = spDictionary->eGetLexemesByInitialForm(L"мама");
     if (rc != H_NO_ERROR && rc != H_NO_MORE) {
         std::cout << "Error " << rc << std::endl;
     }
-
-    delete d;
-
     std::cout << "Bye world!" << std::endl;
-
 }

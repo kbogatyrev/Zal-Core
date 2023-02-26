@@ -49,7 +49,7 @@ namespace Hlib
         shared_ptr<CLexeme> m_spLexeme;
     };
 
-    class CLexeme : enable_shared_from_this<CLexeme>
+    class CLexeme : public enable_shared_from_this<CLexeme>
     {
         friend class CInflectionEnumerator;
 

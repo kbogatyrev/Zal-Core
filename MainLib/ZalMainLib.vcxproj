@@ -38,6 +38,9 @@
     <ClInclude Include="FormBuilderVerbPast.h" />
     <ClInclude Include="FormBuilderVerbPers.h" />
     <ClInclude Include="Inflection.h" />
+    <ClInclude Include="IParser.h" />
+    <ClInclude Include="IVerifier.h" />
+    <ClInclude Include="IWordForm.h" />
     <ClInclude Include="Lexeme.h" />
     <ClInclude Include="LexemeProperties.h" />
     <ClInclude Include="Parser.h" />
@@ -67,15 +70,12 @@
     <ClCompile Include="FormBuilderVerbPers.cpp" />
     <ClCompile Include="Inflection.cpp" />
     <ClCompile Include="Lexeme.cpp" />
-    <ClCompile Include="MainLib.cpp" />
+    <ClCompile Include="MainLib.h" />
     <ClCompile Include="Parser.cpp" />
     <ClCompile Include="ParsingTree.cpp" />
     <ClCompile Include="Transcriber.cpp" />
     <ClCompile Include="Verifier.cpp" />
     <ClCompile Include="WordForm.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="MainLib.def" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
@@ -99,13 +99,13 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>

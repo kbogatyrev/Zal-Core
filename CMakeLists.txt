@@ -1,4 +1,5 @@
 cmake_minimum_required (VERSION 3.16)
+cmake_minimum_required (VERSION 3.16)
 
 project (Zal-Core VERSION 5.0.0)
 
@@ -60,7 +61,7 @@ endif()
 #	set (CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
 #endif()
 
-add_library (ZalMainLib SHARED)
+add_library (ZalMainLib)
 
 target_include_directories (ZalMainLib PUBLIC
 	HLib
@@ -73,6 +74,7 @@ target_sources (ZalMainLib PRIVATE
 	MainLib/Analytics.cpp
 	MainLib/Dictionary.h
 	MainLib/Dictionary.cpp
+#	MainLib/dllmain.cpp
 	MainLib/Endings.h
 	MainLib/Endings.cpp
 	MainLib/FormBuilderAdjComparative.h
@@ -101,18 +103,21 @@ target_sources (ZalMainLib PRIVATE
 	MainLib/FormBuilderVerbPast.cpp
 	MainLib/FormBuilderVerbPers.h
 	MainLib/FormBuilderVerbPers.cpp
+	MainLib/Inflection.h
+	MainLib/Inflection.cpp
 	MainLib/Lexeme.h
 	MainLib/Lexeme.cpp
-	MainLib/MainLib.cpp
-	MainLib/MainLib.def
+	MainLib/MainLib.h
+#	MainLib/MainLib.cpp
+#	MainLib/MainLib.def
 	MainLib/Parser.h
 	MainLib/Parser.cpp
 	MainLib/ParsingTree.h
 	MainLib/ParsingTree.cpp
 	MainLib/Transcriber.h
 	MainLib/Transcriber.cpp
-	MainLib/Verifier.h
-	MainLib/Verifier.cpp
+#	MainLib/Verifier.h
+#	MainLib/Verifier.cpp
 	MainLib/WordForm.h
 	MainLib/WordForm.cpp
 	ThirdParty/Sqlite/sqlite3.c
@@ -161,7 +166,7 @@ endif()
 #	Python wrapper
 #
 
-add_library (ZalPythonItf SHARED)
+add_library (ZalPythonItf)   # TODO: switch to DLL
 
 target_include_directories (ZalPythonItf PUBLIC
 	HLib
@@ -171,13 +176,13 @@ target_include_directories (ZalPythonItf PUBLIC
 )
 
 target_sources (ZalPythonItf PRIVATE
-#	dllmain.cpp
+	Zal-CPP/MainLibCTypes/dllmain.cpp
 	Zal-CPP/MainLibCTypes/ZalPythonItf.cpp
 )
 
-#target_link_directories (ZalPythonItf PRIVATE
-#	../../Zal-Core/out/build/x64-debug
-#)
+target_link_directories (ZalPythonItf PRIVATE
+	../../Zal-Core/out/build/x64-debug
+)
 
 target_link_libraries (ZalPythonItf 
 	ZalMainLib)
@@ -186,6 +191,7 @@ target_link_libraries (ZalPythonItf
 
 #
 #	Test
+#
 #
 
 add_executable (ZalMainTest)
@@ -206,12 +212,12 @@ else()
 	target_link_libraries(ZalMainTest ZalMainLib pthread dl)
 endif()
 
-#if (CMAKE_BUILD_TYPE MATCHES "Debug")
-#	add_custom_command(TARGET ZalMainLib POST_BUILD
-#		COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ZalMainLib> ../../../../Zal-Windows/TestApp/bin/debug
-#	)
-#else()
-#	add_custom_command(TARGET ZalMainLib POST_BUILD
-#		COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ZalMainLib> ../../../../Zal-Windows/TestApp/bin/release
-#	)
-#endif()
+if (CMAKE_BUILD_TYPE MATCHES "Debug")
+	add_custom_command(TARGET ZalMainLib POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ZalMainLib> ../../../../Zal-Windows/TestApp/bin/debug
+	)
+else()
+	add_custom_command(TARGET ZalMainLib POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ZalMainLib> ../../../../Zal-Windows/TestApp/bin/release
+	)
+endif()
