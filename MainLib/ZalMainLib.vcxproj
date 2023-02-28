@@ -177,7 +177,7 @@
       <ModuleDefinitionFile>MainLib.def</ModuleDefinitionFile>
     </Link>
     <PostBuildEvent>
-      <Command>copy ..\out\build\x64-debug\ZalMainLib.dll ..\..\Zal-Windows\TestApp\bin\Debug\ &amp;&amp; copy ..\out\build\x64-debug\ZalMainLib.lib ..\..\Zal-Windows\TestApp\bin\Debug\</Command>
+      <Command>copy ..\out\build\x64-debug\ZalMainLib.lib ..\..\Zal-Windows\TestApp\bin\Debug\</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -218,7 +218,7 @@
       <ModuleDefinitionFile>MainLib.def</ModuleDefinitionFile>
     </Link>
     <PostBuildEvent>
-      <Command>copy ..\out\build\x64-release\ZalMainLib.dll ..\..\Zal-Windows\TestApp\bin\Release\ &amp;&amp; copy ..\out\build\x64-release\ZalMainLib.lib ..\..\Zal-Windows\TestApp\bin\Release\</Command>
+      <Command>copy ..\out\build\x64-release\ZalMainLib.lib ..\..\Zal-Windows\TestApp\bin\Release\</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

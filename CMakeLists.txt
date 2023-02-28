@@ -116,8 +116,8 @@ target_sources (ZalMainLib PRIVATE
 	MainLib/ParsingTree.cpp
 	MainLib/Transcriber.h
 	MainLib/Transcriber.cpp
-#	MainLib/Verifier.h
-#	MainLib/Verifier.cpp
+	MainLib/Verifier.h
+	MainLib/Verifier.cpp
 	MainLib/WordForm.h
 	MainLib/WordForm.cpp
 	ThirdParty/Sqlite/sqlite3.c
