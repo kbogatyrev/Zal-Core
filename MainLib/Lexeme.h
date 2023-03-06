@@ -70,6 +70,8 @@ namespace Hlib
 
         void SetDictionary(shared_ptr<CDictionary> spDict);
 
+        ET_ReturnCode eCreateInflectionForEdit(shared_ptr<CInflection>& spInflection);
+
         const StLexemeProperties& stGetProperties()
         {
             return m_stProperties;

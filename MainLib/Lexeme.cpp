@@ -324,6 +324,17 @@ void CLexeme::DeleteInflectionEnumerator(shared_ptr<CInflectionEnumerator> pIe)
 //    delete pIe;
 }
 
+ET_ReturnCode CLexeme::eCreateInflectionForEdit(shared_ptr<CInflection>& spInflection)
+{
+    spInflection = make_shared<CInflection>(shared_from_this());
+    if (nullptr == spInflection)
+    {
+        return H_ERROR_POINTER;
+    }
+
+    return H_NO_ERROR;
+}
+
 StLexemeProperties& CLexeme::stGetSecondPartProperties()
 {
     return m_stProperties2ndPart;

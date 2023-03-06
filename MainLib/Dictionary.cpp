@@ -198,7 +198,7 @@ shared_ptr<CSqlite> CDictionary::spGetDb()
     return m_spDb;
 }
 
-ET_ReturnCode CDictionary::eCreateLexemeForEdit(shared_ptr<CLexeme>& spLexeme, shared_ptr<CInflection>& spInflection)
+ET_ReturnCode CDictionary::eCreateLexemeForEdit(shared_ptr<CLexeme>& spLexeme)
 {
     if (nullptr == m_spDb)
     {
@@ -207,12 +207,6 @@ ET_ReturnCode CDictionary::eCreateLexemeForEdit(shared_ptr<CLexeme>& spLexeme, s
 
     spLexeme = make_shared<CLexeme>(shared_from_this());
     if (nullptr == spLexeme)
-    {
-        return H_ERROR_POINTER;
-    }
-
-    spInflection = make_shared<CInflection>(spLexeme);
-    if (nullptr == spInflection)
     {
         return H_ERROR_POINTER;
     }

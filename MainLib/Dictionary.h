@@ -54,7 +54,8 @@ public:
     ET_ReturnCode eSetDbPath(const CEString& sDbPath);
     CEString sGetDbPath();
     shared_ptr<CSqlite> spGetDb();
-    ET_ReturnCode eCreateLexemeForEdit(shared_ptr<CLexeme>&, shared_ptr<CInflection>&);
+    ET_ReturnCode eCreateLexemeForEdit(shared_ptr<CLexeme>&);
+    ET_ReturnCode eCreateInflectionForEdit(shared_ptr<CInflection>&);
     ET_ReturnCode eCopyEntryForEdit(const shared_ptr<CLexeme> spLSource, const shared_ptr<CInflection> spISource, 
                                     shared_ptr<CLexeme>& spLCopy, shared_ptr<CInflection>& spICopy);
     ET_ReturnCode eGetLexemeById(long long Id, shared_ptr<CLexeme>& spLexeme);
