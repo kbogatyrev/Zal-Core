@@ -59,7 +59,7 @@ ET_ReturnCode CFormBuilderLongAdj::eCreateFormTemplate (ET_Gender eGender,
         return H_ERROR_UNEXPECTED;
     }
 
-    spWordForm = shared_ptr<CWordForm>();
+    spWordForm = make_shared<CWordForm>();
     if (nullptr == spWordForm)
     {
         assert(0);

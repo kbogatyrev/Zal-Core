@@ -159,6 +159,36 @@ ET_ReturnCode CParser::eGetNextWordForm(shared_ptr<CWordForm>& spWordForm)
     return H_NO_ERROR;
 }
 
+ET_ReturnCode CParser::eGetFirstWordForm(CWordForm*& pWordForm)
+{
+    m_itCurrentWordForm = m_vecWordForms.begin();
+    if (m_vecWordForms.end() == m_itCurrentWordForm)
+    {
+        return H_FALSE;
+    }
+
+    pWordForm = (*m_itCurrentWordForm).get();
+
+    return H_NO_ERROR;
+}
+
+ET_ReturnCode CParser::eGetNextWordForm(CWordForm*& pWordForm)
+{
+    if (m_itCurrentWordForm != m_vecWordForms.end())
+    {
+        ++m_itCurrentWordForm;
+    }
+
+    if (m_vecWordForms.end() == m_itCurrentWordForm)
+    {
+        return H_NO_MORE;
+    }
+
+    pWordForm = (*m_itCurrentWordForm).get();
+
+    return H_NO_ERROR;
+}
+
 void CParser::ClearResults()
 {
 //    vector<unique_ptr<CWordForm>>::iterator itWf = m_vecWordForms.begin();

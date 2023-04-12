@@ -41,8 +41,8 @@ namespace Hlib
 
         ET_ReturnCode eReset();
 
-        ET_ReturnCode eGetFirstInflection(shared_ptr<CInflection>& pInflectionClass);
-        ET_ReturnCode eGetNextInflection(shared_ptr<CInflection>& pInflectionClass);
+        ET_ReturnCode eGetFirstInflection(shared_ptr<CInflection>& spInflectionClass);
+        ET_ReturnCode eGetNextInflection(shared_ptr<CInflection>& spInflectionClass);
 
     private:
         vector<shared_ptr<CInflection>>::iterator m_itCurrentInflection;
@@ -64,9 +64,14 @@ namespace Hlib
             return this;
         }
 
-        ET_ReturnCode eCreateInflectionEnumerator(shared_ptr<CInflectionEnumerator>&);
+        ET_ReturnCode eCreateInflectionEnumerator(shared_ptr<CInflectionEnumerator>&);  // Standard version
+        ET_ReturnCode eCreateInflectionEnumerator(CInflectionEnumerator*&);             // Raw ptr version for CLI
 
         void DeleteInflectionEnumerator(shared_ptr<CInflectionEnumerator>);
+
+        int nInflections();
+
+        ET_ReturnCode eGetInflectionInstance(int iAt, shared_ptr<CInflection>& spInflection);
 
         void SetDictionary(shared_ptr<CDictionary> spDict);
 
@@ -882,9 +887,10 @@ namespace Hlib
 
     private:
 //        CLexeme() {}
+        shared_ptr<CInflectionEnumerator> m_spInflectionEnumerator;
 
         StLexemeProperties m_stProperties, m_stProperties2ndPart;
-        vector<shared_ptr<CInflection>> m_vecInflection;
+        vector<shared_ptr<CInflection>> m_vecInflections;
 
 //        bool m_bFormsGenerated;
 //        multimap<CEString, CWordForm *> m_mmWordForms;        // gramm. hash --> wordform struct

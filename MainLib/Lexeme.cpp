@@ -20,52 +20,10 @@ ET_ReturnCode CInflectionEnumerator::eReset()
         return H_ERROR_POINTER;
     }
 
-    m_itCurrentInflection = m_spLexeme->m_vecInflection.begin();
+    m_itCurrentInflection = m_spLexeme->m_vecInflections.begin();
     
     return H_NO_ERROR;
 }
-
-/*
-ET_ReturnCode CInflectionEnumerator::eGetFirstInflection(IInflection*& pInflectionItf)
-{
-    if (nullptr == m_pLexeme)
-    {
-        return H_ERROR_POINTER;
-    }
-
-    m_itCurrentInflection = m_pLexeme->m_vecInflection.begin();
-    if (m_pLexeme->m_vecInflection.end() == m_itCurrentInflection)
-    {
-        return H_FALSE;
-    }
-
-    pInflectionItf = (*m_itCurrentInflection).get();
-
-    return H_NO_ERROR;
-};
-
-ET_ReturnCode CInflectionEnumerator::eGetNextInflection(IInflection*& pInflectionItf)
-{
-    if (nullptr == m_pLexeme)
-    {
-        return H_ERROR_POINTER;
-    }
-
-    if (m_itCurrentInflection != m_pLexeme->m_vecInflection.end())
-    {
-        ++m_itCurrentInflection;
-    }
-
-    if (m_pLexeme->m_vecInflection.end() == m_itCurrentInflection)
-    {
-        return H_NO_MORE;
-    }
-
-    pInflectionItf = (*m_itCurrentInflection).get();
-
-    return H_NO_ERROR;
-}
-*/
 
 ET_ReturnCode CInflectionEnumerator::eGetFirstInflection(shared_ptr<CInflection>& spInflection)
 {
@@ -74,8 +32,8 @@ ET_ReturnCode CInflectionEnumerator::eGetFirstInflection(shared_ptr<CInflection>
         return H_ERROR_POINTER;
     }
 
-    m_itCurrentInflection = m_spLexeme->m_vecInflection.begin();
-    if (m_spLexeme->m_vecInflection.end() == m_itCurrentInflection)
+    m_itCurrentInflection = m_spLexeme->m_vecInflections.begin();
+    if (m_spLexeme->m_vecInflections.end() == m_itCurrentInflection)
     {
         return H_FALSE;
     }
@@ -92,12 +50,12 @@ ET_ReturnCode CInflectionEnumerator::eGetNextInflection(shared_ptr<CInflection>&
         return H_ERROR_POINTER;
     }
 
-    if (m_itCurrentInflection != m_spLexeme->m_vecInflection.end())
+    if (m_itCurrentInflection != m_spLexeme->m_vecInflections.end())
     {
         ++m_itCurrentInflection;
     }
 
-    if (m_spLexeme->m_vecInflection.end() == m_itCurrentInflection)
+    if (m_spLexeme->m_vecInflections.end() == m_itCurrentInflection)
     {
         return H_NO_MORE;
     }
@@ -106,7 +64,6 @@ ET_ReturnCode CInflectionEnumerator::eGetNextInflection(shared_ptr<CInflection>&
 
     return H_NO_ERROR;
 }
-
 
 CLexeme::CLexeme(shared_ptr<CDictionary> spD) : m_spDictionary(spD), m_spSecondPart(nullptr)
 {
@@ -310,18 +267,53 @@ void CLexeme::SetDictionary(shared_ptr<CDictionary> spDict)
 
 ET_ReturnCode CLexeme::eCreateInflectionEnumerator(shared_ptr<CInflectionEnumerator>& pIe)
 {
-    pIe = make_shared<CInflectionEnumerator>(shared_from_this());
-    if (!pIe)
+    m_spInflectionEnumerator = make_shared<CInflectionEnumerator>(shared_from_this());
+    if (!m_spInflectionEnumerator)
     {
-        ERROR_LOG(L"Error retrieving IInflectionEnumerator.");
+        ERROR_LOG(L"Error retrieving CInflectionEnumerator.");
         return H_ERROR_POINTER;
     }
+
+    pIe = m_spInflectionEnumerator;
+
+    return H_NO_ERROR;
+}
+
+ET_ReturnCode CLexeme::eCreateInflectionEnumerator(CInflectionEnumerator*& pIe)
+{
+    m_spInflectionEnumerator = make_shared<CInflectionEnumerator>(shared_from_this());
+    if (!m_spInflectionEnumerator)
+    {
+        ERROR_LOG(L"Error retrieving CInflectionEnumerator.");
+        return H_ERROR_POINTER;
+    }
+
+    pIe = m_spInflectionEnumerator.get();
+
     return H_NO_ERROR;
 }
 
 void CLexeme::DeleteInflectionEnumerator(shared_ptr<CInflectionEnumerator> pIe)
 {
 //    delete pIe;
+}
+
+int CLexeme::nInflections()
+{
+    return (int)m_vecInflections.size();
+}
+
+ET_ReturnCode CLexeme::eGetInflectionInstance(int iAt, shared_ptr<CInflection>& spInflection)
+{
+    if (iAt < 0 || iAt >= (int)m_vecInflections.size())
+    {
+        ERROR_LOG(L"Lexeme index out of bounds.");
+        return H_ERROR_INVALID_ARG;
+    }
+
+    spInflection = m_vecInflections[iAt];
+
+    return H_NO_ERROR;
 }
 
 ET_ReturnCode CLexeme::eCreateInflectionForEdit(shared_ptr<CInflection>& spInflection)
@@ -630,7 +622,7 @@ ET_ReturnCode CLexeme::eWordFormFromHash(CEString sHash, int iAt, CWordForm *& p
 
 void CLexeme::AddInflection(shared_ptr<CInflection> spInflection)
 {
-    m_vecInflection.emplace_back(spInflection);
+    m_vecInflections.emplace_back(spInflection);
 }
 
 /*

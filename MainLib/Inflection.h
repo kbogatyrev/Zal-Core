@@ -23,7 +23,7 @@ namespace Hlib
 //        eMs = (ET_MainSymbol)(eMs + 1);
 //    }
 
-    class CInflection : enable_shared_from_this<CInflection>
+    class CInflection : public enable_shared_from_this<CInflection>
     {
     public:
         CInflection(shared_ptr<CLexeme>);
@@ -31,10 +31,10 @@ namespace Hlib
         CInflection(const CInflection&);
         ~CInflection();
 
-        CInflection* pGetInflectionPtr()
-        {
-            return this;
-        }
+//        CInflection* pGetInflectionPtr()
+//        {
+//            return this;
+//        }
 
         shared_ptr<CLexeme> spGetLexeme()
         {
@@ -66,6 +66,17 @@ namespace Hlib
             return m_spLexeme;
         }
 
+        int nWordForms()
+        {
+            return (int)m_mmWordForms.size();
+        }
+
+//        ET_ReturnCode eGetWordForm(int iAt, shared_ptr<CInflection>& spInflection)
+//        {
+//            spInflection = m_mmWordForms&&&&
+//            return H_NO_ERROR;
+//        }
+
         const StInflectionProperties& stGetProperties()
         {
             return m_stProperties;
@@ -96,7 +107,7 @@ namespace Hlib
         {
             m_stProperties.bFleetingVowel = bValue;
         }
-        
+
         bool bPrimaryInflectionGroup()
         {
             return m_stProperties.bPrimaryInflectionGroup;
@@ -106,7 +117,7 @@ namespace Hlib
         {
             m_stProperties.bPrimaryInflectionGroup = bValue;
         }
-        
+
         int iType()
         {
             return m_stProperties.iType;
@@ -116,7 +127,7 @@ namespace Hlib
         {
             m_stProperties.iType = iValue;
         }
-        
+
         ET_AccentType eAccentType1()
         {
             return m_stProperties.eAccentType1;
@@ -126,7 +137,7 @@ namespace Hlib
         {
             m_stProperties.eAccentType1 = eValue;
         }
-        
+
         ET_AccentType eAccentType2()
         {
             return m_stProperties.eAccentType2;
@@ -136,7 +147,7 @@ namespace Hlib
         {
             m_stProperties.eAccentType2 = eValue;
         }
-        
+
         bool bShortFormsRestricted()
         {
             return m_stProperties.bShortFormsRestricted;
@@ -146,7 +157,7 @@ namespace Hlib
         {
             m_stProperties.bShortFormsRestricted = bValue;
         }
-        
+
         bool bPastParticipleRestricted()
         {
             return m_stProperties.bPastParticipleRestricted;
@@ -156,17 +167,17 @@ namespace Hlib
         {
             m_stProperties.bPastParticipleRestricted = bValue;
         }
-        
-//        virtual bool bNoLongForms()
-//        {
-//            return m_stProperties.bNoLongForms;
-//        }
 
-//        virtual void SetNoLongForms(bool bValue)
-//        {
-//            m_stProperties.bNoLongForms = bValue;
-//        }
-        
+        //        virtual bool bNoLongForms()
+        //        {
+        //            return m_stProperties.bNoLongForms;
+        //        }
+
+        //        virtual void SetNoLongForms(bool bValue)
+        //        {
+        //            m_stProperties.bNoLongForms = bValue;
+        //        }
+
         bool bShortFormsIncomplete()
         {
             return m_stProperties.bShortFormsIncomplete;
@@ -176,7 +187,7 @@ namespace Hlib
         {
             m_stProperties.bShortFormsIncomplete = bValue;
         }
-        
+
         bool bNoPassivePastParticiple()
         {
             return m_stProperties.bNoPassivePastParticiple;
@@ -186,7 +197,7 @@ namespace Hlib
         {
             m_stProperties.bNoPassivePastParticiple = bValue;
         }
-        
+
         bool bFleetingVowel()
         {
             return m_stProperties.bFleetingVowel;
@@ -196,7 +207,7 @@ namespace Hlib
         {
             m_stProperties.bFleetingVowel = bValue;
         }
-        
+
         int iStemAugment()
         {
             return m_stProperties.iStemAugment;
@@ -225,8 +236,6 @@ namespace Hlib
 
         ET_ReturnCode eGenerateParadigm();
 
-//        void AddWordForm(shared_ptr<CWordForm> spWordForm);         // ITF version, cf internal version below
-
         void AddDifficultForm(const CEString& sGramHash)
         {
             m_vecDifficultForms.push_back(sGramHash);
@@ -242,16 +251,22 @@ namespace Hlib
 
         ET_ReturnCode eGetFirstWordForm(shared_ptr<CWordForm>&);
         ET_ReturnCode eGetNextWordForm(shared_ptr<CWordForm>&);
+//        ET_ReturnCode eGetFirstWordForm(CWordForm*&);               // .Net consumers only
+//        ET_ReturnCode eGetNextWordForm(CWordForm*&);                //        --"--
 
-//        ET_ReturnCode eGetFirstIrregularForm(CEString sHash, IWordForm*&, bool& bIsOptional);
+        //        ET_ReturnCode eGetFirstIrregularForm(CEString sHash, IWordForm*&, bool& bIsOptional);
         ET_ReturnCode eGetFirstIrregularForm(shared_ptr<CWordForm>&, bool& bIsOptional);
         ET_ReturnCode eGetNextIrregularForm(shared_ptr<CWordForm>&, bool& bIsOptional);
+        ET_ReturnCode eGetFirstIrregularForm(CWordForm*&, bool& bIsOptional);           // .Net consumers only
+        ET_ReturnCode eGetNextIrregularForm(CWordForm*&, bool& bIsOptional);            //        --"--
 
         ET_ReturnCode eGetFirstIrregularForm(CEString sHash, shared_ptr<CWordForm>&, bool& bIsOptional);
-//        ET_ReturnCode eGetFirstIrregularForm(shared_ptr<CWordForm>&, bool& bIsOptional);
-//        ET_ReturnCode eGetNextIrregularForm(shared_ptr<CWordForm>&, bool& bIsOptional);
+        ET_ReturnCode eGetFirstIrregularForm(CEString sHash, CWordForm*&, bool& bIsOptional);
+        //        ET_ReturnCode eGetFirstIrregularForm(shared_ptr<CWordForm>&, bool& bIsOptional);
+        //        ET_ReturnCode eGetNextIrregularForm(shared_ptr<CWordForm>&, bool& bIsOptional);
 
         ET_ReturnCode eGetIrregularForms(CEString sHash, map<shared_ptr<CWordForm>, bool>& mapResult);
+//        ET_ReturnCode eGetIrregularForms(CEString sHash, map<shared_ptr<CWordForm>, bool>& mapResult);
         void AssignPrimaryStress(shared_ptr<CWordForm>);
         void AssignSecondaryStress(shared_ptr<CWordForm> spWordForm);
 
@@ -291,10 +306,10 @@ namespace Hlib
         ET_ReturnCode eMakeGraphicStem();
         ET_ReturnCode eMakeGraphicStem(const CEString& sSource, CEString& sGraphicStem);
 
-//        ET_ReturnCode eGetAspectPair(CEString&, int&);
-//        ET_ReturnCode eGetAltAspectPair(CEString&, int&);
+        //        ET_ReturnCode eGetAspectPair(CEString&, int&);
+        //        ET_ReturnCode eGetAltAspectPair(CEString&, int&);
 
-// -----------------------------------------------------------------------------------
+        // -----------------------------------------------------------------------------------
 
         ET_ReturnCode eAlignInflectedParts();
         ET_ReturnCode eConcatenateInflectedParts(CWordForm& left, CWordForm& right);
@@ -312,7 +327,7 @@ namespace Hlib
         ET_ReturnCode eLoadIrregularForms();
         ET_ReturnCode eSaveIrregularForms(long long llDescriptorDbKey);
         ET_ReturnCode eLoadDifficultForms();
-        
+
     private:
         shared_ptr<CLexeme> m_spLexeme;
         StInflectionProperties m_stProperties;
@@ -350,7 +365,7 @@ namespace Hlib
         vector<CEString> m_vecDifficultForms;
         vector<CEString> m_vecMissingForms;
 
-        bool m_bFormsGenerated;
+        bool m_bFormsGenerated { false };
     };
 
 }   //  namespace Hlib

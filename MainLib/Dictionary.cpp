@@ -47,7 +47,7 @@ ET_ReturnCode CLexemeEnumerator::eGetFirstLexeme(shared_ptr<CLexeme>& spLexeme)
     return H_NO_ERROR;
 }
 
-ET_ReturnCode CLexemeEnumerator::eGetNextLexeme(shared_ptr<CLexeme>& pLexeme)
+ET_ReturnCode CLexemeEnumerator::eGetNextLexeme(shared_ptr<CLexeme>& spLexeme)
 {
     if (nullptr == m_spDictionary)
     {
@@ -58,12 +58,13 @@ ET_ReturnCode CLexemeEnumerator::eGetNextLexeme(shared_ptr<CLexeme>& pLexeme)
     {
         ++m_itCurrentLexeme;
     }
-    else
+
+    if (m_spDictionary->m_vecLexemes.end() == m_itCurrentLexeme)
     {
         return H_NO_MORE;
     }
 
-    pLexeme = (*m_itCurrentLexeme);
+    spLexeme = (*m_itCurrentLexeme);
 
     return H_NO_ERROR;
 }
@@ -119,7 +120,7 @@ static CEString sQueryBaseDescriptor
                                descriptor.restricted_contexts, \
                                descriptor.contexts, \
                                descriptor.cognate, \
-                               descriptor.trailing_comment");
+                               descriptor.trailing_comment ");
 
 static CEString sQueryBaseInflection
                             (L"SELECT \
@@ -138,11 +139,11 @@ static CEString sQueryBaseInflection
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 CDictionary::CDictionary()
 {
-    auto rc = eInit();
-    if (rc != H_NO_ERROR)
-    {
-        throw CException(H_ERROR_UNEXPECTED, L"Lexeme enumerator not initialized.");
-    }
+//    auto rc = eInit();
+//    if (rc != H_NO_ERROR)
+//    {
+//        throw CException(H_ERROR_UNEXPECTED, L"Lexeme enumerator not initialized.");
+//    }
 }
 
 CDictionary::~CDictionary()
@@ -288,7 +289,7 @@ ET_ReturnCode CDictionary::eGetLexemeById(long long llId, shared_ptr<CLexeme>& s
         while (H_NO_ERROR == rc)
         {
             auto bSpryazhSm = false;        // TODO -- are we handling spryazh sm??
-            auto eInflection = eReadInflectionData(spLexeme, uiQueryHandle, bSpryazhSm);
+            rc = eReadInflectionData(spLexeme, uiQueryHandle, bSpryazhSm);
         }
     }
 
@@ -345,7 +346,7 @@ ET_ReturnCode CDictionary::eGetSecondPart(long long llId, shared_ptr<CLexeme>& s
         while (H_NO_ERROR == rc)
         {
             auto bSpryazhSm = false;        // TODO -- are we handling spryazh sm??
-            auto eInflection = eReadInflectionData(spLexeme, uiQueryHandle, bSpryazhSm);
+            rc = eReadInflectionData(spLexeme, uiQueryHandle, bSpryazhSm);
         }
     }
 
@@ -365,7 +366,7 @@ ET_ReturnCode CDictionary::eGetSecondPart(long long llId, shared_ptr<CLexeme>& s
         while (H_NO_ERROR == rc)
         {
             auto bSpryazhSm = false;        // TODO -- are we handling spryazh sm??
-            auto eInflection = eReadInflectionData(spLexeme, uiQueryHandle, bSpryazhSm);
+            rc = eReadInflectionData(spLexeme, uiQueryHandle, bSpryazhSm);
         }
     }
 
@@ -426,7 +427,7 @@ ET_ReturnCode CDictionary::eGetLexemesByHash(const CEString& sMd5)
             while (H_NO_ERROR == rc)
             {
                 auto bSpryazhSm = false;        // TODO -- are we handling spryazh sm??
-                auto eInflection = eReadInflectionData(spLexeme, uiQueryHandle, bSpryazhSm);
+                rc = eReadInflectionData(spLexeme, uiQueryHandle, bSpryazhSm);
             }
         }
     }
@@ -486,7 +487,7 @@ ET_ReturnCode CDictionary::eGetLexemesByInitialForm(const CEString& sSource)
 {
     ET_ReturnCode rc = H_NO_ERROR;
     CEString sQuery(sQueryBaseDescriptor);
-    sQuery += L"FROM headword INNER JOIN descriptor ON descriptor.word_id = headword.id ";
+    sQuery += L" FROM headword INNER JOIN descriptor ON descriptor.word_id = headword.id ";
 //    sQuery += L"LEFT OUTER JOIN inflection ON descriptor.id = inflection.descriptor_id ";
     sQuery += L"WHERE headword.source = \"";
     sQuery += sSource;
@@ -523,14 +524,13 @@ ET_ReturnCode CDictionary::eGetLexemesByInitialForm(const CEString& sSource)
             return rc;
         }
 
-        uiQueryHandle = 0;
-        for (auto spLexeme : m_vecLexemes)
+        for (auto spLexeme : vecLexemesFound)
         {
             auto sInflectionQuery = sQueryBaseInflection +
                 L" FROM inflection WHERE descriptor_id = " +
                 CEString::sToString(spLexeme->llLexemeId());
-            uint64_t uiQueryHandle = 0;
-            rc = eQueryDb(sQueryBaseInflection, uiQueryHandle);
+            uint64_t uiInflectionQueryHandle = 0;
+            rc = eQueryDb(sInflectionQuery, uiInflectionQueryHandle);
             if (H_NO_ERROR != rc)
             {
                 return rc;
@@ -538,8 +538,9 @@ ET_ReturnCode CDictionary::eGetLexemesByInitialForm(const CEString& sSource)
             while (H_NO_ERROR == rc)
             {
                 auto bSpryazhSm = false;        // TODO -- are we handling spryazh sm??
-                auto eInflection = eReadInflectionData(spLexeme, uiQueryHandle, bSpryazhSm);
+                rc = eReadInflectionData(spLexeme, uiInflectionQueryHandle, bSpryazhSm);
             }
+            m_spDb->Finalize(uiInflectionQueryHandle);
         }
     }
 
@@ -608,24 +609,24 @@ ET_ReturnCode CDictionary::eGetLexemesByInitialForm(const CEString& sSource)
     m_vecLexemes.insert(m_vecLexemes.end(), make_move_iterator(vecLexemesFound.begin()),
         make_move_iterator(vecLexemesFound.end()));
 
-    uiQueryHandle = 0;
-    for (auto spLexeme : m_vecLexemes)
-    {
-        auto sInflectionQuery = sQueryBaseInflection +
-            L" FROM inflection WHERE descriptor_id = " +
-            CEString::sToString(spLexeme->llLexemeId());
-        uint64_t uiQueryHandle = 0;
-        rc = eQueryDb(sQueryBaseInflection, uiQueryHandle);
-        if (H_NO_ERROR != rc)
-        {
-            return rc;
-        }
-        while (H_NO_ERROR == rc)
-        {
-            auto bSpryazhSm = false;        // TODO -- are we handling spryazh sm??
-            auto eInflection = eReadInflectionData(spLexeme, uiQueryHandle, bSpryazhSm);
-        }
-    }
+//    uiQueryHandle = 0;
+//    for (auto spLexeme : m_vecLexemes)
+//    {
+//        auto sInflectionQuery = sQueryBaseInflection +
+//            L" FROM inflection WHERE descriptor_id = " +
+//            CEString::sToString(spLexeme->llLexemeId());
+//        uint64_t uiInflectionQueryHandle = 0;
+//        rc = eQueryDb(sInflectionQuery, uiInflectionQueryHandle);
+//        if (H_NO_ERROR != rc)
+//        {
+//            return rc;
+//        }
+//        while (H_NO_ERROR == rc)
+//        {
+//            auto bSpryazhSm = false;        // TODO -- are we handling spryazh sm??
+//            rc = eReadInflectionData(spLexeme, uiInflectionQueryHandle, bSpryazhSm);
+//        }
+//    }
 
     return rc;
 
@@ -651,10 +652,10 @@ ET_ReturnCode CDictionary::Clear(shared_ptr<CLexeme> spLexeme)
     return H_ERROR_UNEXPECTED;
 }
 
-ET_ReturnCode CDictionary::eCreateLexemeEnumerator(shared_ptr<CLexemeEnumerator>& spLe)
+ET_ReturnCode CDictionary::eCreateLexemeEnumerator(shared_ptr<CLexemeEnumerator>& spLexemeEnumerator)
 {
-    spLe = make_shared<CLexemeEnumerator>(shared_from_this());
-    if (!spLe)
+    spLexemeEnumerator = make_shared<CLexemeEnumerator>(shared_from_this());
+    if (!m_spLexemeEnumerator)
     {
         ERROR_LOG(L"Error retrieving ILexemeEnumerator.");
         return H_ERROR_POINTER;
@@ -663,16 +664,29 @@ ET_ReturnCode CDictionary::eCreateLexemeEnumerator(shared_ptr<CLexemeEnumerator>
     return H_NO_ERROR;
 }
 
-void CDictionary::DeleteLexemeEnumerator(shared_ptr<CLexemeEnumerator> spLe)
+void CDictionary::DeleteLexemeEnumerator(shared_ptr<CLexemeEnumerator> spLexemeEnumerator)
 {
 //    delete pLe;
 }
+
+//ET_ReturnCode CDictionary::eGetLexemeInstance(int iAt, shared_ptr<CLexeme>& spLexeme)
+//{
+//    if (iAt < 0 || iAt >= (int)m_vecLexemes.size())
+//    {
+//        ERROR_LOG(L"Lexeme index out of bounds.");
+//        return H_ERROR_INVALID_ARG;
+//    }
+//
+//    spLexeme = m_vecLexemes[iAt];
+//
+//    return H_NO_ERROR;
+//}
 
 ET_ReturnCode CDictionary::eGetParser(shared_ptr<CParser>& spParser)
 {
     if (nullptr == m_spDb)
     {
-        ERROR_LOG(L"Error retrieving IParser interface.");
+        ERROR_LOG(L"Error retrieving parser instance.");
         return H_ERROR_POINTER;
     }
 
@@ -1155,7 +1169,7 @@ ET_ReturnCode CDictionary::ePopulateWordFormDataTables()
                     while (H_NO_ERROR == rc)
                     {
                         auto bSpryazhSm = false;        // TODO -- are we handling spryazh sm??
-                        auto eInflection = eReadInflectionData(spLexeme, uiQueryHandle, bSpryazhSm);
+                        rc = eReadInflectionData(spLexeme, uiQueryHandle, bSpryazhSm);
                     }
                 }
 
@@ -1514,7 +1528,7 @@ ET_ReturnCode CDictionary::ePopulateHashToDescriptorTable(PROGRESS_CALLBACK_CLR 
                 while (H_NO_ERROR == rc)
                 {
                     auto bSpryazhSm = false;        // TODO -- are we handling spryazh sm??
-                    auto eInflection = eReadInflectionData(spLexeme, uiQueryHandle, bSpryazhSm);
+                    rc = eReadInflectionData(spLexeme, uiQueryHandle, bSpryazhSm);
                 }
             }
 
@@ -1702,7 +1716,7 @@ ET_ReturnCode CDictionary::eReadDescriptorData(shared_ptr<CLexeme> spLexeme, uin
         return H_ERROR_POINTER;
     }
 
-    auto stProperties = spLexeme->stGetPropertiesForWriteAccess();
+    auto& stProperties = spLexeme->stGetPropertiesForWriteAccess();
 
     ET_ReturnCode rc = H_NO_ERROR;
 
@@ -2012,7 +2026,7 @@ ET_ReturnCode CDictionary::eReadInflectionData(shared_ptr<CLexeme>spLexeme, uint
         if (m_spDb->bGetRow(uiQueryHandle))
         {
             auto spInflection = make_shared<CInflection>(spLexeme);
-            auto stProperties = spInflection->stGetPropertiesForWriteAccess();
+            auto& stProperties = spInflection->stGetPropertiesForWriteAccess();
 
             m_spDb->GetData(0, stProperties.llInflectionId, uiQueryHandle);                      //  0 source
             m_spDb->GetData(1, stProperties.bPrimaryInflectionGroup, uiQueryHandle);             //  1 is_primary
@@ -2039,7 +2053,7 @@ ET_ReturnCode CDictionary::eReadInflectionData(shared_ptr<CLexeme>spLexeme, uint
 
             m_spDb->GetData(10, stProperties.iStemAugment, uiQueryHandle);                       // 10 stem_augment
 
-            m_spDb->Finalize(uiQueryHandle);
+//            m_spDb->Finalize(uiQueryHandle);
 
             CEString sDeviationQuery(L"SELECT deviation_type, is_optional FROM common_deviation WHERE inflection_id = ");
             sDeviationQuery += CEString::sToString(stProperties.llInflectionId);

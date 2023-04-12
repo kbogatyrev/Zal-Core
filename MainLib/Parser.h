@@ -30,6 +30,8 @@ public:
     ET_ReturnCode eParseWord(const CEString& sWord);
     ET_ReturnCode eGetFirstWordForm(shared_ptr<CWordForm>&);
     ET_ReturnCode eGetNextWordForm(shared_ptr<CWordForm>&);
+    ET_ReturnCode eGetFirstWordForm(CWordForm*&);
+    ET_ReturnCode eGetNextWordForm(CWordForm*&);
     void ClearResults();
 
     void SetDb(shared_ptr<CSqlite> pDb);

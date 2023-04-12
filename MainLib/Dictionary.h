@@ -34,8 +34,8 @@ public:
 
     ET_ReturnCode eReset();
 
-    ET_ReturnCode eGetFirstLexeme(shared_ptr<CLexeme>&);
-    ET_ReturnCode eGetNextLexeme(shared_ptr<CLexeme>&);
+    ET_ReturnCode eGetFirstLexeme(shared_ptr<CLexeme>&);        // C++ consumers
+    ET_ReturnCode eGetNextLexeme(shared_ptr<CLexeme>&);         //     --"--
 
 private:
     vector<shared_ptr<CLexeme>>::iterator m_itCurrentLexeme;
@@ -51,6 +51,7 @@ public:
     ~CDictionary();
 
 public:
+    ET_ReturnCode eInit();
     ET_ReturnCode eSetDbPath(const CEString& sDbPath);
     CEString sGetDbPath();
     shared_ptr<CSqlite> spGetDb();
@@ -77,6 +78,8 @@ public:
 
     ET_ReturnCode eCreateLexemeEnumerator(shared_ptr<CLexemeEnumerator>&);
     void DeleteLexemeEnumerator(shared_ptr<CLexemeEnumerator>);
+
+//    ET_ReturnCode eGetLexemeInstance (int i, shared_ptr<CLexeme>&);
 
     ET_ReturnCode eGetParser(shared_ptr<CParser>&);
     ET_ReturnCode eGetAnalytics(shared_ptr<CAnalytics>&);
@@ -120,7 +123,7 @@ private:
     vector<shared_ptr<CLexeme>>::iterator m_itCurrentLexeme;
     vector<shared_ptr<CWordForm>>::iterator m_itCurrentWordForm;
 
-    ET_ReturnCode eInit();
+//    ET_ReturnCode eInit();
 
     // Populate DB tables
     ET_ReturnCode ePopulateStemsTable();

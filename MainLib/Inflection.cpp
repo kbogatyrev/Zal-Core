@@ -1048,6 +1048,7 @@ ET_ReturnCode CInflection::eGenerateParadigm()
     catch (...)
     {
         ERROR_LOG(L"Unknown exception.");
+        return H_EXCEPTION;
     }
 
     for (auto& sHash : m_vecHypotheticalForms)
@@ -1242,6 +1243,38 @@ ET_ReturnCode CInflection::eGetNextWordForm(shared_ptr<CWordForm>& spWf)
     return H_NO_ERROR;
 }
 
+/*
+ET_ReturnCode CInflection::eGetFirstWordForm(CWordForm*& pWf)
+{
+    m_itCurrentWordForm = m_mmWordForms.begin();
+    if (m_mmWordForms.end() == m_itCurrentWordForm)
+    {
+        pWf = NULL;
+        return H_FALSE;
+    }
+    pWf = m_itCurrentWordForm->second.get();
+
+    return H_NO_ERROR;
+}
+
+ET_ReturnCode CInflection::eGetNextWordForm(CWordForm*& pWf)
+{
+    if (m_mmWordForms.end() != m_itCurrentWordForm)
+    {
+        ++m_itCurrentWordForm;
+    }
+    if (m_mmWordForms.end() == m_itCurrentWordForm)
+    {
+        pWf = NULL;
+        return H_NO_MORE;
+    }
+
+    pWf = m_itCurrentWordForm->second.get();
+
+    return H_NO_ERROR;
+}
+*/
+
 ET_ReturnCode CInflection::eGetFirstIrregularForm(CEString sHash, shared_ptr<CWordForm>& spWordForm, bool& bIsOptional)
 {
     m_pairItIfRange = m_mmapIrregularForms.equal_range(sHash);
@@ -1259,6 +1292,29 @@ ET_ReturnCode CInflection::eGetFirstIrregularForm(CEString sHash, shared_ptr<CWo
         else
         {
             spWordForm = (*m_itCurrentIrregularForm).second.spWordForm;
+            bIsOptional = (*m_itCurrentIrregularForm).second.bIsOptional;
+            return H_NO_ERROR;
+        }
+    }
+}
+
+ET_ReturnCode CInflection::eGetFirstIrregularForm(CEString sHash, CWordForm*& pWordForm, bool& bIsOptional)
+{
+    m_pairItIfRange = m_mmapIrregularForms.equal_range(sHash);
+    if (m_pairItIfRange.first == m_pairItIfRange.second)
+    {
+        return H_FALSE;
+    }
+    else
+    {
+        m_itCurrentIrregularForm = m_pairItIfRange.first;
+        if ((*m_itCurrentIrregularForm).first != sHash)
+        {
+            return H_FALSE;
+        }
+        else
+        {
+            pWordForm = (*m_itCurrentIrregularForm).second.spWordForm.get();
             bIsOptional = (*m_itCurrentIrregularForm).second.bIsOptional;
             return H_NO_ERROR;
         }
@@ -1315,6 +1371,45 @@ ET_ReturnCode CInflection::eGetNextIrregularForm(shared_ptr<CWordForm>& spWordFo
     //    }
 
     spWordForm = (*m_itCurrentIrregularForm).second.spWordForm;
+    bIsOptional = (*m_itCurrentIrregularForm).second.bIsOptional;
+
+    return H_NO_ERROR;
+
+}   //  eGetNextIrregularForm (...)
+
+ET_ReturnCode CInflection::eGetNextIrregularForm(CWordForm*& pWordForm, bool& bIsOptional)
+{
+    if (m_pairItIfRange.first == m_pairItIfRange.second)
+    {
+        return H_ERROR_UNEXPECTED;
+    }
+
+    //    if (iHash != (*pairItIfRange.first).first)
+    //    {
+    //        return H_ERROR_UNEXPECTED;
+    //    }
+
+    if (m_itCurrentIrregularForm == m_mmapIrregularForms.end())
+        //        || (*m_itCurrentIrregularForm).first != iHash))
+    {
+        return H_ERROR_UNEXPECTED;
+    }
+
+    ++m_itCurrentIrregularForm;
+
+    if (m_itCurrentIrregularForm == m_mmapIrregularForms.end() || m_itCurrentIrregularForm == m_pairItIfRange.second)
+        //        || (*m_itCurrentIrregularForm).first != iHash))
+    {
+        return H_NO_MORE;
+    }
+
+    //    if ((*m_itCurrentIrregularForm).first != (*m_itCurrentIrregularForm).second.pWordForm->sGramHash())
+    //    {
+    //        ERROR_LOG(L"Irregular form: gramm hash does not match.");
+    //        return H_ERROR_UNEXPECTED;
+    //    }
+
+    pWordForm = (*m_itCurrentIrregularForm).second.spWordForm.get();
     bIsOptional = (*m_itCurrentIrregularForm).second.bIsOptional;
 
     return H_NO_ERROR;
