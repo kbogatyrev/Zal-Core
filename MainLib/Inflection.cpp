@@ -629,10 +629,11 @@ ET_ReturnCode CInflection::eLoadIrregularForms()
 
     m_spLexeme->stGetPropertiesForWriteAccess().bHasIrregularVariants = false;
 
+    // NB: irregular forms are a property of the lexeme, i.e. descriptor
     CEString sQuery
         (L"SELECT id, gram_hash, wordform, is_alternative, lead_comment, trailing_comment, is_edited FROM irregular_forms WHERE descriptor_id = ");
     sQuery += CEString::sToString(m_spLexeme->stGetProperties().llDescriptorId);
-    sQuery += L";";
+sQuery += L";";
 
     shared_ptr<CSqlite> spDb;
 
