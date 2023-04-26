@@ -541,6 +541,11 @@ ET_ReturnCode CDictionary::eGetLexemesByInitialForm(const CEString& sSource)
                 rc = eReadInflectionData(spLexeme, uiInflectionQueryHandle, bSpryazhSm);
             }
             m_spDb->Finalize(uiInflectionQueryHandle);
+
+            if (spLexeme->nInflections() < 1)
+            {
+                spLexeme->AddInflection(make_shared<CInflection>(spLexeme));
+            }
         }
     }
 
@@ -2021,11 +2026,12 @@ ET_ReturnCode CDictionary::eReadInflectionData(shared_ptr<CLexeme>spLexeme, uint
                                                inflection.no_short_form, inflection.no_past_part, inflection.fleeting_vowel, inflection.stem_augment ");
                                                                7                           8                      9                         10
     */
-    auto spInflection = make_shared<CInflection>(spLexeme);
     try
     {
         if (m_spDb->bGetRow(uiQueryHandle))
         {
+            auto spInflection = make_shared<CInflection>(spLexeme);
+
             auto& stProperties = spInflection->stGetPropertiesForWriteAccess();
 
             m_spDb->GetData(0, stProperties.llInflectionId, uiQueryHandle);                      //  0 source
@@ -2068,14 +2074,13 @@ ET_ReturnCode CDictionary::eReadInflectionData(shared_ptr<CLexeme>spLexeme, uint
                 stProperties.mapCommonDeviations[iType] = bOptional;
             }
             m_spDb->Finalize(uiDeviationHandle);
+            spLexeme->AddInflection(spInflection);
 
         }   // if (m_spDb->bGetRow())
         else
         {
             rc = H_NO_MORE;
         }
-        spLexeme->AddInflection(spInflection);
-
     }
     catch (CException& ex)
     {
