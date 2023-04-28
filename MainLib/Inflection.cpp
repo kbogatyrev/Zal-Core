@@ -847,7 +847,7 @@ ET_ReturnCode CInflection::eGenerateParadigm()
 
         m_mmWordForms.clear();
 
-        auto stLexemeProperties = m_spLexeme->stGetProperties();
+        auto& stLexemeProperties = m_spLexeme->stGetPropertiesForWriteAccess();
 
         if (L"мо" == stLexemeProperties.sInflectionType || L"м" == stLexemeProperties.sInflectionType || L"жо" == stLexemeProperties.sInflectionType
             || L"ж" == stLexemeProperties.sInflectionType || L"со" == stLexemeProperties.sInflectionType || L"с" == stLexemeProperties.sInflectionType
