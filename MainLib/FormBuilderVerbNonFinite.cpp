@@ -930,7 +930,7 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastAdverbial()
                 return H_ERROR_POINTER;
             }
 
-            auto spWordForm = shared_ptr<CWordForm>();
+            auto spWordForm = make_shared<CWordForm>();
             if (nullptr == spWordForm)
             {
                 assert(0);
@@ -982,7 +982,7 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastAdverbial()
 
                 if (iEnding > 0)
                 {
-                    shared_ptr<CWordForm> spVariant;
+                    auto spVariant = make_shared<CWordForm>();
 //                    CloneWordForm(spWordForm, spVariant);
                     spVariant->eCloneFrom(spWordForm);
                     spWordForm = spVariant;

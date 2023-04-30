@@ -412,14 +412,14 @@ ET_ReturnCode CDictionary::eGetLexemesByHash(const CEString& sMd5)
             return rc;
         }
 
-        uiQueryHandle = 0;
+//        uiQueryHandle = 0;
         for (auto spLexeme : m_vecLexemes)
         {
             auto sInflectionQuery = sQueryBaseInflection +
                 L" FROM inflection WHERE descriptor_id = " +
                 CEString::sToString(spLexeme->llLexemeId());
-            uint64_t uiQueryHandle = 0;
-            rc = eQueryDb(sQueryBaseInflection, uiQueryHandle);
+            uint64_t uiInflQueryHandle = 0;
+            rc = eQueryDb(sInflectionQuery, uiInflQueryHandle);
             if (H_NO_ERROR != rc)
             {
                 return rc;
@@ -427,8 +427,9 @@ ET_ReturnCode CDictionary::eGetLexemesByHash(const CEString& sMd5)
             while (H_NO_ERROR == rc)
             {
                 auto bSpryazhSm = false;        // TODO -- are we handling spryazh sm??
-                rc = eReadInflectionData(spLexeme, uiQueryHandle, bSpryazhSm);
+                rc = eReadInflectionData(spLexeme, uiInflQueryHandle, bSpryazhSm);
             }
+            m_spDb->Finalize(uiInflQueryHandle);
         }
     }
 
@@ -732,21 +733,19 @@ ET_ReturnCode CDictionary::eGetAnalytics(shared_ptr<CAnalytics>& spAnalytics)
 
 ET_ReturnCode CDictionary::eGetVerifier(shared_ptr<CVerifier>& spVerifier)
 {
-/**
     if (nullptr == m_spDb)
     {
-        m_pVerifier = nullptr;
-        ERROR_LOG(L"Error retrieving IVerifier interface.");
+        ERROR_LOG(L"Error retrieving the verifier: no database.");
         return H_ERROR_POINTER;
     }
 
-    if (nullptr == m_pVerifier)
+    if (nullptr == m_spVerifier)
     {
-        m_pVerifier = make_shared<CVerifier>(this);
+        m_spVerifier = make_shared<CVerifier>(shared_from_this());
     }
 
-    pVerifier = m_pVerifier.get();
-*/
+    spVerifier = m_spVerifier;
+
     return H_NO_ERROR;
 }
 

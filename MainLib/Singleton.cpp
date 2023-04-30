@@ -297,3 +297,26 @@ void Singleton::SetParser(shared_ptr<CParser> spParser)
 {
     m_spParser = spParser;
 }
+
+ET_ReturnCode Singleton::eGetVerifier(shared_ptr<CVerifier>& spVerifier)
+{
+    if (nullptr == m_spVerifier)
+    {
+        if (!m_spDictionary)
+        {
+            ERROR_LOG(L"The dictionary is not initialized.");
+            return H_ERROR_UNEXPECTED;
+        }
+    }
+
+    auto rc = m_spDictionary->eGetVerifier(m_spVerifier);
+    if (rc != H_NO_ERROR || !m_spVerifier)
+    {
+        ERROR_LOG(L"Unable to retrieve the verifier.");
+        return H_ERROR_UNEXPECTED;
+    }
+
+    spVerifier = m_spVerifier;
+
+    return H_NO_ERROR;
+}

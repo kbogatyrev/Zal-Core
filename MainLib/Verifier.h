@@ -46,7 +46,7 @@ namespace Hlib
     private:
         CVerifier();        // no use
         ET_ReturnCode eLoadStoredForms(const CEString& sLexemeHash);
-        ET_ReturnCode eCheckLexeme(shared_ptr<CLexeme>&, const CEString& sLexemeHash, bool& bCheckedOut);
+        ET_ReturnCode eCheckParadigm(shared_ptr<CInflection>&, const CEString& sLexemeHash, bool& bCheckedOut);
         bool bWordFormsMatch(shared_ptr<CWordForm> spLhs, shared_ptr<CWordForm> spRhs);
         ET_ReturnCode eGetStoredLexemeData(const CEString& sSelect);
 

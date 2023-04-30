@@ -25,54 +25,90 @@ CVerifier::~CVerifier()
 
 ET_ReturnCode CVerifier::eVerify (const CEString& sLexemeHash)
 {
-    ET_ReturnCode hr = H_NO_ERROR;
+    ET_ReturnCode rc = H_NO_ERROR;
 
     //
     // Generate word forms for selected lexeme
     // 
 
-    hr = eLoadStoredForms(sLexemeHash);
-    if (H_NO_ERROR != hr)
+    rc = eLoadStoredForms(sLexemeHash);
+    if (H_NO_ERROR != rc)
     {
-        return hr;
+        return rc;
     }
 
     m_spDictionary->Clear();
-    hr = m_spDictionary->eGetLexemesByHash(sLexemeHash);
-    if (H_NO_ERROR != hr)
+    rc = m_spDictionary->eGetLexemesByHash(sLexemeHash);
+    if (rc != H_NO_ERROR)
     {
         ERROR_LOG (L"GetLexemesByHash() failed.");
-        return hr;
+        return rc;
     }
     
-    CLexemeEnumerator le(m_spDictionary);
+    shared_ptr<CLexemeEnumerator> spLE;
+    rc = m_spDictionary->eCreateLexemeEnumerator(spLE);
+    if (rc != H_NO_ERROR || !spLE)
+    {
+        ERROR_LOG(L"Failed to create lexeme enumerator.");
+        return rc;
+    }
+
     shared_ptr<CLexeme> spLexeme;
-    hr = le.eGetFirstLexeme(spLexeme);
-    if (hr != H_NO_ERROR)
+    ET_ReturnCode eLex = spLE->eGetFirstLexeme(spLexeme);
+    if (eLex != H_NO_ERROR || !spLexeme)
     {
-        ERROR_LOG(L"Expected lexeme not found.");
-        return H_ERROR_UNEXPECTED;
+        ERROR_LOG(L"Failed to obtain lexeme instance.");
+        return eLex;
     }
 
-    while (H_NO_ERROR == hr)
+    while (H_NO_ERROR == eLex)
     {
-        bool bRet = false;
-        hr = eCheckLexeme(spLexeme, sLexemeHash, bRet);
-        if (H_NO_ERROR == hr)
+        shared_ptr<CInflectionEnumerator> spIE;
+        ET_ReturnCode eInfl = spLexeme->eCreateInflectionEnumerator(spIE);
+        if (eInfl != H_NO_ERROR || !spIE)
         {
-            m_eResult = bRet ? TEST_RESULT_OK : TEST_RESULT_FAIL;
-            return H_NO_ERROR;
+            ERROR_LOG(L"Failed to create inflection enumerator.");
+            return eInfl;
+        }
+        
+        shared_ptr<CInflection> spInflection;
+        eInfl = spIE->eGetFirstInflection(spInflection);
+        if (eInfl != H_NO_ERROR || !spInflection)
+        {
+            ERROR_LOG(L"Failed to obtain inflection instance.");
+            return eLex;
         }
 
-        hr = le.eGetNextLexeme(spLexeme);
-        if (hr != H_NO_ERROR)
+        while (H_NO_ERROR == eInfl)
         {
-            ERROR_LOG(L"Expected lexeme not found.");
-            return H_ERROR_UNEXPECTED;
+            bool bRet = true;
+            rc = eCheckParadigm(spInflection, sLexemeHash, bRet);
+            if (H_NO_ERROR == rc)
+            {
+                m_eResult = bRet ? TEST_RESULT_OK : TEST_RESULT_FAIL;
+                if (!bRet)
+                {
+                    return H_NO_ERROR;
+                }
+            }
+
+            eInfl = spIE->eGetNextInflection(spInflection);
+            if (eInfl != H_NO_ERROR && eInfl != H_NO_MORE)
+            {
+                ERROR_LOG(L"Expected lexeme not found.");
+                return H_ERROR_UNEXPECTED;
+            }
+        }
+
+        eLex = spLE->eGetNextLexeme(spLexeme);
+        if (eLex != H_NO_ERROR && eLex != H_NO_MORE)
+        {
+            ERROR_LOG(L"Error in GetNextLexeme().");
+            return eLex;
         }
     }
 
-    return hr;
+    return rc;
 
 }   //  Verify (...)
 
@@ -181,15 +217,15 @@ ET_ReturnCode CVerifier::eLoadStoredForms(const CEString& sLexemeHash)
 
 }   //  eLoadStoredForms (...)
 
-ET_ReturnCode CVerifier::eCheckLexeme (shared_ptr<CLexeme>& spLexeme, [[maybe_unused]]const CEString& sLexemeHash, bool& bCheckedOut)
+ET_ReturnCode CVerifier::eCheckParadigm (shared_ptr<CInflection>& spInflection, [[maybe_unused]]const CEString& sLexemeHash, bool& bCheckedOut)
 {
     ET_ReturnCode hr = H_NO_ERROR;
     return hr;
-/*
-    hr = spLexeme->eGenerateParadigm();
+
+    hr = spInflection->eGenerateParadigm();
     if (H_NO_ERROR != hr)
     {
-        ERROR_LOG (L"GenerateWordForms() failed.");
+        ERROR_LOG (L"GenerateParadigm() failed.");
         return hr;
     }
 
@@ -202,52 +238,50 @@ ET_ReturnCode CVerifier::eCheckLexeme (shared_ptr<CLexeme>& spLexeme, [[maybe_un
             continue;
         }
 
-        auto nForms = Inflection.iFormCount(itHash->first);
+        auto nForms = spInflection->iFormCount(itHash->first);
         if (nForms < 1)
         {
             bCheckedOut = false;
             return H_NO_ERROR;
         }
 
-        CWordForm* pGeneratedForm = nullptr;
-        CWordForm* pStoredForm = nullptr;
-        
+        auto& spStoredForm = itHash->second;
+
         bool bFormMatch = false;
         for (auto nGeneratedForm = 0; nGeneratedForm < nForms; ++nGeneratedForm)
         {
-            shared_ptr<CWordForm> spWf;
-            hr = Inflection.eWordFormFromHash(itHash->first, nGeneratedForm, pItf);
+            shared_ptr<CWordForm> spGeneratedForm;
+            hr = spInflection->eWordFormFromHash(itHash->first, nGeneratedForm, spGeneratedForm);
             if (hr != H_NO_ERROR)
             {
                 bCheckedOut = false;
                 return hr;
             }
-            pGeneratedForm = dynamic_cast<CWordForm *>(pItf);
-            pStoredForm = dynamic_cast<CWordForm *>(itHash->second);
-            if (pGeneratedForm->sWordForm() == pStoredForm->sWordForm())
+
+            if (spGeneratedForm->sWordForm() == spStoredForm->sWordForm())
             {
-                if (pStoredForm->m_mapStress == pGeneratedForm->m_mapStress)
+                if (spStoredForm->mapGetStressPositions() == spGeneratedForm->mapGetStressPositions())
                 {
                     bFormMatch = true;
                     break;
                 }
-//                else
-//                {
-//                    CEString sMsg(L"Stress mismatch, lexeme hash = ");
-//                    sMsg += sLexemeHash;
-//                    sMsg += L", gram hash = ";
-//                    sMsg += pGeneratedForm->sGramHash();
-//                    ERROR_LOG(sMsg);
-//                }
+                else
+                {
+                    CEString sMsg(L"Stress mismatch, lexeme hash = ");
+                    sMsg += sLexemeHash;
+                    sMsg += L", gram hash = ";
+                    sMsg += spGeneratedForm->sGramHash();
+                    ERROR_LOG(sMsg);
+                }
             }
-//            else
-//            {
-//                CEString sMsg(L"Word form mismatch, lexeme hash = ");
-//                sMsg +=sLexemeHash;
-//                sMsg += L", gram hash = ";
-//                sMsg += pGeneratedForm->sGramHash();
-//                ERROR_LOG(sMsg);
-//            }
+            else
+            {
+                CEString sMsg(L"Word form mismatch, lexeme hash = ");
+                sMsg +=sLexemeHash;
+                sMsg += L", gram hash = ";
+                sMsg += spGeneratedForm->sGramHash();
+                ERROR_LOG(sMsg);
+            }
         }       //  for auto nGeneratedForm = 0...
 
         if (!bFormMatch)
@@ -258,8 +292,8 @@ ET_ReturnCode CVerifier::eCheckLexeme (shared_ptr<CLexeme>& spLexeme, [[maybe_un
 
     }       //  for (auto itHash = ...)
 
-    IWordForm * pItf = NULL;
-    hr = Inflection.eGetFirstWordForm(pItf);
+    shared_ptr<CWordForm> spGeneratedForm;
+    hr = spInflection->eGetFirstWordForm(spGeneratedForm);
     if (hr != H_NO_ERROR)
     {
         ERROR_LOG(L"eGetFirstWordForm() failed.");
@@ -268,25 +302,22 @@ ET_ReturnCode CVerifier::eCheckLexeme (shared_ptr<CLexeme>& spLexeme, [[maybe_un
 
     for (bool bIterate = true; bIterate;)
     {
-        auto pairStoredForms = m_mmapStoredForms.equal_range(pItf->sGramHash());
+        auto pairStoredForms = m_mmapStoredForms.equal_range(spGeneratedForm->sGramHash());
         if (pairStoredForms.first == pairStoredForms.second)
         {
             CEString sMsg(L"No stored forms for ");
-            sMsg += pItf->sGramHash();
+            sMsg += spGeneratedForm->sGramHash();
             ERROR_LOG(sMsg);
             return H_ERROR_UNEXPECTED;
         }
 
         bool bFormMatch = false;
-        CWordForm* pGeneratedForm = nullptr;
-        CWordForm* pStoredForm = nullptr;
         for (auto itStoredForm = pairStoredForms.first; itStoredForm != pairStoredForms.second; ++itStoredForm)
         { 
-            pGeneratedForm = dynamic_cast<CWordForm *>(pItf);
-            pStoredForm = dynamic_cast<CWordForm *>(itStoredForm->second);
-            if (pGeneratedForm->sWordForm() == pStoredForm->sWordForm())
+            auto spStoredForm = itStoredForm->second;
+            if (spGeneratedForm->sWordForm() == spStoredForm->sWordForm())
             {
-                if (pGeneratedForm->m_mapStress == pStoredForm->m_mapStress)
+                if (spGeneratedForm->mapGetStressPositions() == spStoredForm->mapGetStressPositions())
                 {
                     bFormMatch = true;
                     break;
@@ -300,7 +331,7 @@ ET_ReturnCode CVerifier::eCheckLexeme (shared_ptr<CLexeme>& spLexeme, [[maybe_un
             return H_NO_ERROR;
         }
 
-        hr = Inflection.eGetNextWordForm(pItf);
+        hr = spInflection->eGetNextWordForm(spGeneratedForm);
         if (H_NO_MORE == hr)
         {
             bIterate = false;
@@ -310,13 +341,15 @@ ET_ReturnCode CVerifier::eCheckLexeme (shared_ptr<CLexeme>& spLexeme, [[maybe_un
 
     bCheckedOut = true;
 
+    //
     // Check aspect pair(s) if available
-    if (Inflection.bHasAspectPair())
+    //
+    if (spInflection->spGetLexeme()->bHasAspectPair())
     {
         bCheckedOut = false;
 
         vector<CEString> vecHashes = { L"AspectPair" };
-        if (Inflection.bHasAltAspectPair())
+        if (spInflection->spGetLexeme()->bHasAltAspectPair())
         {
             vecHashes.push_back(L"AltAspectPair");
         }
@@ -334,7 +367,7 @@ ET_ReturnCode CVerifier::eCheckLexeme (shared_ptr<CLexeme>& spLexeme, [[maybe_un
             int iGeneratedAspectPairStressPos = -1;
             if (vecHashes.begin() == itHash)
             {
-                auto eRet = Inflection.eGetAspectPair(sGeneratedAspectPair, iGeneratedAspectPairStressPos);
+                auto eRet = spInflection->spGetLexeme()->eGetAspectPair(sGeneratedAspectPair, iGeneratedAspectPairStressPos);
                 if (eRet != H_NO_ERROR)
                 {
                     return eRet;
@@ -342,7 +375,7 @@ ET_ReturnCode CVerifier::eCheckLexeme (shared_ptr<CLexeme>& spLexeme, [[maybe_un
             }
             else
             {
-                auto eRet = Inflection.eGetAltAspectPair(sGeneratedAspectPair, iGeneratedAspectPairStressPos);
+                auto eRet = spInflection->spGetLexeme()->eGetAltAspectPair(sGeneratedAspectPair, iGeneratedAspectPairStressPos);
                 if (eRet != H_NO_ERROR)
                 {
                     return eRet;
@@ -350,11 +383,11 @@ ET_ReturnCode CVerifier::eCheckLexeme (shared_ptr<CLexeme>& spLexeme, [[maybe_un
             }
 
             auto aspectPair = pairRange.first;
-            CWordForm * pStoredForm = dynamic_cast<CWordForm *>(aspectPair->second);
-            if (sGeneratedAspectPair == pStoredForm->sWordForm())
+            auto spStoredForm = aspectPair->second;
+            if (sGeneratedAspectPair == spStoredForm->sWordForm())
             {
-                auto itStress = pStoredForm->m_mapStress.find(iGeneratedAspectPairStressPos);
-                if (itStress != pStoredForm->m_mapStress.end() && itStress->second == ET_StressType::STRESS_PRIMARY)
+                auto itStress = spStoredForm->mapGetStressPositions().find(iGeneratedAspectPairStressPos);
+                if (itStress != spStoredForm->mapGetStressPositions().end() && itStress->second == ET_StressType::STRESS_PRIMARY)
                 {
                     bCheckedOut = true;
                 }
@@ -363,7 +396,7 @@ ET_ReturnCode CVerifier::eCheckLexeme (shared_ptr<CLexeme>& spLexeme, [[maybe_un
     }       //  if (Lexeme.bHasAspectPair())
 
     return H_NO_ERROR;
-    */
+   
 }   //  eCheckLexeme (CLexeme& Lexeme, bool& bCheckedOut)
 
 bool CVerifier::bWordFormsMatch(shared_ptr<CWordForm> spLhs, shared_ptr<CWordForm> spRhs)

@@ -279,6 +279,7 @@ ET_ReturnCode CLexeme::eCreateInflectionEnumerator(shared_ptr<CInflectionEnumera
     return H_NO_ERROR;
 }
 
+/*
 ET_ReturnCode CLexeme::eCreateInflectionEnumerator(CInflectionEnumerator*& pIe)
 {
     m_spInflectionEnumerator = make_shared<CInflectionEnumerator>(shared_from_this());
@@ -292,6 +293,7 @@ ET_ReturnCode CLexeme::eCreateInflectionEnumerator(CInflectionEnumerator*& pIe)
 
     return H_NO_ERROR;
 }
+*/
 
 void CLexeme::DeleteInflectionEnumerator(shared_ptr<CInflectionEnumerator> pIe)
 {

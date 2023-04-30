@@ -39,13 +39,16 @@ namespace Hlib
         void Singleton::SetParser(shared_ptr<CParser> spParser);
         ET_ReturnCode eGetParser(shared_ptr<CParser>& spParser);
 
+        ET_ReturnCode eGetVerifier(shared_ptr<CVerifier>& spVerifier);
+
         static Singleton* pGetInstance();
 
     private:
         Singleton();
 
         shared_ptr<CDictionary> m_spDictionary;
-        shared_ptr<CParser>m_spParser;
+        shared_ptr<CParser> m_spParser;
+        shared_ptr<CVerifier> m_spVerifier;
         map<int64_t, shared_ptr<CLexeme>> m_mapLexemes;
         map<int64_t, shared_ptr<CInflection>> m_mapInflections;
         map<int64_t, shared_ptr<CWordForm>> m_mapWordForms;

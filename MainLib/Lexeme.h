@@ -65,7 +65,7 @@ namespace Hlib
         }
 
         ET_ReturnCode eCreateInflectionEnumerator(shared_ptr<CInflectionEnumerator>&);  // Standard version
-        ET_ReturnCode eCreateInflectionEnumerator(CInflectionEnumerator*&);             // Raw ptr version for CLI
+//        ET_ReturnCode eCreateInflectionEnumerator(CInflectionEnumerator*&);             // Raw ptr version for CLI
 
         void DeleteInflectionEnumerator(shared_ptr<CInflectionEnumerator>);
 
