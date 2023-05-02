@@ -37,7 +37,7 @@ protected:
     ET_ReturnCode eGetEndingStressPosition (const CEString& sLemma, const CEString& sEnding, int& iPosition);
     ET_ReturnCode eBuildPastTenseStem (CEString& sLemma);
     ET_ReturnCode eFleetingVowelCheck (CEString& sVerbForm);
-    ET_ReturnCode eHandleYoAlternation (int iStressPos, ET_Subparadigm eSubParadigm, CEString& sLemma);
+    ET_ReturnCode eHandleYoAlternation (int iStressPos, ET_Subparadigm eSubParadigm, shared_ptr<CWordForm> spWordForm);
     ET_ReturnCode eGetAlternatingPreverb(const CEString& sVerbForm, CEString& sPreverb, bool& bVoicing);
     ET_ReturnCode eGetPastTenseStressTypes (ET_AccentType eAccentType, ET_Number eNumber, ET_Gender eGender, vector<ET_StressLocation>& vecStress);
     bool bHasIrregularPresent();

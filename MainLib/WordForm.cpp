@@ -228,8 +228,8 @@ ET_ReturnCode CWordForm::eGetFirstStressPos(int& iPos, ET_StressType& eType)
 {
     m_sWordForm.SetVowels(CEString::g_szRusVowels);
 
-    m_itStressPos = m_mapStress.begin();
-    if (m_mapStress.end() == m_itStressPos)
+    m_itStressSyll = m_mapStress.begin();
+    if (m_mapStress.end() == m_itStressSyll)
     {
         iPos = -1;
         eType = STRESS_TYPE_UNDEFINED;
@@ -238,8 +238,8 @@ ET_ReturnCode CWordForm::eGetFirstStressPos(int& iPos, ET_StressType& eType)
 
     try
     {
-        iPos = m_sWordForm.uiGetVowelPos(m_itStressPos->first);
-        eType = m_itStressPos->second;
+        iPos = m_sWordForm.uiGetVowelPos(m_itStressSyll->first);
+        eType = m_itStressSyll->second;
     }
     catch (CException& ex)
     {
@@ -255,19 +255,19 @@ ET_ReturnCode CWordForm::eGetNextStressPos(int& iPos, ET_StressType& eType)
 {
     m_sWordForm.SetVowels(CEString::g_szRusVowels);
 
-    if (m_itStressPos != m_mapStress.end())
+    if (m_itStressSyll != m_mapStress.end())
     {
-        ++m_itStressPos;
+        ++m_itStressSyll;
     }
-    if (m_mapStress.end() == m_itStressPos)
+    if (m_mapStress.end() == m_itStressSyll)
     {
         return H_NO_MORE;
     }
 
     try
     {
-        iPos = m_sWordForm.uiGetVowelPos(m_itStressPos->first);
-        eType = m_itStressPos->second;
+        iPos = m_sWordForm.uiGetVowelPos(m_itStressSyll->first);
+        eType = m_itStressSyll->second;
     }
     catch (CException& ex)
     {
@@ -314,6 +314,41 @@ ET_ReturnCode CWordForm::eSetStressPositions(map<int, ET_StressType> mapStress)
 void CWordForm::SetStressPos(int iPos, ET_StressType eType)
 {
     m_mapStress[iPos] = STRESS_PRIMARY;
+}
+
+ET_ReturnCode CWordForm::eGetFirstStressSyll(int& iSyll, ET_StressType& eType)
+{
+    m_itStressSyll = m_mapStress.begin();
+    if (m_mapStress.end() == m_itStressSyll)
+    {
+        iSyll = -1;
+        eType = STRESS_TYPE_UNDEFINED;
+        return H_FALSE;
+    }
+
+    iSyll = m_itStressSyll->first;
+    eType = m_itStressSyll->second;
+
+    return H_NO_ERROR;
+}
+
+ET_ReturnCode CWordForm::eGetNextStressSyll(int& iSyll, ET_StressType& eType)
+{
+    m_sWordForm.SetVowels(CEString::g_szRusVowels);
+
+    if (m_itStressSyll != m_mapStress.end())
+    {
+        ++m_itStressSyll;
+    }
+    if (m_mapStress.end() == m_itStressSyll)
+    {
+        return H_NO_MORE;
+    }
+
+    iSyll = m_itStressSyll->first;
+    eType = m_itStressSyll->second;
+
+    return H_NO_ERROR;
 }
 
 //
@@ -748,7 +783,7 @@ void CWordForm::Copy(const CWordForm& source)
     m_bIsEdited = source.m_bIsEdited;
     m_bIsDifficult = source.m_bIsDifficult;
     m_eStressType = source.m_eStressType;
-    m_itStressPos = source.m_itStressPos;
+    m_itStressSyll = source.m_itStressSyll;
     m_sLeadComment = source.m_sLeadComment;
     m_sTrailingComment = source.m_sTrailingComment;
 }

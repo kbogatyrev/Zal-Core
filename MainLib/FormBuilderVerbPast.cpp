@@ -113,7 +113,7 @@ ET_ReturnCode CFormBuilderPast::eCreateFormTemplate (const CEString& sStem,
 
 ET_ReturnCode CFormBuilderPast::eAssemble(shared_ptr<CWordForm> spWordForm, 
                                           int iStressPos, 
-                                          CEString& sStem,
+                                          const CEString& sStem,
                                           CEString& sEnding)
 {
     assert(m_spLexeme);   // we assume base class ctor took care of this
@@ -123,14 +123,15 @@ ET_ReturnCode CFormBuilderPast::eAssemble(shared_ptr<CWordForm> spWordForm,
     try
     {
         spWordForm->SetStressPos(iStressPos, STRESS_PRIMARY);
-        spWordForm->SetStem(sStem);
-        rc = eHandleYoAlternation (iStressPos, SUBPARADIGM_PAST_TENSE, spWordForm->sStem());
+        rc = eHandleYoAlternation (iStressPos, SUBPARADIGM_PAST_TENSE, spWordForm);
         if (rc != H_NO_ERROR)
         {
             return rc;
         }
+//        spWordForm->SetStem(sStem);
 
         spWordForm->SetWordForm(spWordForm->sStem() + sEnding);
+//        spWordForm->SetWordForm(sStem + sEnding);
         if (m_spInflection->bHasCommonDeviation(1) && !(NUM_SG == spWordForm->eNumber() && GENDER_F == spWordForm->eGender()))
         {
             rc = eRetractStressToPreverb (spWordForm, m_spInflection->bDeviationOptional(1));
@@ -145,7 +146,7 @@ ET_ReturnCode CFormBuilderPast::eAssemble(shared_ptr<CWordForm> spWordForm,
         {
             if (m_spInflection->bDeviationOptional(5))
             {
-                shared_ptr<CWordForm> spVariant;
+                auto spVariant = make_shared<CWordForm>();
 //                CloneWordForm (spWordForm, spVariant);
                 spVariant->eCloneFrom(spWordForm);
                 m_spInflection->AddWordForm(spVariant);    // store both versions
@@ -323,7 +324,7 @@ ET_ReturnCode CFormBuilderPast::eBuild()
                     {
                         if (itStressPos != vecStress.begin())
                         {
-                            shared_ptr<CWordForm> spWfVariant;
+                            auto spWfVariant = make_shared<CWordForm>();
 //                            CloneWordForm (spWordForm, spWfVariant);
 //                            spWfVariant->m_mapStress.clear();
                             spWfVariant->eCloneFrom(spWordForm);
@@ -436,14 +437,14 @@ ET_ReturnCode CFormBuilderPast::eRetractStressToPreverb (shared_ptr<CWordForm> s
     {
         if (bIsOptional)    // store 1st variant if retraction is optional
         {
-            shared_ptr<CWordForm> spClone;
+            auto spClone = make_shared<CWordForm>();
 //            CloneWordForm (spWordForm, spClone);
             spClone->eCloneFrom(spWordForm);
             m_spInflection->AddWordForm (spClone);    // store both versions
             spWordForm = spClone;
         }
 
-        if (NULL == spWordForm)
+        if (nullptr == spWordForm)
         {
             assert(0);
             ERROR_LOG(L"Word form ptr is NULL");
@@ -451,52 +452,51 @@ ET_ReturnCode CFormBuilderPast::eRetractStressToPreverb (shared_ptr<CWordForm> s
         }
 
         map<int, ET_StressType> mapCorrectedStress;
-        int iPos = -1;
         ET_StressType eType = ET_StressType::STRESS_TYPE_UNDEFINED;
-        auto rcStress = spWordForm->eGetFirstStressPos(iPos, eType);
-//        map<int, ET_StressType>::iterator itStressPos = spWordForm->m_mapStress.begin();
-//        for (; itStressPos != spWordForm->m_mapStress.end(); ++itStressPos)
-        while (H_NO_ERROR == rcStress)
+        auto& mapStressSylls = spWordForm->mapGetStressPositions();
+//        auto rcStress = spWordForm->eGetFirstStressSyll(iPos, eType);
+        auto itStressSyll = mapStressSylls.begin();
+        for (; itStressSyll != mapStressSylls.end(); ++itStressSyll)
         {
-            if (STRESS_SECONDARY == eType)
+            if (STRESS_SECONDARY == (*itStressSyll).second)
             {
-                mapCorrectedStress[iPos] = STRESS_SECONDARY;
+                mapCorrectedStress[(*itStressSyll).first] = STRESS_SECONDARY;
                 continue;
             }
-            if (iPos < 1)
-            {
-                assert(0);
-                ERROR_LOG (L"Unexpected stress position in cd-1 verb.");
-                return H_ERROR_UNEXPECTED;
-            }
-
-            auto iStressPos = -1;
-            if (spWordForm->sWordForm().bStartsWith(L"пере"))
-            {
-                if (iPos < 2)
-                {
-                    assert(0);
-                    ERROR_LOG (L"Unexpected stress position in cd-1 verb.");
-                    return H_ERROR_UNEXPECTED;
-                }
-                iStressPos = iPos - 2;
-            }
-            else
-            {
-                iStressPos = iPos - 1;
-            }
-            mapCorrectedStress[iStressPos] = STRESS_PRIMARY;
-
-            // Remove yo at old stress pos
-            if (iStressPos < 0 || iStressPos > (int)spWordForm->sStem().uiLength())
+            if ((*itStressSyll).first < 1)
             {
                 assert(0);
                 ERROR_LOG(L"Unexpected stress position in cd-1 verb.");
                 return H_ERROR_UNEXPECTED;
             }
 
-            int iAt = spWordForm->sStem().uiGetVowelPos(iPos);
-            if (iAt < 0 || iAt > (int)spWordForm->sStem().uiLength())
+            auto iStressPos = -1;
+            if (spWordForm->sWordForm().bStartsWith(L"пере"))
+            {
+                if ((*itStressSyll).first < 2)
+                {
+                    assert(0);
+                    ERROR_LOG(L"Unexpected stress position in cd-1 verb.");
+                    return H_ERROR_UNEXPECTED;
+                }
+                iStressPos = (*itStressSyll).first - 2;
+            }
+            else
+            {
+                iStressPos = (*itStressSyll).first - 1;
+            }
+            mapCorrectedStress[iStressPos] = STRESS_PRIMARY;
+
+            // Remove yo at old stress pos
+            if (iStressPos < 0 || iStressPos >(int)spWordForm->sStem().uiLength())
+            {
+                assert(0);
+                ERROR_LOG(L"Unexpected stress position in cd-1 verb.");
+                return H_ERROR_UNEXPECTED;
+            }
+
+            int iAt = spWordForm->sStem().uiGetVowelPos((*itStressSyll).first);
+            if (iAt < 0 || iAt >(int)spWordForm->sStem().uiLength())
             {
                 assert(0);
                 ERROR_LOG(L"Unexpected stress position in cd-1 verb.");
@@ -504,19 +504,17 @@ ET_ReturnCode CFormBuilderPast::eRetractStressToPreverb (shared_ptr<CWordForm> s
             }
             if (L'ё' == spWordForm->sWordForm()[iAt])
             {
-//                spWordForm->m_sStem[iAt] = spWordForm->m_sWordForm[iAt] = L'е';
-                auto sStem = move(spWordForm->sStem());
-                sStem[iAt] = L'е';
-                spWordForm->SetStem(sStem);
+                spWordForm->sStem()[iAt] = spWordForm->sWordForm()[iAt] = L'е';
             }
+
         }
         spWordForm->AssignStress(mapCorrectedStress);
     }
     catch (CException& ex)
     {
-        CEString sMsg (L"Exception: ");
+        CEString sMsg(L"Exception: ");
         sMsg += ex.szGetDescription();
-        ERROR_LOG (sMsg);
+        ERROR_LOG(sMsg);
         return H_EXCEPTION;
     }
 

@@ -324,6 +324,8 @@ namespace Hlib
         ET_ReturnCode eGetNextStressPos(int& iPos, ET_StressType&);
         ET_ReturnCode eFindStressPos(int iPos, ET_StressType&);
         ET_ReturnCode eRemoveStressPos(int);
+        ET_ReturnCode eGetFirstStressSyll(int& iSyll, ET_StressType&);
+        ET_ReturnCode eGetNextStressSyll(int& iSyll, ET_StressType&);
 
         const map<int, ET_StressType>& mapGetStressPositions();
         ET_ReturnCode eSetStressPositions(map<int, ET_StressType> mapStress);
@@ -373,7 +375,7 @@ namespace Hlib
         bool m_bIsVariant;
         bool m_bIsEdited;
 //
-        map<int, ET_StressType>::iterator m_itStressPos;
+        map<int, ET_StressType>::iterator m_itStressSyll;
 
     };      //  class CWordForm
 

@@ -42,7 +42,7 @@ namespace Hlib
                                            int64_t llEndingKey,
                                            shared_ptr<CWordForm>& spWordForm);
 
-        ET_ReturnCode eAssemble(shared_ptr<CWordForm> spWordForm, int iStressPos, CEString& sStem, CEString& sEnding);
+        ET_ReturnCode eAssemble(shared_ptr<CWordForm> spWordForm, int iStressPos, const CEString& sStem, CEString& sEnding);
 
         ET_ReturnCode eBuild();
 

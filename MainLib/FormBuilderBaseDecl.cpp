@@ -734,7 +734,7 @@ ET_ReturnCode CFormBuilderDecl::eHandleYoAlternation (ET_StressLocation eStressT
                                                       CEString& sStem,
                                                       const CEString& sEnding)
 {
-	assert(m_spLexeme);   // we assume base class ctor took care of this
+	assert(m_spLexeme && m_spInflection);   // we assume base class ctor took care of this
 
     if (!m_bYoAlternation)
     {

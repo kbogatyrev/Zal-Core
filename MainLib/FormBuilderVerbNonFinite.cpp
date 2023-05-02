@@ -184,7 +184,7 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildInfinitive()
                 {
                     if (itStressedSyll != vecStress.begin())
                     {
-                        shared_ptr<CWordForm> spWfVariant;
+                        auto spWfVariant = make_shared<CWordForm>();
 //                        CloneWordForm(spWordForm, spWfVariant);
                         spWfVariant->eCloneFrom(spWordForm);
                         spWordForm = spWfVariant;
@@ -278,7 +278,7 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPresentActiveParticiple()
 
     for (auto n3PlWf = 0; n3PlWf < nFormCount; ++n3PlWf)
     {
-        shared_ptr<CWordForm> sp3PlWf;
+        auto sp3PlWf = make_shared<CWordForm>();
         rc = m_spInflection->eWordFormFromHash(hasher.sGramHash(), n3PlWf, sp3PlWf);
         if (rc != H_NO_ERROR)
         {
@@ -431,7 +431,7 @@ ET_ReturnCode CFormBuilderNonFinite::ePresAdvGeneral(ET_Subparadigm eSubparadigm
 
     ET_ReturnCode rc = H_NO_ERROR;
 
-    shared_ptr<CWordForm> spInfWf;  // needed for type 13 verbs only;
+    auto spInfWf = make_shared<CWordForm>();  // needed for type 13 verbs only;
 
     CEString sStem;
     map<int, ET_StressType> mapStress;
@@ -491,7 +491,7 @@ ET_ReturnCode CFormBuilderNonFinite::ePresAdvGeneral(ET_Subparadigm eSubparadigm
             }
 
             // Just get the 1st available wordfrom
-            shared_ptr<CWordForm> spSourceWf;
+            auto spSourceWf = make_shared<CWordForm>();
             rc = m_spInflection->eWordFormFromHash(sGramHash, 0, spSourceWf);
             if (rc != H_NO_ERROR || nullptr == spSourceWf)
             {
@@ -549,7 +549,7 @@ ET_ReturnCode CFormBuilderNonFinite::ePresAdvGeneral(ET_Subparadigm eSubparadigm
 
                 CEString sGramHash1Sg = hasher1Sg.sGramHash();
 
-                shared_ptr<CWordForm> sp1SgWf;
+                auto sp1SgWf = make_shared<CWordForm>();
                 rc = m_spInflection->eWordFormFromHash(hasher1Sg.sGramHash(), 0, sp1SgWf);
                 if (rc != H_NO_ERROR || nullptr == sp1SgWf)
                 {
@@ -756,7 +756,7 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastAdverbial()
         }
 
         // Just get the 1st available wordfrom
-        shared_ptr<CWordForm> spPastPart;
+        auto spPastPart = make_shared<CWordForm>();
         rc = m_spInflection->eWordFormFromHash(sGramHash, 0, spPastPart);
         if (rc != H_NO_ERROR || nullptr == spPastPart)
         {
@@ -894,7 +894,7 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastAdverbial()
             CGramHasher inf(POS_VERB, SUBPARADIGM_INFINITIVE, CASE_UNDEFINED, NUM_UNDEFINED, GENDER_UNDEFINED,
                 PERSON_UNDEFINED, ANIM_UNDEFINED, m_spLexeme->eAspect(), REFL_NO);
 
-            shared_ptr<CWordForm> spInfinitive;
+            auto spInfinitive = make_shared<CWordForm>();
             auto nInfForms = m_spInflection->iFormCount(inf.sGramHash());
             //            assert(m_spInflection->iFormCount(inf.sGramHash()) == 1);
 
@@ -1059,7 +1059,7 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPresentPassiveParticiple()
         return H_NO_MORE;
     }
 
-    shared_ptr<CWordForm> sp1Pl;
+    auto sp1Pl = make_shared<CWordForm>();
 
     auto n1PlForms = m_spInflection->iFormCount(sourceHasher.sGramHash());
     if (n1PlForms < 1)
@@ -1173,7 +1173,7 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastActiveParticiple()
         CGramHasher hasher(POS_VERB, SUBPARADIGM_PAST_TENSE, CASE_UNDEFINED, NUM_SG, GENDER_M,
             PERSON_UNDEFINED, ANIM_UNDEFINED, m_spLexeme->eAspect(),
             m_spLexeme->eIsReflexive());
-        shared_ptr<CWordForm> spPastM;
+        auto spPastM = make_shared<CWordForm>();
         auto nPastM = m_spInflection->iFormCount(hasher.sGramHash());
         if (nPastM < 1)
         {
@@ -1375,7 +1375,7 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastPassiveParticiple()
             m_spLexeme->eIsReflexive());
 
 
-        shared_ptr<CWordForm> spPastM;
+        auto spPastM = make_shared<CWordForm>();
         int iNForms = m_spInflection->iFormCount (sourceHasher.sGramHash());
         for (int iWf = 0; iWf < iNForms; ++iWf)
         {
@@ -1456,7 +1456,7 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastPassiveParticiple()
     CGramHasher partPastPassLong (POS_VERB, SUBPARADIGM_PART_PAST_PASS_LONG, CASE_NOM, NUM_SG, 
                                   GENDER_M, PERSON_UNDEFINED, ANIM_NO, m_spLexeme->eAspect(), 
                                   m_spLexeme->eIsReflexive());
-    shared_ptr<CWordForm> spNSgMLong;
+    auto spNSgMLong = make_shared<CWordForm>();
     int iNForms = m_spInflection->iFormCount (partPastPassLong.sGramHash());
     for (int iWf = 0; iWf < iNForms; ++iWf)
     {
@@ -1480,11 +1480,15 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastPassiveParticiple()
             sNSgMLong.bEndsWith (L"енный"))
         {
 //            auto itStress = spNSgMLong->m_mapStress.begin();
-            auto rcStress = spNSgMLong->eGetFirstStressPos(iPos, eType);
+            auto& mapStress = spNSgMLong->mapGetStressPositions();
+//            auto rcStress = spNSgMLong->eGetFirstStressSyll(iPos, eType);
 //            for (; itStress != spNSgMLong->m_mapStress.end(); ++itStress)
-            while (H_NO_ERROR == rcStress)
+            auto itStress = mapStress.begin();
+//            while (H_NO_ERROR == rcStress)
+            for (; itStress != mapStress.end(); ++itStress)
             {
-                if (sNSgMLong.uiNSyllables()-2 == iPos && STRESS_PRIMARY == eType)
+                if (sNSgMLong.uiNSyllables() - 2 == (*itStress).first &&
+                    STRESS_PRIMARY == (*itStress).second)
                 {
                     ET_AccentType eAccentType = ET_AccentType::AT_UNDEFINED;
                     bool bYoAlternation = false;
@@ -1495,7 +1499,7 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastPassiveParticiple()
                     {
                         eAccentType = m_spInflection->eAccentType2();
                     }
-                    else if ((m_spLexeme->sSourceForm().bEndsWithNoCase(L"ать") 
+                    else if ((m_spLexeme->sSourceForm().bEndsWithNoCase(L"ать")
                         || m_spLexeme->sSourceForm().bEndsWithNoCase(L"ять"))
                         && m_spInflection->bHasCommonDeviation(7))
                     {
@@ -1507,16 +1511,42 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastPassiveParticiple()
                         return H_ERROR_UNEXPECTED;
                     }
                     CFormBuilderShortAdj shortAdj(m_spLexeme,
-                                                  m_spInflection,
-                                                  bYoAlternation,
-                                                  spNSgMLong->sStem(),
-                                                  SUBPARADIGM_PART_PAST_PASS_SHORT,
-                                                  AT_A,
-                                                  eAccentType,
-                                                  vector<int>(1, iPos),
-                                                  bFleetingVowel,
-                                                  2,
-                                                  eStatus);
+                        m_spInflection,
+                        bYoAlternation,
+                        spNSgMLong->sStem(),
+                        SUBPARADIGM_PART_PAST_PASS_SHORT,
+                        AT_A,
+                        eAccentType,
+                        vector<int>(1, (*itStress).first),
+                        bFleetingVowel,
+                        2,
+                        eStatus);
+                    if (STATUS_COMMON != eStatus)
+                    {
+                        shortAdj.SetUsageStatus(eStatus);
+                    }
+                    rc = shortAdj.eBuild();
+                    if (rc != H_NO_ERROR)
+                    {
+                        return rc;
+                    }
+
+                }
+                else
+                {
+                    bool bYoAlternation = false;
+                    bool bFleetingVowel = true;
+                    CFormBuilderShortAdj shortAdj(m_spLexeme,
+                        m_spInflection,
+                        bYoAlternation,
+                        spNSgMLong->sStem(),
+                        SUBPARADIGM_PART_PAST_PASS_SHORT,
+                        AT_A,
+                        AT_A,
+                        vector<int>(1, (*itStress).first),
+                        bFleetingVowel,
+                        2,
+                        eStatus);
                     if (STATUS_COMMON != eStatus)
                     {
                         shortAdj.SetUsageStatus(eStatus);
@@ -1527,35 +1557,7 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastPassiveParticiple()
                         return rc;
                     }
                 }
-                else
-                {
-                    bool bYoAlternation = false;
-                    bool bFleetingVowel = true;
-                    CFormBuilderShortAdj shortAdj (m_spLexeme, 
-                                                   m_spInflection,
-                                                   bYoAlternation, 
-                                                   spNSgMLong->sStem(),
-                                                   SUBPARADIGM_PART_PAST_PASS_SHORT, 
-                                                   AT_A, 
-                                                   AT_A,
-                                                   vector<int>(1, iPos),
-                                                   bFleetingVowel,
-                                                   2,
-                                                   eStatus);
-                    if (STATUS_COMMON != eStatus)
-                    {
-                        shortAdj.SetUsageStatus (eStatus);
-                    }
-                    rc = shortAdj.eBuild();
-                    if (rc != H_NO_ERROR)
-                    {
-                        return rc;
-                    }
-                }
-
-                rcStress = spNSgMLong->eGetNextStressPos(iPos, eType);
-            
-            }       //  while (H_NO_ERROR == rcStress)
+            }
         }
 
         if (sNSgMLong.bEndsWith (L"ённый"))
@@ -1568,7 +1570,7 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastPassiveParticiple()
 
             bool bYoAlternation = true;
             bool bFleetingVowel = true;
-            auto rcStress = spNSgMLong->eGetFirstStressPos(iPos, eType);
+            auto rcStress = spNSgMLong->eGetFirstStressSyll(iPos, eType);
             if (eType != STRESS_PRIMARY || iPos != (int)sNSgMLong.uiGetNumOfSyllables()-2)
             {
                 assert(0);
@@ -1604,7 +1606,7 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastPassiveParticiple()
             bool bYoAlternation = m_spLexeme->stGetProperties().bYoAlternation;
             bool bFleetingVowel = false;
 //            auto itStress = spNSgMLong->m_mapStress.begin();
-            auto rcStress = spNSgMLong->eGetFirstStressPos(iPos, eType);
+            auto rcStress = spNSgMLong->eGetFirstStressSyll(iPos, eType);
             if (eType != STRESS_PRIMARY)
             {
                 assert(0);
@@ -1914,7 +1916,7 @@ ET_ReturnCode CFormBuilderNonFinite::eGetParticipleStressPos (ET_Subparadigm eSu
                                          GENDER_UNDEFINED, PERSON_3, ANIM_UNDEFINED, 
                                          m_spLexeme->eAspect(), m_spLexeme->eIsReflexive());
                     int iNForms = m_spInflection->iFormCount (sg3Pres.sGramHash());
-                    shared_ptr<CWordForm> sp3Sg;
+                    auto sp3Sg = make_shared<CWordForm>();
                     for (int iF = 0; iF < iNForms; ++iF)
                     {
                         rc = m_spInflection->eWordFormFromHash (sg3Pres.sGramHash(), iF, sp3Sg);
@@ -1930,22 +1932,17 @@ ET_ReturnCode CFormBuilderNonFinite::eGetParticipleStressPos (ET_Subparadigm eSu
                         }
 
 //                        auto itStressPos = sp3Sg->m_mapStress.begin();
-                        auto rcStress = sp3Sg->eGetFirstStressPos(iPos, eType);
+//                        auto rcStress = sp3Sg->eGetFirstStressSyll(iPos, eType);
 //                        for (; sp3Sg->m_mapStress.end() != itStressPos; ++itStressPos)
-                        while (rcStress == H_NO_ERROR)
+                        auto& mapStressSylls = sp3Sg->mapGetStressPositions();
+//                        while (rcStress == H_NO_ERROR)
+                        for (auto itStressSyll = mapStressSylls.begin(); itStressSyll != mapStressSylls.end(); ++itStressSyll)
                         {
                             if (STRESS_PRIMARY == eType)
                             {
-                                vecPositions.push_back (iPos);
+                                vecPositions.push_back (itStressSyll->first);
                             }
-                            rcStress = sp3Sg->eGetNextStressPos(iPos, eType);
                         }
-                        if (rcStress != ET_ReturnCode::H_NO_MORE)
-                        {
-                            assert(0);
-                            ERROR_LOG(L"Unexpected return code.");
-                        }
-
                     }       //  for (int iF = 0; iF < iNForms; ++iF)
 
                 }   //   if (4 == m_spInflection->iType())
@@ -1996,7 +1993,7 @@ ET_ReturnCode CFormBuilderNonFinite::eGetParticipleStressPos (ET_Subparadigm eSu
                     CGramHasher pastF (POS_VERB, SUBPARADIGM_PAST_TENSE, CASE_UNDEFINED, NUM_SG, GENDER_F,
                                        PERSON_UNDEFINED, ANIM_UNDEFINED, m_spLexeme->eAspect(), 
                                        m_spLexeme->eIsReflexive());
-                    shared_ptr<CWordForm> spPastF;
+                    auto spPastF = make_shared<CWordForm>();
                     int iNForms = m_spInflection->iFormCount (pastF.sGramHash());
                     for (int iF = 0; iF < iNForms; ++iF)
                     {
@@ -2012,7 +2009,7 @@ ET_ReturnCode CFormBuilderNonFinite::eGetParticipleStressPos (ET_Subparadigm eSu
                             return H_ERROR_POINTER;
                         }
 
-                        auto rcStress = spPastF->eGetFirstStressPos(iPos, eType);
+                        auto rcStress = spPastF->eGetFirstStressSyll(iPos, eType);
 //                        auto itStressPos = spPastF->m_mapStress.begin();
 //                        for (; spPastF->m_mapStress.end() != itStressPos; ++itStressPos)
                         while (H_NO_ERROR == rcStress)
@@ -2071,7 +2068,7 @@ ET_ReturnCode CFormBuilderNonFinite::eGetParticipleStressPos (ET_Subparadigm eSu
                     CGramHasher pastM (POS_VERB, SUBPARADIGM_PAST_TENSE, CASE_UNDEFINED, NUM_SG, GENDER_M, 
                                        PERSON_UNDEFINED, ANIM_UNDEFINED, m_spLexeme->eAspect(), 
                                        m_spLexeme->eIsReflexive());
-                    shared_ptr<CWordForm> spPastM;
+                    auto spPastM = make_shared<CWordForm>();
                     int iNForms = m_spInflection->iFormCount (pastM.sGramHash());
                     for (int iF = 0; iF < iNForms; ++iF)
                     {
@@ -2088,7 +2085,7 @@ ET_ReturnCode CFormBuilderNonFinite::eGetParticipleStressPos (ET_Subparadigm eSu
                         }
 
 //                        auto itStressPos = spPastM->m_mapStress.begin();
-                        auto rcStress = spPastM->eGetFirstStressPos(iPos, eType);
+                        auto rcStress = spPastM->eGetFirstStressSyll(iPos, eType);
                         while (H_NO_ERROR == rcStress)
 //                        for (; spPastM->m_mapStress.end() != itStressPos; ++itStressPos)
                         {
@@ -2121,7 +2118,7 @@ ET_ReturnCode CFormBuilderNonFinite::eGetParticipleStressPos (ET_Subparadigm eSu
         ET_StressType eType = ET_StressType::STRESS_TYPE_UNDEFINED;
         if (SUBPARADIGM_PART_PAST_PASS_LONG != eSubparadigm)
         {
-            shared_ptr<CWordForm> spStressTemplate;
+            auto spStressTemplate = make_shared<CWordForm>();
             rc = m_spInflection->eWordFormFromHash (sHash, 0, spStressTemplate);
             if (rc != H_NO_ERROR)
             {
@@ -2134,7 +2131,7 @@ ET_ReturnCode CFormBuilderNonFinite::eGetParticipleStressPos (ET_Subparadigm eSu
                 return H_ERROR_POINTER;
             }
 //            auto itStressPos = spStressTemplate->m_mapStress.begin();
-            auto rcStress = spStressTemplate->eGetFirstStressPos(iPos, eType);
+            auto rcStress = spStressTemplate->eGetFirstStressSyll(iPos, eType);
             // Skip secondary stress if any
 //            for (; spStressTemplate->m_mapStress.end() != itStressPos; ++itStressPos)
             while (H_NO_ERROR == rcStress)
@@ -2274,7 +2271,7 @@ ET_ReturnCode CFormBuilderNonFinite::eDeriveIrregPresAdverbial()
         {
             if (it3PlForm != vecPl3Forms.begin())
             {
-                shared_ptr<CWordForm> spWfVariant;
+                auto spWfVariant = make_shared<CWordForm>();
 //                CloneWordForm(spWordForm, spWfVariant);
                 spWfVariant->eCloneFrom(spWordForm);
                 spWordForm = spWfVariant;
@@ -2341,7 +2338,7 @@ ET_ReturnCode CFormBuilderNonFinite::eDeriveIrregPresAdverbial()
             // Will the ever happen??
             for (; itSg1Form != vecSg1Forms.end(); ++itSg1Form)
             {
-                shared_ptr<CWordForm> spNewWordForm;
+                auto spNewWordForm = make_shared<CWordForm>();
 //                CloneWordForm(spWordForm, spNewWordForm);
                 spNewWordForm->eCloneFrom(spWordForm);
                 spWordForm->AssignStress((*itSg1Form)->mapGetStressPositions());
@@ -2418,7 +2415,7 @@ ET_ReturnCode CFormBuilderNonFinite::eDeriveIrregPresActiveParticiple()
         vector<int> vecStressPos;
         if (sStem.bEndsWith (L"у") || sStem.bEndsWith (L"ю"))
         {
-            auto rcStress = itWf->first->eGetFirstStressPos(iPos, eType);
+            auto rcStress = itWf->first->eGetFirstStressSyll(iPos, eType);
             while (H_NO_ERROR == rcStress)
 //            map<int, ET_StressType>::iterator itStressPos = itWf->first->m_mapStress.begin();
 //            for (; itStressPos != itWf->first->m_mapStress.end(); ++itStressPos)
@@ -2455,7 +2452,7 @@ ET_ReturnCode CFormBuilderNonFinite::eDeriveIrregPresActiveParticiple()
             {
 //                map<int, ET_StressType>::iterator itStressPos = (*it).first->m_mapStress.begin();
 //                for (; itStressPos != (*it).first->m_mapStress.end(); ++itStressPos)
-                auto rcStress = (*it).first->eGetFirstStressPos(iPos, eType);
+                auto rcStress = (*it).first->eGetFirstStressSyll(iPos, eType);
                 while (H_NO_ERROR == rcStress)
                 {
                     if (STRESS_PRIMARY == eType)
@@ -2500,7 +2497,7 @@ ET_ReturnCode CFormBuilderNonFinite::eDeriveIrregPresPassiveParticiple()
 
     CGramHasher hasher (POS_VERB, SUBPARADIGM_PRESENT_TENSE, CASE_UNDEFINED, NUM_PL, GENDER_UNDEFINED, 
                         PERSON_1, ANIM_UNDEFINED, m_spLexeme->eAspect(), m_spLexeme->eIsReflexive());
-    shared_ptr<CWordForm> sp1Pl;
+    auto sp1Pl = make_shared<CWordForm>();
     auto n1Pl = m_spInflection->iFormCount(hasher.sGramHash());
     if (n1Pl < 1)
     {
@@ -2590,7 +2587,7 @@ ET_ReturnCode CFormBuilderNonFinite::eDeriveIrregPastActPartAndAdverbial()
         {
 //            map<int, ET_StressType>::iterator itStress = (*it).first->m_mapStress.begin();
 //            for (; itStress != (*it).first->m_mapStress.end(); ++itStress)
-            auto rcStress = (*it).first->eGetFirstStressPos(iPos, eType);
+            auto rcStress = (*it).first->eGetFirstStressSyll(iPos, eType);
             {
                 if (STRESS_PRIMARY == eType)
                 {
@@ -2676,7 +2673,7 @@ ET_ReturnCode CFormBuilderNonFinite::eDeriveIrregPastActPartAndAdverbial()
     
 //        map<int, ET_StressType>::iterator itStress = (*it).first->m_mapStress.begin();
 //        for (; itStress != (*it).first->m_mapStress.end(); ++itStress)
-        auto rcStress = (*it).first->eGetFirstStressPos(iPos, eType);
+        auto rcStress = (*it).first->eGetFirstStressSyll(iPos, eType);
         while (H_NO_ERROR == rcStress)
         {
             if (STRESS_PRIMARY == eType)
@@ -2751,7 +2748,7 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildIrregParticipialFormsLong (ET_Subpara
         int iPos = -1;
         ET_StressType eType = ET_StressType::STRESS_TYPE_UNDEFINED;
 
-        auto rcStress = spWf->eGetFirstStressPos(iPos, eType);
+        auto rcStress = spWf->eGetFirstStressSyll(iPos, eType);
         while (H_NO_ERROR == rcStress)
 //        auto itStressPos = spWf->m_mapStress.begin();
 //        for (; itStressPos != spWf->m_mapStress.end(); ++itStressPos)
@@ -2973,7 +2970,7 @@ ET_ReturnCode CFormBuilderNonFinite::eDeriveIrregPartPastPassShort()
 
         for (auto nLongForm = 0; nLongForm < nPartPassLong; ++nLongForm)
         {
-            shared_ptr<CWordForm> spNSgLong;
+            auto spNSgLong = make_shared<CWordForm>();
             rc = m_spInflection->eWordFormFromHash(nSgLong.sGramHash(), nLongForm, spNSgLong);
             if (rc != H_NO_ERROR)
             {

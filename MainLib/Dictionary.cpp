@@ -323,7 +323,7 @@ ET_ReturnCode CDictionary::eGetSecondPart(long long llId, shared_ptr<CLexeme>& s
     }
 
     // Expect no more lexemes with this ID
-    shared_ptr<CLexeme> spDummy;
+    auto spDummy = make_shared<CLexeme>(shared_from_this());
     rc = eReadDescriptorData(spDummy, uiQueryHandle);
     if (H_NO_MORE != rc)
     {
@@ -459,7 +459,7 @@ ET_ReturnCode CDictionary::eGetLexemesByGraphicStem(const CEString& sHeadword)
 
     while (H_NO_ERROR == rc)
     {
-        shared_ptr<CLexeme> pLexeme = make_shared<CLexeme>(this);
+        shared_ptr<CLexeme> pLexeme = make_shared<CLexeme>(shared_from_this());
         if (nullptr == pLexeme)
         {
             Clear();

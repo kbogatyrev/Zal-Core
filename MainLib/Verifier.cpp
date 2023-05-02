@@ -1,3 +1,7 @@
+#include <iostream>
+#include <fstream>
+#include <locale>
+
 #include "WordForm.h"
 #include "Lexeme.h"
 #include "Verifier.h"
@@ -219,8 +223,14 @@ ET_ReturnCode CVerifier::eLoadStoredForms(const CEString& sLexemeHash)
 
 ET_ReturnCode CVerifier::eCheckParadigm (shared_ptr<CInflection>& spInflection, [[maybe_unused]]const CEString& sLexemeHash, bool& bCheckedOut)
 {
+    //std::locale::global(std::locale("ru_ru.utf16"));
     ET_ReturnCode hr = H_NO_ERROR;
-    return hr;
+
+    wofstream log1("test.txt", std::ios::binary);
+    const unsigned long MaxCode = 0x10ffff;
+    const std::codecvt_mode Mode = (std::codecvt_mode)(std::generate_header | std::little_endian);
+    std::locale utf16_locale(log1.getloc(), new std::codecvt_utf16<wchar_t, MaxCode, Mode>);
+    log1.imbue(utf16_locale);
 
     hr = spInflection->eGenerateParadigm();
     if (H_NO_ERROR != hr)
@@ -258,6 +268,10 @@ ET_ReturnCode CVerifier::eCheckParadigm (shared_ptr<CInflection>& spInflection, 
                 return hr;
             }
 
+            auto koko = spGeneratedForm->sWordForm() + L" : " + spStoredForm->sWordForm();
+            auto kiki = wstring(koko);
+            log1 << wstring(koko).c_str() << L"\n" << flush;
+
             if (spGeneratedForm->sWordForm() == spStoredForm->sWordForm())
             {
                 if (spStoredForm->mapGetStressPositions() == spGeneratedForm->mapGetStressPositions())
@@ -287,10 +301,13 @@ ET_ReturnCode CVerifier::eCheckParadigm (shared_ptr<CInflection>& spInflection, 
         if (!bFormMatch)
         {
             bCheckedOut = false;
-            return H_NO_ERROR;
+//            return H_NO_ERROR;
         }
 
     }       //  for (auto itHash = ...)
+
+    log1.flush();
+    log1.close();
 
     shared_ptr<CWordForm> spGeneratedForm;
     hr = spInflection->eGetFirstWordForm(spGeneratedForm);

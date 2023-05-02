@@ -625,7 +625,7 @@ ET_ReturnCode CFormBuilderConj::eBuildPastTenseStem (CEString& sStem)
 
 }   //  eBuildPastTenseStem (...)
 
-ET_ReturnCode CFormBuilderConj::eHandleYoAlternation (int iStressSyll, ET_Subparadigm eoSubParadigm, CEString& sStem)
+ET_ReturnCode CFormBuilderConj::eHandleYoAlternation (int iStressSyll, ET_Subparadigm eoSubParadigm, shared_ptr<CWordForm> spWordForm)
 {
     assert(m_spLexeme);   // we assume base class ctor took care of this
 
@@ -653,6 +653,8 @@ ET_ReturnCode CFormBuilderConj::eHandleYoAlternation (int iStressSyll, ET_Subpar
          L"д" == m_spLexeme->sVerbStemAlternation()));
     }
 
+    auto sStem = spWordForm->sStem();
+
     sStem.SetVowels(CEString::g_szRusVowels);
     if (iStressSyll >= sStem.uiNSyllables())
     {
@@ -672,6 +674,8 @@ ET_ReturnCode CFormBuilderConj::eHandleYoAlternation (int iStressSyll, ET_Subpar
     {
         sStem[uiStressPos] = L'ё';
     }
+
+    spWordForm->SetStem(sStem);
 
     return H_NO_ERROR;
 

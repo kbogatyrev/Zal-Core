@@ -435,12 +435,12 @@ ET_ReturnCode CFormBuilderShortAdj::eHandleDeviations(shared_ptr<CWordForm> spWo
 
             if (GENDER_M == spWordForm->eGender())
             {
-                auto& sWf = spWordForm->sWordForm().sErase(spWordForm->sWordForm().uiLength() - 1);
+                auto sWf = spWordForm->sWordForm().sErase(spWordForm->sWordForm().uiLength() - 1);
 //                spWordForm->SetWordForm(sWf);
                 if (m_bFleetingVowel)
                 {
 //                    spWordForm->m_sWordForm.sErase(spWordForm->m_sWordForm.uiLength() - 1);
-                    sWf.sErase(spWordForm->sWordForm().uiLength()-1);
+                    sWf.sErase(sWf.uiLength()-1);
                 }
 
                 auto nSyll = sWf.uiNSyllables();
@@ -492,7 +492,7 @@ ET_ReturnCode CFormBuilderShortAdj::eHandleDeviations(shared_ptr<CWordForm> spWo
         {
             if (m_spInflection->bDeviationOptional(iCd))   // store both forms
             {
-                shared_ptr<CWordForm> spMVariant;
+                auto spMVariant = make_shared<CWordForm>();
 //                CloneWordForm (spWordForm, spMVariant);
                 spMVariant->eCloneFrom(spWordForm);
                 m_spInflection->AddWordForm(spMVariant);
@@ -500,14 +500,19 @@ ET_ReturnCode CFormBuilderShortAdj::eHandleDeviations(shared_ptr<CWordForm> spWo
             }
 
             map<int, ET_StressType> mapCorrectedStress;
-            int iPos = -1;
-            auto eType = ET_StressType::STRESS_TYPE_UNDEFINED;
-            auto rc = spWordForm->eGetFirstStressPos(iPos, eType);
-            while (H_NO_ERROR == rc)
+            auto& mapStressSylls = spWordForm->mapGetStressPositions();
+            for (auto itStressSyll = mapStressSylls.begin(); itStressSyll != mapStressSylls.end(); ++itStressSyll)
             {
-                if (ET_StressType::STRESS_PRIMARY == eType)
+                if (ET_StressType::STRESS_PRIMARY != itStressSyll->second)
                 {
+                    mapCorrectedStress[(*itStressSyll).first] = STRESS_SECONDARY;
                     continue;
+                }
+                if (itStressSyll->first < 1)
+                {
+                    assert(0);
+                    ERROR_LOG(L"Unexpected stress position in cd-7 or cd-8 participle.");
+                    return H_ERROR_UNEXPECTED;
                 }
                 mapCorrectedStress[spWordForm->sWordForm().uiNSyllables()-1] = STRESS_PRIMARY;
             }
