@@ -426,7 +426,7 @@ ET_ReturnCode CFormBuilderShortAdj::eHandleDeviations(shared_ptr<CWordForm> spWo
         {
             if (bOptionalCD && SUBPARADIGM_SHORT_ADJ == m_eSubparadigm)   // store both forms
             {
-                shared_ptr<CWordForm> spMVariant;
+                auto spMVariant = make_shared<CWordForm>();
                 spMVariant->eCloneFrom(spWordForm);
 //                CloneWordForm(spWordForm, spMVariant);
                 m_spInflection->AddWordForm(spMVariant);
@@ -481,7 +481,8 @@ ET_ReturnCode CFormBuilderShortAdj::eHandleDeviations(shared_ptr<CWordForm> spWo
         }
         else if (m_spInflection->bHasCommonDeviation(8))
         {
-            iCd = 8;
+//            iCd = 8;
+            iCd = -1;
         }
         else
         {
@@ -517,7 +518,7 @@ ET_ReturnCode CFormBuilderShortAdj::eHandleDeviations(shared_ptr<CWordForm> spWo
                 mapCorrectedStress[spWordForm->sWordForm().uiNSyllables()-1] = STRESS_PRIMARY;
             }
 // TODO: regression!!
-            spWordForm->AssignStress(mapCorrectedStress);
+//            spWordForm->AssignStress(mapCorrectedStress);
         }
     }
     catch (CException& ex)
@@ -596,7 +597,9 @@ ET_ReturnCode CFormBuilderShortAdj::eBuild()
 //                    bNoRegularForms = false;          // TODO: this DOES NOT indicate that a regular variant exists
 //                }
 
-                auto spWordForm = make_shared<CWordForm>((*it).first);
+                auto spWordForm = make_shared<CWordForm>();
+                auto spSource = it->first;
+                spWordForm->Copy(*spSource);
                 m_spInflection->AddWordForm(spWordForm);
             }
 
@@ -750,7 +753,7 @@ ET_ReturnCode CFormBuilderShortAdj::eBuild()
                         {
                             if (itStressPos != vecStressPos.begin())
                             {
-                                shared_ptr<CWordForm> spWfVariant;
+                                auto spWfVariant = make_shared<CWordForm>();
 //                                CloneWordForm(spWordForm, spWfVariant);
                                 spWfVariant->eCloneFrom(spWordForm);
                                 spWordForm = spWfVariant;

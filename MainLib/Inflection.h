@@ -306,8 +306,8 @@ namespace Hlib
         ET_ReturnCode eMakeGraphicStem();
         ET_ReturnCode eMakeGraphicStem(const CEString& sSource, CEString& sGraphicStem);
 
-        //        ET_ReturnCode eGetAspectPair(CEString&, int&);
-        //        ET_ReturnCode eGetAltAspectPair(CEString&, int&);
+        ET_ReturnCode eGetAspectPair(CEString& sAspectPair, int& iStressPos);
+        ET_ReturnCode eGetAltAspectPair(CEString& sAltAspectPair, int& iStressPos);
 
         // -----------------------------------------------------------------------------------
 

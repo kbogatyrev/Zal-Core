@@ -115,6 +115,9 @@ CLexeme::~CLexeme()
 
 void CLexeme::Init()
 {
+    m_iAspectPairStressPos = -1;
+    m_iAltAspectPairStressPos = -1;
+
     vector<CEString> vecMainSymbol = { L"м", L"мо", L"ж", L"жо", L"с", L"со", L"мо-жо", L"мн.",
      L"мн. неод.", L"мн. одуш.", L"мн. _от_", L"п", L"мс", L"мс-п", L"числ.", L"числ.-п", 
      L"св", L"нсв", L"св-нсв", L"н", L"предл.", L"союз", L"предик.", L"вводн.", L"сравн.", 
@@ -2989,8 +2992,21 @@ ET_ReturnCode CLexeme::eGetAspectPair(CEString& sAspectPair, int& iStressPos)
         return H_ERROR_UNEXPECTED;
     }
 
-    sAspectPair = m_sAspectPair;
-    iStressPos = m_iAspectPairStressPos;
+    // Only the first and only inflection object will have it
+    if (m_vecInflections.size() < 1)
+    {
+        ERROR_LOG(L"No inflections.");
+        return H_ERROR_UNEXPECTED;
+    }
+
+    auto& spInflection = m_vecInflections[0];
+    if (!spInflection)
+    {
+        ERROR_LOG(L"Inflection pointer is NULL");
+        return H_ERROR_POINTER;
+    }
+
+    spInflection->eGetAspectPair(sAspectPair, iStressPos);
 
     return H_NO_ERROR;
 }
@@ -3002,8 +3018,21 @@ ET_ReturnCode CLexeme::eGetAltAspectPair(CEString& sAltAspectPair, int& iAltStre
         return H_ERROR_UNEXPECTED;
     }
 
-    sAltAspectPair = m_sAspectPair;
-    iAltStressPos = m_iAspectPairStressPos;
+    // Only the first and only inflection object will have it
+    if (m_vecInflections.size() < 1)
+    {
+        ERROR_LOG(L"No inflections.");
+        return H_ERROR_UNEXPECTED;
+    }
+
+    auto& spInflection = m_vecInflections[0];
+    if (!spInflection)
+    {
+        ERROR_LOG(L"Inflection pointer is NULL");
+        return H_ERROR_POINTER;
+    }
+
+    spInflection->eGetAltAspectPair(sAltAspectPair, iAltStressPos);
 
     return H_NO_ERROR;
 }

@@ -106,10 +106,10 @@ CWordForm::CWordForm(const CEString& sHash) :
     m_sEnding.SetVowels(CEString::g_szRusVowels);
 }
 
-CWordForm::CWordForm(const shared_ptr<CWordForm> spSource)
-{
-    Copy(*spSource);
-}
+//CWordForm::CWordForm(const shared_ptr<CWordForm> spSource)
+//{
+//    Copy(*spSource);
+//}
 
 CWordForm::CWordForm(const CWordForm& source)
 {

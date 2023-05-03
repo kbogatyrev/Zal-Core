@@ -71,7 +71,7 @@ ET_ReturnCode CFormBuilderComparative::eHandleStressAndAdd(shared_ptr<CWordForm>
             {
                 if (itStressPos != vecStress.begin())
                 {
-                    shared_ptr<CWordForm> spWfVariant;
+                    auto spWfVariant = make_shared<CWordForm>();
                     spWfVariant->eCloneFrom(spWordForm);
 //                    CloneWordForm (spWordForm, spWfVariant);
                     spWordForm = spWfVariant;
@@ -141,7 +141,9 @@ ET_ReturnCode CFormBuilderComparative::eBuild()
                 bNoRegularForms = false;
             }
 
-            shared_ptr<CWordForm> spWordForm = make_shared<CWordForm>((*it).first);
+            auto spSource = it->first;
+            shared_ptr<CWordForm> spWordForm = make_shared<CWordForm>();
+            spWordForm->Copy(*spSource);
             m_spInflection->AddWordForm(spWordForm);
         }
 
@@ -178,7 +180,7 @@ ET_ReturnCode CFormBuilderComparative::eBuild()
                 sStem[sStem.uiLength()-1] = L'ш';
             }
 
-            shared_ptr<CWordForm> spWordForm;
+            auto spWordForm = make_shared<CWordForm>();
             rc = eCreateFormTemplate(sStem, spWordForm);
             if (rc != H_NO_ERROR)
             {

@@ -119,7 +119,8 @@ ET_ReturnCode CFormBuilderLongAdj::eCheckIrregularForms(const CEString& sHash, b
             bHandled = true;
         }
 
-        auto spWordForm = make_shared<CWordForm>((*it).first);
+        auto spWordForm = make_shared<CWordForm>();
+        spWordForm->Copy(*it->first);
 //        pWordForm->m_eCase = eCase;   // ending case may differ from actual case, e.g. A.Sg.
         m_spInflection->AddWordForm(spWordForm);
     }
@@ -256,16 +257,18 @@ ET_ReturnCode CFormBuilderLongAdj::eHandleCommonDeviations (shared_ptr<CWordForm
 
             map<int, ET_StressType> mapCorrectedStress;
             int iNewStressPos = -1;
-            ET_StressType eType = ET_StressType::STRESS_TYPE_UNDEFINED;
-            auto rc = spWordForm->eGetFirstStressPos(iNewStressPos, eType);
-            while (H_NO_ERROR == rc)
+//            ET_StressType eType = ET_StressType::STRESS_TYPE_UNDEFINED;
+//            auto rc = spWordForm->eGetFirstStressPos(iNewStressPos, eType);
+//            while (H_NO_ERROR == rc)
+            auto& mapStressSylls = spWordForm->mapGetStressPositions();
+            for (auto itStressSyll = mapStressSylls.begin(); itStressSyll != mapStressSylls.end(); ++itStressSyll)
             {
-                if (STRESS_SECONDARY == eType)
+                if (STRESS_SECONDARY == itStressSyll->second)
                 {
-                    mapCorrectedStress[iNewStressPos] = STRESS_SECONDARY;
+                    mapCorrectedStress[itStressSyll->first] = STRESS_SECONDARY;
                     continue;
                 }
-                if (8 == iCd && iNewStressPos < 1)
+                if (8 == iCd && (*itStressSyll).first < 1)
                 {
                     assert(0);
                     ERROR_LOG(L"Unexpected stress position in cd-7 or cd-8 participle.");
@@ -274,7 +277,7 @@ ET_ReturnCode CFormBuilderLongAdj::eHandleCommonDeviations (shared_ptr<CWordForm
 
                 if (7 == iCd)
                 {
-                    iNewStressPos = iNewStressPos + 1;          //  TODO: WTF???
+                    iNewStressPos = (*itStressSyll).first + 1;
                     iNewStressPos = sStem.uiNSyllables() - 1;
                 }
                 else
@@ -291,21 +294,35 @@ ET_ReturnCode CFormBuilderLongAdj::eHandleCommonDeviations (shared_ptr<CWordForm
                     }
                 }
 
-                mapCorrectedStress[iNewStressPos - 1] = STRESS_PRIMARY;
+                mapCorrectedStress[iNewStressPos] = STRESS_PRIMARY;
 
-                rc = spWordForm->eGetNextStressPos(iNewStressPos, eType);
-            
-            }       // while ...
-            
-            if (rc != H_NO_MORE)
-            {
-                ERROR_LOG(L"Eror in stress position retrieval.");
-                return rc;
+                // Remove yo at old stress pos
+                int iAt = sStem.uiGetVowelPos((*itStressSyll).first);
+                if (L'ё' == spWordForm->sWordForm()[iAt])
+                {
+                    auto&& sStem = spWordForm->sStem();
+                    sStem[iAt] = L'е';
+                    spWordForm->SetStem(sStem);
+                    auto&& sWordForm = spWordForm->sWordForm();
+                    sWordForm[iAt] = L'е';
+                    spWordForm->SetWordForm(sWordForm);
+                }
+
+                // E --> yo at new stress pos
+                iAt = sStem.uiGetVowelPos(iNewStressPos);
+                if (L'е' == spWordForm->sWordForm()[iAt])
+                {
+                    auto&& sStem = spWordForm->sStem();
+                    sStem[iAt] = L'ё';
+                    spWordForm->SetStem(sStem);
+                    auto&& sWordForm = spWordForm->sWordForm();
+                    sWordForm[iAt] = L'ё';
+                    spWordForm->SetWordForm(sWordForm);
+                }
             }
 
             spWordForm->AssignStress(mapCorrectedStress);
-
-        }       //  if iCd > 0        
+        }
     }
     catch (CException& ex)
     {

@@ -65,7 +65,7 @@ namespace Hlib
         bool bIsIterative { false };
         bool bHasAspectPair { false };
         int iAspectPairType { -1 };
-        int iAltAspectPairType { -1 };
+        int iAltAspectPairType { 0 };       // NB: -1 is a valid aspect pair type, 0 means 'undefined'
         CEString sAspectPairData;
         CEString sAltAspectPairData;
         CEString sAltAspectPairComment;
@@ -89,14 +89,14 @@ namespace Hlib
         //ET_AccentType eAccentType2;
         //bool bShortFormsRestricted;
         //bool bPastParticipleRestricted;
-        bool bNoLongForms;
+        bool bNoLongForms { false };
         //bool bShortFormsIncomplete;
         //bool bNoPassivePastParticiple;
         //bool bFleetingVowel;
         //int iStemAugment;
-        bool bSecondPart;
-        int iSpryazhSmRefPrefixLength;
-        bool bSpryazhSmNoAspectPair;
+        bool bSecondPart { false };
+        int iSpryazhSmRefPrefixLength { -1 };
+        bool bSpryazhSmNoAspectPair { false };
 
         //
         // Verb stems & infinitive:

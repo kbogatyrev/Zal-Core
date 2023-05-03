@@ -575,7 +575,8 @@ ET_ReturnCode CFormBuilderImperative::eBuildIrregularForms()
             spSgWf->SetInflectionId(m_spInflection->llInflectionId());
             m_spInflection->AddWordForm(spSgWf);
 
-            auto spPlWf = shared_ptr<CWordForm>(spSgWf);
+            auto spPlWf = make_shared<CWordForm>(m_spInflection);
+            spPlWf->Copy(*spSgWf);
             spPlWf->SetNumber(NUM_PL);
 //            spPlWf->m_llLexemeId = m_spLexeme->llLexemeId();
 

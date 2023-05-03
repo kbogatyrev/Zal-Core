@@ -53,7 +53,7 @@ ET_ReturnCode CFormBuilderAspectPair::eBuild()
         if (ET_ExtraData::WholeWord == eExtraData)
         {
 //            auto& stLexProperties = m_pLexeme->stGetProperties();
-            auto& stInflProperties = m_spInflection->stGetProperties();
+//            auto& stInflProperties = m_spInflection->stGetProperties();
             sData = bIsVariant ? stLexProperties.sAltAspectPairData : stLexProperties.sAspectPairData;
             CEString& sAspectPair = bIsVariant ? m_sAltAspectPairSource : m_sAspectPairSource;
 

@@ -29,7 +29,7 @@ namespace Hlib
         CWordForm(shared_ptr<CInflection>);
         CWordForm(const CEString& sHash);
         CWordForm(const CWordForm&);
-        CWordForm(const shared_ptr<CWordForm>);
+//        CWordForm(const shared_ptr<CWordForm>);
 
         const CWordForm& operator= (const CWordForm&);
 

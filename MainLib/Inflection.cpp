@@ -246,6 +246,33 @@ ET_ReturnCode CInflection::eMakeGraphicStem(const CEString& sSource, CEString& s
 
 }   //  eMakeGraphicStem(const CEString& sSource, CEString& sGraphicStem)
 
+ET_ReturnCode CInflection::eGetAspectPair(CEString& sAspectPair, int& iStressPos)
+{
+    if (!m_spLexeme->bHasAspectPair())
+    {
+        return H_ERROR_UNEXPECTED;
+    }
+
+    sAspectPair = m_sAspectPair;
+    iStressPos = m_iAspectPairStressPos;
+
+    return H_NO_ERROR;
+}
+
+ET_ReturnCode CInflection::eGetAltAspectPair(CEString& sAltAspectPair, int& iStressPos)
+{
+    if (!m_spLexeme->bHasAltAspectPair())
+    {
+        return H_ERROR_UNEXPECTED;
+    }
+
+    sAltAspectPair = m_sAltAspectPair;
+    iStressPos = m_iAltAspectPairStressPos;
+
+    return H_NO_ERROR;
+}
+
+
 ET_ReturnCode CInflection::eMakeGraphicStem()
 {
     ET_ReturnCode eRet = H_NO_ERROR;

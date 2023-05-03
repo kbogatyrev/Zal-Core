@@ -515,7 +515,8 @@ ET_ReturnCode CFormBuilderNouns::eCheckIrregularForms (ET_Gender eoGender,
             bHandled = true;
         }
 
-        shared_ptr<CWordForm> spWordForm = make_shared<CWordForm>(((*it).first));
+        shared_ptr<CWordForm> spWordForm = make_shared<CWordForm>();
+        spWordForm->Copy(*it->first);
         spWordForm->SetCase(eCase);   // ending case may differ from actual case, e.g. A.Sg.
         m_spInflection->AddWordForm(spWordForm);
     }

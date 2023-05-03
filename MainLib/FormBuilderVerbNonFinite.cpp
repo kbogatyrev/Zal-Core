@@ -1473,8 +1473,8 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastPassiveParticiple()
         }
 
         CEString sNSgMLong (spNSgMLong->sWordForm());
-        int iPos = -1;
-        ET_StressType eType = ET_StressType::STRESS_TYPE_UNDEFINED;
+//        int iPos = -1;
+//        ET_StressType eType = ET_StressType::STRESS_TYPE_UNDEFINED;
         sNSgMLong.SetVowels (CEString::g_szRusVowels);
         if (sNSgMLong.bEndsWith (L"анный") || sNSgMLong.bEndsWith (L"янный") ||
             sNSgMLong.bEndsWith (L"енный"))
@@ -1570,6 +1570,8 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastPassiveParticiple()
 
             bool bYoAlternation = true;
             bool bFleetingVowel = true;
+            int iPos = -1;
+            ET_StressType eType = STRESS_TYPE_UNDEFINED;
             auto rcStress = spNSgMLong->eGetFirstStressSyll(iPos, eType);
             if (eType != STRESS_PRIMARY || iPos != (int)sNSgMLong.uiGetNumOfSyllables()-2)
             {
@@ -1606,6 +1608,8 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastPassiveParticiple()
             bool bYoAlternation = m_spLexeme->stGetProperties().bYoAlternation;
             bool bFleetingVowel = false;
 //            auto itStress = spNSgMLong->m_mapStress.begin();
+            int iPos = -1;
+            ET_StressType eType = STRESS_TYPE_UNDEFINED;
             auto rcStress = spNSgMLong->eGetFirstStressSyll(iPos, eType);
             if (eType != STRESS_PRIMARY)
             {
@@ -1908,8 +1912,8 @@ ET_ReturnCode CFormBuilderNonFinite::eGetParticipleStressPos (ET_Subparadigm eSu
                     }
                 }
 
-                int iPos = -1;
-                ET_StressType eType = ET_StressType::STRESS_TYPE_UNDEFINED;
+//                int iPos = -1;
+//                ET_StressType eType = ET_StressType::STRESS_TYPE_UNDEFINED;
                 if (4 == m_spInflection->iType())    // same syllable (counting from right) as in 3 Sg Praes
                 {
                     CGramHasher sg3Pres (POS_VERB, SUBPARADIGM_PRESENT_TENSE, CASE_UNDEFINED, NUM_SG, 
@@ -1938,7 +1942,7 @@ ET_ReturnCode CFormBuilderNonFinite::eGetParticipleStressPos (ET_Subparadigm eSu
 //                        while (rcStress == H_NO_ERROR)
                         for (auto itStressSyll = mapStressSylls.begin(); itStressSyll != mapStressSylls.end(); ++itStressSyll)
                         {
-                            if (STRESS_PRIMARY == eType)
+                            if (STRESS_PRIMARY == itStressSyll->second)
                             {
                                 vecPositions.push_back (itStressSyll->first);
                             }
@@ -2009,21 +2013,15 @@ ET_ReturnCode CFormBuilderNonFinite::eGetParticipleStressPos (ET_Subparadigm eSu
                             return H_ERROR_POINTER;
                         }
 
-                        auto rcStress = spPastF->eGetFirstStressSyll(iPos, eType);
+//                        auto rcStress = spPastF->eGetFirstStressSyll(iPos, eType);
 //                        auto itStressPos = spPastF->m_mapStress.begin();
-//                        for (; spPastF->m_mapStress.end() != itStressPos; ++itStressPos)
-                        while (H_NO_ERROR == rcStress)
+                        auto mapStressSylls = spPastF->mapGetStressPositions();
+                        for (auto itStressSyll = mapStressSylls.begin(); itStressSyll != mapStressSylls.end(); ++itStressSyll)
                         {
-                            if (STRESS_PRIMARY == eType)
+                            if (STRESS_PRIMARY == itStressSyll->second)
                             {
-                                vecPositions.push_back (iPos);
+                                vecPositions.push_back (itStressSyll->first);
                             }
-                            rcStress = spPastF->eGetNextStressPos(iPos, eType);
-                        }
-                        if (rcStress != ET_ReturnCode::H_NO_MORE)
-                        {
-                            assert(0);
-                            ERROR_LOG(L"Unexpected return code.");
                         }
                     }       //  for (int iF = 0; iF < iNForms; ++iF)
                 }
@@ -2085,20 +2083,15 @@ ET_ReturnCode CFormBuilderNonFinite::eGetParticipleStressPos (ET_Subparadigm eSu
                         }
 
 //                        auto itStressPos = spPastM->m_mapStress.begin();
-                        auto rcStress = spPastM->eGetFirstStressSyll(iPos, eType);
-                        while (H_NO_ERROR == rcStress)
-//                        for (; spPastM->m_mapStress.end() != itStressPos; ++itStressPos)
+//                        auto rcStress = spPastM->eGetFirstStressSyll(iPos, eType);
+//                        while (H_NO_ERROR == rcStress)
+                        auto& mapStressSylls = spPastM->mapGetStressPositions();
+                        for (auto itStressSyll = mapStressSylls.begin(); itStressSyll != mapStressSylls.end(); ++itStressSyll)
                         {
-                            if (STRESS_PRIMARY == eType)
+                            if (STRESS_PRIMARY == itStressSyll->second)
                             {
-                                vecPositions.push_back (iPos);
+                                vecPositions.push_back (itStressSyll->first);
                             }
-                            rcStress = spPastM->eGetNextStressPos(iPos, eType);
-                        }
-                        if (rcStress != ET_ReturnCode::H_NO_MORE)
-                        {
-                            assert(0);
-                            ERROR_LOG(L"Unexpected return code.");
                         }
                     }       //  for (int iF = 0; iF < iNForms; ++iF)
                 }
