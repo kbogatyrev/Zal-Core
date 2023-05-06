@@ -51,32 +51,32 @@ protected:
                                        ET_Subparadigm eSubparadigm,    // in
                                        CEString& sEnding,              // in/out (can be modified in forms
                                                                        // башен/древен, GDRL p. 30
-                                       CEString& sLemma);              // out
+                                       CEString& sStem);               // out
 
     ET_ReturnCode eFleetingVowelAdd (ET_Number eNumber,               // in
                                      ET_Case eCase,                   // in
                                      ET_Gender eGender,               // in
                                      ET_StressLocation eStressType,   // in
                                      ET_Subparadigm eSubparadigm,     // in
-                                     CEString& sLemma);               // out
+                                     CEString& sStem);                // out
 
     ET_ReturnCode eFleetingVowelRemove (ET_Gender eGender,             // in
                                         ET_Subparadigm eSubparadigm,   // in
                                         const CEString& sEnding,       // in
-                                        CEString& sLemma);             // out
+                                        CEString& sStem);              // out
 
-    ET_ReturnCode eGetStemStressPositions (const CEString& sLemma, 
+    ET_ReturnCode eGetStemStressPositions (const CEString& sStem, 
                                            ET_Subparadigm eSubParadigm,
                                            ET_Number eNumber,
                                            vector<int>& vecPositions);
 
-    ET_ReturnCode eGetEndingStressPosition (const CEString& sLemma, 
+    ET_ReturnCode eGetEndingStressPosition (const CEString& sStem, 
                                             const CEString& sEnding,
                                             int& iPosition);
 
     ET_ReturnCode eHandleYoAlternation (ET_StressLocation eStressType, 
                                         int iStressPos,
-                                        CEString& sLemma,
+                                        CEString& sStem,
                                         const CEString& sEnding);
 
 protected:

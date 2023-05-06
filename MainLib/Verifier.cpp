@@ -83,17 +83,14 @@ ET_ReturnCode CVerifier::eVerify (const CEString& sLexemeHash)
             return eLex;
         }
 
+        // Try all inflections, fail if none checked out
         while (H_NO_ERROR == eInfl)
         {
-            bool bRet = true;
-            rc = eCheckParadigm(spInflection, sLexemeHash, bRet);
+            bool bVerified = true;
+            rc = eCheckParadigm(spInflection, sLexemeHash, bVerified);
             if (H_NO_ERROR == rc)
             {
-                m_eResult = bRet ? TEST_RESULT_OK : TEST_RESULT_FAIL;
-                if (!bRet)
-                {
-                    return H_NO_ERROR;
-                }
+                m_eResult = bVerified ? TEST_RESULT_OK : TEST_RESULT_FAIL;
             }
 
             eInfl = spIE->eGetNextInflection(spInflection);
@@ -102,6 +99,11 @@ ET_ReturnCode CVerifier::eVerify (const CEString& sLexemeHash)
                 ERROR_LOG(L"Expected lexeme not found.");
                 return H_ERROR_UNEXPECTED;
             }
+        }
+
+        if (m_eResult != TEST_RESULT_OK)
+        {
+            return H_NO_ERROR;  // tried all inflections & failed
         }
 
         eLex = spLE->eGetNextLexeme(spLexeme);

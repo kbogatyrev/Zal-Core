@@ -816,7 +816,7 @@ void CFormBuilderNouns::CreateWordForm(vector<int>& vecStressPositions,
     {
         if (itStressPos != vecStressPositions.begin() && m_spInflection->bIsMultistressedCompound())
         {
-            shared_ptr<CWordForm> spwfVariant;
+            auto spwfVariant = make_shared<CWordForm>();
 //            CloneWordForm(spWordForm, spwfVariant);
             spwfVariant->eCloneFrom(spWordForm);
             spwfVariant->ClearStress();
@@ -833,12 +833,13 @@ void CFormBuilderNouns::CreateWordForm(vector<int>& vecStressPositions,
         }
         else
         {
-            rc = eHandleYoAlternation(eStressType, *itStressPos, spWordForm->sStem(), sEnding);
+            auto&& sStem = spWordForm->sStem();
+            rc = eHandleYoAlternation(eStressType, *itStressPos, sStem, sEnding);
             if (rc != H_NO_ERROR)
             {
                 continue;
             }
-            spWordForm->SetWordForm(spWordForm->sStem() + sEnding);
+            spWordForm->SetWordForm(sStem + sEnding);
         }
 
         spWordForm->SetEnding(sEnding);
