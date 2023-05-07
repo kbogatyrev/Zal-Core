@@ -273,7 +273,7 @@ namespace Hlib
         ET_ReturnCode eWordFormFromHash(CEString sHash, int iAt, shared_ptr<CWordForm>& spWf);
         ET_ReturnCode eCreateWordForm(shared_ptr<CWordForm>&);
         ET_ReturnCode eRemoveWordForm(CEString sHash, int iAt);
-        ET_ReturnCode eRemoveWordForms(CEString sHash);
+        ET_ReturnCode eRemoveIrregularForms(CEString sHash);
 
         //ET_ReturnCode eGetFirstIrregularForm(CEString sHash, CWordForm *&, bool& bIsOptional);
         //ET_ReturnCode eGetFirstIrregularForm(CWordForm *&, bool& bIsOptional);
@@ -282,6 +282,7 @@ namespace Hlib
         int iFormCount(CEString sHash);
 
         void AddWordForm(shared_ptr<CWordForm>);
+        void AddModifiedForm(shared_ptr<CWordForm> spWordForm);
         void SetHypotheticalForm(CEString& sGramHash);
         bool bIsHypotheticalForm(CEString& sGramHash);
         uint64_t uiTotalWordForms();

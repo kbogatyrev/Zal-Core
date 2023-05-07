@@ -309,6 +309,20 @@ void CInflection::AddWordForm(shared_ptr<CWordForm> spWordForm)
 
 }  //  AddWordForm (...)
 
+void CInflection::AddModifiedForm(shared_ptr<CWordForm> spWordForm)
+{
+    if (spWordForm->bIrregular())
+    {
+        StIrregularForm stIf(spWordForm, spWordForm->bIsVariant());
+        m_mmapIrregularForms.insert(pair<CEString, StIrregularForm>(spWordForm->sGramHash(), stIf));
+    }
+    else
+    {
+//        m_mmWordForms.insert(pair<CEString, CWordForm*>(pItfWordForm->sGramHash(), pCWf));
+        AddWordForm(spWordForm);
+    }
+}
+
 bool CInflection::bIsHypotheticalForm(CEString& sGramHash)
 {
     if (m_vecHypotheticalForms.end() != find(m_vecHypotheticalForms.begin(), m_vecHypotheticalForms.end(), sGramHash))
@@ -1717,12 +1731,12 @@ ET_ReturnCode CInflection::eRemoveWordForm(CEString sHash, int iAt)
 
 }   //  eRemoveWordForm (...)
 
-ET_ReturnCode CInflection::eRemoveWordForms(CEString sHash)
+ET_ReturnCode CInflection::eRemoveIrregularForms(CEString sHash)
 {
     auto pairRange = m_mmapIrregularForms.equal_range(sHash);
     if (pairRange.first == pairRange.second)
     {
-        //        assert(0);  NB this may be legit, e.g., when there was not irreg. forms before editing
+        //        assert(0);  NB this may be legit, e.g., if there were no irreg. forms before editing
         ERROR_LOG(L"Unable to locate word form in collection.");
         return H_ERROR_UNEXPECTED;
     }
