@@ -156,7 +156,7 @@ ET_ReturnCode CDictionary::eInit()
     m_spLexemeEnumerator = make_shared<CLexemeEnumerator>(shared_from_this());
     if (!m_spLexemeEnumerator)
     {
-        ERROR_LOG(L"Error retrieving ILexemeEnumerator.");
+        ERROR_LOG(L"Error retrieving CLexemeEnumerator.");
         return H_ERROR_POINTER;
     }
 
@@ -663,7 +663,7 @@ ET_ReturnCode CDictionary::eCreateLexemeEnumerator(shared_ptr<CLexemeEnumerator>
     spLexemeEnumerator = make_shared<CLexemeEnumerator>(shared_from_this());
     if (!m_spLexemeEnumerator)
     {
-        ERROR_LOG(L"Error retrieving ILexemeEnumerator.");
+        ERROR_LOG(L"Error retrieving CLexemeEnumerator.");
         return H_ERROR_POINTER;
     }
 

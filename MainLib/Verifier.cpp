@@ -521,11 +521,10 @@ ET_ReturnCode CVerifier::eDeleteStoredLexeme(const CEString& sLexemeHash)
         sDelQuery1 += L"\";";
         m_spDb->Exec(sDelQuery1);
 
-        vector<int>::iterator itFormId = vecFormIds.begin();
-        for (; itFormId != vecFormIds.end(); ++itFormId)
+        for (auto llFormId : vecFormIds)
         {
-            CEString sDelQuery2(L"DELETE FROM test_data_stress WHERE lexeme_id = \"");
-            sDelQuery2 += sLexemeHash;
+            CEString sDelQuery2(L"DELETE FROM test_data_stress WHERE test_data_id = \"");
+            sDelQuery2 += CEString::sToString(llFormId);
             sDelQuery2 += L"\";";
             m_spDb->Exec(sDelQuery2);
         }

@@ -2485,7 +2485,6 @@ ET_ReturnCode CInflection::eSaveTestData()
     {
         spDbHandle = m_spLexeme->spGetDb();
 
-
         CEString sDeleteQuery(L"DELETE FROM lexeme_hash_to_descriptor WHERE descriptor_id = ");
         sDeleteQuery += CEString::sToString(m_spLexeme->stGetProperties().llDescriptorId);
         spDbHandle->Exec(sDeleteQuery);
