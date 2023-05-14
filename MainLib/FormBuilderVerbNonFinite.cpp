@@ -140,7 +140,7 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildInfinitive()
                 ERROR_LOG(L"Unable to instantiate CWordForm.");
                 return H_ERROR_POINTER;
             }
-//            spWordForm->m_spLexeme = m_spLexeme;
+            spWordForm->SetInflection(m_spInflection);
             spWordForm->SetPos(POS_VERB);
             spWordForm->SetSubparadigm(SUBPARADIGM_INFINITIVE);
             spWordForm->SetAspect(m_spLexeme->eAspect());

@@ -332,10 +332,10 @@ ET_ReturnCode CLexeme::eCreateInflectionForEdit(shared_ptr<CInflection>& spInfle
     return H_NO_ERROR;
 }
 
-StLexemeProperties& CLexeme::stGetSecondPartProperties()
-{
-    return m_stProperties2ndPart;
-}
+//StLexemeProperties& CLexeme::stGetSecondPartProperties()
+//{
+//    return m_stProperties2ndPart;
+//}
 
 /*
 ET_ReturnCode CLexeme::eAddCommonDeviation(int iValue, bool bIsOptional)

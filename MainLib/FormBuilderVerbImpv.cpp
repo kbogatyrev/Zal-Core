@@ -261,6 +261,7 @@ ET_ReturnCode CFormBuilderImperative::eCreateFormTemplate (const CEString& sStem
     }
 
 //    m_spWordForm->m_spLexeme = m_spLexeme;
+    m_spWordForm->SetInflection(m_spInflection);
     m_spWordForm->SetPos(POS_VERB);
     m_spWordForm->SetSubparadigm(SUBPARADIGM_IMPERATIVE);
     m_spWordForm->SetAspect(m_spLexeme->eAspect());

@@ -103,6 +103,7 @@ ET_ReturnCode CFormBuilderPronounAdj::eCreateFormTemplate (ET_Gender eGender,
     }
 
 //    spWordForm->m_spLexeme = m_spLexeme;
+    spWordForm->SetInflection(m_spInflection);
     spWordForm->SetPos(m_spLexeme->ePartOfSpeech());
     spWordForm->SetSubparadigm(SUBPARADIGM_PRONOUN_ADJ);
     spWordForm->SetStem(sStem);

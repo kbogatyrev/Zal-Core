@@ -447,6 +447,7 @@ ET_ReturnCode CFormBuilderNouns::eCreateFormTemplate (ET_Number eNumber,
     }
 
 //    spWordForm-> m_spLexeme = m_spLexeme;
+    spWordForm->SetInflection(m_spInflection);
     spWordForm->SetInflectionId(m_spInflection->llInflectionId());
     spWordForm->SetPos(POS_NOUN);
     spWordForm->SetSubparadigm(SUBPARADIGM_NOUN);

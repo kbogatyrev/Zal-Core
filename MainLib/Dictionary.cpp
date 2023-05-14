@@ -331,14 +331,14 @@ ET_ReturnCode CDictionary::eGetSecondPart(long long llId, shared_ptr<CLexeme>& s
         return H_ERROR_UNEXPECTED;
     }
 
-    uiQueryHandle = 0;
-    for (auto spLexeme : m_vecLexemes)
-    {
+//    uiQueryHandle = 0;
+//    for (auto spLexeme : m_vecLexemes)
+//    {
         auto sInflectionQuery = sQueryBaseInflection +
             L" FROM inflection WHERE descriptor_id = " +
             CEString::sToString(spLexeme->llLexemeId());
-        uint64_t uiQueryHandle = 0;
-        rc = eQueryDb(sQueryBaseInflection, uiQueryHandle);
+        uint64_t uiInflQueryHandle = 0;
+        rc = eQueryDb(sInflectionQuery, uiInflQueryHandle);
         if (H_NO_ERROR != rc)
         {
             return rc;
@@ -346,11 +346,12 @@ ET_ReturnCode CDictionary::eGetSecondPart(long long llId, shared_ptr<CLexeme>& s
         while (H_NO_ERROR == rc)
         {
             auto bSpryazhSm = false;        // TODO -- are we handling spryazh sm??
-            rc = eReadInflectionData(spLexeme, uiQueryHandle, bSpryazhSm);
+            rc = eReadInflectionData(spLexeme, uiInflQueryHandle, bSpryazhSm);
         }
-    }
+//    }
 
-// TOD: WHAT'S THAT??????
+/*
+// TODO: WHAT'S THAT??????
     uiQueryHandle = 0;
     for (auto spLexeme : m_vecLexemes)
     {
@@ -369,6 +370,7 @@ ET_ReturnCode CDictionary::eGetSecondPart(long long llId, shared_ptr<CLexeme>& s
             rc = eReadInflectionData(spLexeme, uiQueryHandle, bSpryazhSm);
         }
     }
+*/
 
     return rc;
 

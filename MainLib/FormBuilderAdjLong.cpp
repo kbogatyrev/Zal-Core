@@ -67,6 +67,7 @@ ET_ReturnCode CFormBuilderLongAdj::eCreateFormTemplate (ET_Gender eGender,
         return H_ERROR_POINTER;
     }
 
+    spWordForm->SetInflection(m_spInflection);
     spWordForm->SetPos(m_spLexeme->ePartOfSpeech());
     spWordForm->SetSubparadigm(m_eSubparadigm);
     spWordForm->SetStem(m_sStem);

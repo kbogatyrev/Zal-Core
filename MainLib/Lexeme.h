@@ -838,7 +838,7 @@ namespace Hlib
         // Non-virtual public functions (not available to external consumers)
     public:
         shared_ptr<CSqlite> spGetDb();
-        StLexemeProperties& stGetSecondPartProperties();
+//        StLexemeProperties& stGetSecondPartProperties();
         shared_ptr<CLexeme> spGetSecondPart()
         {
             return m_spSecondPart;

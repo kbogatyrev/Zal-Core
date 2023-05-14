@@ -170,6 +170,7 @@ ET_ReturnCode CFormBuilderPersonal::eCreateFormTemplate (ET_Number eNumber, ET_P
     }
 
 //    spWordForm->m_spLexeme = m_spLexeme;
+    spWordForm->SetInflection(m_spInflection);
     spWordForm->SetPos(POS_VERB);
     spWordForm->SetSubparadigm(SUBPARADIGM_PRESENT_TENSE);
     spWordForm->SetReflexivity(m_spLexeme->eIsReflexive());

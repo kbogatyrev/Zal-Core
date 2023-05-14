@@ -897,20 +897,21 @@ ET_ReturnCode CInflection::eGenerateParadigm()
         {
             CFormBuilderNouns bn(m_spLexeme, shared_from_this());
             rc = bn.eBuild();
-            if (m_spLexeme->spGetSecondPart())
+            auto spLexeme2 = m_spLexeme->spGetSecondPart();
+            if (spLexeme2)
             {
-                CInflectionEnumerator ie(m_spLexeme);
-                shared_ptr<CInflection> spInflection;
-                rc = ie.eGetFirstInflection(spInflection);
-                if (rc != H_NO_ERROR || nullptr == spInflection)
+                CInflectionEnumerator ie2(spLexeme2);
+                shared_ptr<CInflection> spInflection2;
+                rc = ie2.eGetFirstInflection(spInflection2);
+                if (rc != H_NO_ERROR || nullptr == spInflection2)
                 {
                     CEString sMsg(L"Unable to read inflection data for ");
-                    sMsg += m_spLexeme->sSourceForm();
+                    sMsg += spLexeme2->sSourceForm();
                     ERROR_LOG(sMsg);
                     return H_ERROR_UNEXPECTED;
                 }
 
-                rc = spInflection->eGenerateParadigm();
+                rc = spInflection2->eGenerateParadigm();
                 rc = eAlignInflectedParts();
             }
         }
@@ -2565,7 +2566,8 @@ ET_ReturnCode CInflection::eSaveTestData()
 
 ET_ReturnCode CInflection::eAlignInflectedParts()
 {
-    if (!m_spLexeme->spGetSecondPart())
+    auto spLexeme2 = m_spLexeme->spGetSecondPart();
+    if (!spLexeme2)
     {
         ERROR_LOG(L"No second part.");
         return H_ERROR_POINTER;
@@ -2573,7 +2575,7 @@ ET_ReturnCode CInflection::eAlignInflectedParts()
 
     ET_ReturnCode rc = H_NO_ERROR;
 
-    CInflectionEnumerator ie(m_spLexeme);
+    CInflectionEnumerator ie(spLexeme2);
     shared_ptr<CInflection> spInflection2;
     rc = ie.eGetFirstInflection(spInflection2);
     if (rc != H_NO_ERROR || nullptr == spInflection2)
@@ -2584,7 +2586,7 @@ ET_ReturnCode CInflection::eAlignInflectedParts()
         return H_ERROR_UNEXPECTED;
     }
 
-    rc = spInflection2->eGenerateParadigm();
+//    rc = spInflection2->eGenerateParadigm();
 
 // TODO: warning if multiple inflections for the second part
 

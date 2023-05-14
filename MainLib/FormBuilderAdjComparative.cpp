@@ -16,7 +16,6 @@ ET_ReturnCode CFormBuilderComparative::eCreateFormTemplate (const CEString& sSte
         return H_ERROR_POINTER;
     }
 
-//    spWordForm->m_spLexeme = m_spLexeme;
     spWordForm->SetInflection(m_spInflection);
     spWordForm->SetPos(POS_ADJ);
     spWordForm->SetSubparadigm(SUBPARADIGM_COMPARATIVE);
