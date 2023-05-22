@@ -36,7 +36,7 @@ namespace Hlib
         ET_ReturnCode eGetInflectionEnumerator(int64_t iHandle, shared_ptr<CInflectionEnumerator>& spInflectionEnumerator);
         ET_ReturnCode RemoveInflectionEnumerator(int64_t iHandle);
 
-        void Singleton::SetParser(shared_ptr<CParser> spParser);
+        void SetParser(shared_ptr<CParser> spParser);
         ET_ReturnCode eGetParser(shared_ptr<CParser>& spParser);
 
         ET_ReturnCode eGetVerifier(shared_ptr<CVerifier>& spVerifier);

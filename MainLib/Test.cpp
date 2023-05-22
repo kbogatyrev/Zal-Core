@@ -1,6 +1,7 @@
 #include <iostream>
 #include <memory>
-#include "MainLib.h"
+//#include "MainLib.h"
+#include "Singleton.h"
 #include "Dictionary.h"
 
 using namespace Hlib;
@@ -13,10 +14,10 @@ using namespace Hlib;
 int main() {
     std::cout << "Hello world!" << std::endl;
      
-    Hlib::Singleton singleton;
+    pSingleton = Hlib::Singleton::pGetInstance();
 
     shared_ptr<CDictionary> spDictionary;
-    auto rc = singleton.GetDictionary(spDictionary);
+    auto rc = pSingleton->eGetDictionary(spDictionary);
 
 #ifdef WIN32
     spDictionary->eSetDbPath(L"C:\\dev_win\\Zal\\Zal-Data\\ZalData\\ZalData_Master.db3");

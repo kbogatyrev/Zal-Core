@@ -70,7 +70,7 @@ CLexeme::CLexeme(shared_ptr<CDictionary> spD) : m_spDictionary(spD), m_spSecondP
     Init();
 }
 
-CLexeme::CLexeme(const CLexeme& source)
+CLexeme::CLexeme(const CLexeme& source) : enable_shared_from_this(source)
 {
     Init();
 
@@ -298,10 +298,10 @@ ET_ReturnCode CLexeme::eCreateInflectionEnumerator(CInflectionEnumerator*& pIe)
 }
 */
 
-void CLexeme::DeleteInflectionEnumerator(shared_ptr<CInflectionEnumerator> pIe)
-{
+//void CLexeme::DeleteInflectionEnumerator(shared_ptr<CInflectionEnumerator> pIe)
+//{
 //    delete pIe;
-}
+//}
 
 int CLexeme::nInflections()
 {

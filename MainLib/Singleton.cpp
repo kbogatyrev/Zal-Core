@@ -7,9 +7,7 @@
 using namespace Hlib;
 
 Singleton::Singleton()
-{
-    int i = 0;
-}
+{}
 
 Singleton* Singleton::pGetInstance()
 {
@@ -19,7 +17,6 @@ Singleton* Singleton::pGetInstance()
     }
     return pSingleton;
 }
-
 
 ET_ReturnCode Singleton::eGetDictionary(shared_ptr<CDictionary>& spDictionary)
 {

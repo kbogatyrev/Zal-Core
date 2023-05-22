@@ -215,22 +215,18 @@ ET_ReturnCode CDictionary::eCreateLexemeForEdit(shared_ptr<CLexeme>& spLexeme)
     return H_NO_ERROR;
 }
 
-ET_ReturnCode CDictionary::eCopyEntryForEdit(const shared_ptr<CLexeme> spLSource, const shared_ptr<CInflection> spISource, 
-                                             shared_ptr<CLexeme>& spLCopy, shared_ptr<CInflection>& spICopy)
+ET_ReturnCode CDictionary::eCopyEntryForEdit(const shared_ptr<CInflection> spSource, shared_ptr<CInflection>& spCopy)
 {
     if (nullptr == m_spDb)
     {
         return H_ERROR_POINTER;
     }
 
-    spLCopy = make_shared<CLexeme>(*spLSource);
-    if (nullptr == spLCopy)
+    spCopy = make_shared<CInflection>(*spSource);
+    if (nullptr == spCopy)
     {
         return H_ERROR_POINTER;
     }
-
-    spLCopy->SetDictionary(shared_from_this());
-
     return H_NO_ERROR;
 }
 
@@ -698,10 +694,10 @@ ET_ReturnCode CDictionary::eCreateLexemeEnumerator(shared_ptr<CLexemeEnumerator>
     return H_NO_ERROR;
 }
 
-void CDictionary::DeleteLexemeEnumerator(shared_ptr<CLexemeEnumerator> spLexemeEnumerator)
-{
+//void CDictionary::DeleteLexemeEnumerator(shared_ptr<CLexemeEnumerator> spLexemeEnumerator)
+//{
 //    delete pLe;
-}
+//}
 
 //ET_ReturnCode CDictionary::eGetLexemeInstance(int iAt, shared_ptr<CLexeme>& spLexeme)
 //{
@@ -1445,8 +1441,6 @@ ET_ReturnCode CDictionary::ePopulateWordFormDataTables()
 
 ET_ReturnCode CDictionary::ePopulateHashToDescriptorTable(PROGRESS_CALLBACK_CLR pProgressCLR, PROGRESS_CALLBACK_PYTHON pProgressPython)
 {
-    return H_FALSE;
-/*
     if (!m_spDb)
     {
         return H_ERROR_DB;
@@ -1519,7 +1513,17 @@ ET_ReturnCode CDictionary::ePopulateHashToDescriptorTable(PROGRESS_CALLBACK_CLR 
         return rc;
     }
 
-    map<CEString, StLexemeProperties> mapHashToProperties;
+    struct StLexemeIds
+    {
+        long long llDescriptorId;
+        long long llInflectionId;
+
+        StLexemeIds(long long llDid, long long llIid) :
+            llDescriptorId(llDid), llInflectionId(llIid)
+        {}
+    };
+
+    map<CEString, StLexemeIds> mapHashToIds;
 
     std::clock_t totalTime = 0;
 //    int iPercentDone = 0;
@@ -1527,8 +1531,7 @@ ET_ReturnCode CDictionary::ePopulateHashToDescriptorTable(PROGRESS_CALLBACK_CLR 
     for (int iRow = 0; bMoreData; ++iRow)
     {
         clock_t dbProcTime = clock();
-
-        shared_ptr<CLexeme> spLexeme = make_shared<CLexeme>(this);
+        shared_ptr<CLexeme> spLexeme = make_shared<CLexeme>(shared_from_this());
         try
         {
             rc = eReadDescriptorData(spLexeme, uiQueryHandle);
@@ -1564,14 +1567,35 @@ ET_ReturnCode CDictionary::ePopulateHashToDescriptorTable(PROGRESS_CALLBACK_CLR 
                 }
             }
 
-            CEString sHash = spLexeme->sHash();
-            mapHashToProperties[sHash] = spLexeme->stGetProperties();
+            shared_ptr<CInflectionEnumerator> spIe;
+            auto rc = spLexeme->eCreateInflectionEnumerator(spIe);
+            if (rc != H_NO_ERROR)
+            {
+                ERROR_LOG(L"UNable to retrieve inflection data.");
+                continue;
+            }
+
+            shared_ptr<CInflection> spInflection;
+            rc = spIe->eGetFirstInflection(spInflection);
+            while (H_NO_ERROR == rc)
+            {
+                if (!spInflection)
+                {
+                    ERROR_LOG(L"Inflection instance is NULL.");
+                    continue;
+                }
+
+                CEString sHash = spInflection->sHash();
+                mapHashToIds.emplace(sHash, StLexemeIds(spLexeme->llLexemeId(), spInflection->llDescriptorId()));
+
+                rc = spIe->eGetNextInflection(spInflection);
+            }
 
             if (!bMoreData || (iRow > 0 && (iRow % 1000 == 0)))
             { 
                 m_spDb->BeginTransaction();
 
-                for (auto itLex = mapHashToProperties.begin(); itLex != mapHashToProperties.end(); ++itLex)
+                for (auto itLex = mapHashToIds.begin(); itLex != mapHashToIds.end(); ++itLex)
                 {
                     uint64_t uiInsertHandle = 0;
 
@@ -1613,7 +1637,7 @@ ET_ReturnCode CDictionary::ePopulateHashToDescriptorTable(PROGRESS_CALLBACK_CLR 
 
                 m_spDb->CommitTransaction();
 
-                mapHashToProperties.clear();
+                mapHashToIds.clear();
             
             }       //  if (!bMoreData || (iRow > 0 && (iRow % 100 == 0)))
         }
@@ -1639,26 +1663,26 @@ ET_ReturnCode CDictionary::ePopulateHashToDescriptorTable(PROGRESS_CALLBACK_CLR 
                 ERROR_LOG(L"CLR interface currentlynot supported.");
             }
 
-//            CEString sMsg(L"------------ Saving lexeme hashes ------------- \r\n");
-//            sMsg += CEString::sToString(iRow);
-            //CLogger::bWriteLog(wstring(xxxx));
-//            ERROR_LOG(sMsg)
-//                std::cout << string(sMsg.stl_sToUtf8()) << std::endl;
+//          CEString sMsg(L"------------ Saving lexeme hashes ------------- \r\n");
+//          sMsg += CEString::sToString(iRow);
+//          CLogger::bWriteLog(wstring(xxxx));
+//          ERROR_LOG(sMsg)
+//          std::cout << string(sMsg.stl_sToUtf8()) << std::endl;
 
-//            CEString sDurationMsg(L"Row ");
-//            sDurationMsg += CEString::sToString(iRow);
-//            sDurationMsg += L"; ";
-//            sDurationMsg += CEString::sToString(dDuration);
-//            sDurationMsg += L" seconds total";
-            //            CLogger::bWriteLog(wstring(sDurationMsg));
-//            std::cout << string(sDurationMsg.stl_sToUtf8()) << std::endl;
-//            totalTime = 0;
+//          CEString sDurationMsg(L"Row ");
+//          sDurationMsg += CEString::sToString(iRow);
+//          sDurationMsg += L"; ";
+//          sDurationMsg += CEString::sToString(dDuration);
+//          sDurationMsg += L" seconds total"; 
+//          CLogger::bWriteLog(wstring(sDurationMsg));
+//          std::cout << string(sDurationMsg.stl_sToUtf8()) << std::endl;
+//          totalTime = 0;
 
         }
     }       //  for ...
 
     return H_NO_ERROR;
-*/
+
 }       //  ePopulateHashToDescriptorTable()
 
 ET_ReturnCode CDictionary::eCountLexemes(int64_t& iLexemes)
@@ -2034,7 +2058,7 @@ ET_ReturnCode CDictionary::eReadDescriptorData(shared_ptr<CLexeme> spLexeme, uin
 
 }    //  eReadDescriptorData()
 
-ET_ReturnCode CDictionary::eReadInflectionData(shared_ptr<CLexeme>spLexeme, uint64_t uiQueryHandle, bool bIsSpryazhSm)
+ET_ReturnCode CDictionary::eReadInflectionData(shared_ptr<CLexeme>spLexeme, uint64_t uiQueryHandle, [[maybe_unused]]bool bIsSpryazhSm)
 {
     if (nullptr == m_spDb)
     {
@@ -2061,7 +2085,7 @@ ET_ReturnCode CDictionary::eReadInflectionData(shared_ptr<CLexeme>spLexeme, uint
 
             auto& stProperties = spInflection->stGetPropertiesForWriteAccess();
 
-            m_spDb->GetData(0, stProperties.llInflectionId, uiQueryHandle);                      //  0 source
+            m_spDb->GetData(0, (int64_t&)stProperties.llInflectionId, uiQueryHandle);             //  0 source
             m_spDb->GetData(1, stProperties.bPrimaryInflectionGroup, uiQueryHandle);             //  1 is_primary
             m_spDb->GetData(2, stProperties.iType, uiQueryHandle);                               //  2 inflection_type
             int iAccentType1 = 0;

@@ -313,7 +313,7 @@ ET_ReturnCode CWordForm::eSetStressPositions(map<int, ET_StressType> mapStress)
 
 void CWordForm::SetStressPos(int iPos, ET_StressType eType)
 {
-    m_mapStress[iPos] = STRESS_PRIMARY;
+    m_mapStress[iPos] = eType;
 }
 
 ET_ReturnCode CWordForm::eGetFirstStressSyll(int& iSyll, ET_StressType& eType)

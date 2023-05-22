@@ -1573,7 +1573,7 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastPassiveParticiple()
             int iPos = -1;
             ET_StressType eType = STRESS_TYPE_UNDEFINED;
             auto rcStress = spNSgMLong->eGetFirstStressSyll(iPos, eType);
-            if (eType != STRESS_PRIMARY || iPos != (int)sNSgMLong.uiGetNumOfSyllables()-2)
+            if (rcStress != H_NO_ERROR || eType != STRESS_PRIMARY || iPos != (int)sNSgMLong.uiGetNumOfSyllables()-2)
             {
                 assert(0);
                 ERROR_LOG (L"Unexpected stress position.");
@@ -1611,7 +1611,7 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastPassiveParticiple()
             int iPos = -1;
             ET_StressType eType = STRESS_TYPE_UNDEFINED;
             auto rcStress = spNSgMLong->eGetFirstStressSyll(iPos, eType);
-            if (eType != STRESS_PRIMARY)
+            if (rcStress != H_NO_ERROR || eType != STRESS_PRIMARY)
             {
                 assert(0);
                 ERROR_LOG(L"Unexpected stress type.");
@@ -1668,7 +1668,7 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPresPassPartFromSourceForm(shared_ptr
         return H_ERROR_POINTER;
     }
 
-    auto& sWordform = sp1Pl->sWordForm();
+    auto&& sWordform = sp1Pl->sWordForm();
     auto uiLength = sWordform.uiLength();
     if (uiLength < 3)
     {
@@ -2581,26 +2581,32 @@ ET_ReturnCode CFormBuilderNonFinite::eDeriveIrregPastActPartAndAdverbial()
 //            map<int, ET_StressType>::iterator itStress = (*it).first->m_mapStress.begin();
 //            for (; itStress != (*it).first->m_mapStress.end(); ++itStress)
             auto rcStress = (*it).first->eGetFirstStressSyll(iPos, eType);
+            if (rcStress != H_NO_ERROR)
             {
-                if (STRESS_PRIMARY == eType)
+                ERROR_LOG(L"Unable to retrieve stress syllable.");
+                continue;
+            }
+            
+            if (STRESS_PRIMARY == eType)
+            {
+                CFormBuilderLongAdj builder(m_spLexeme,
+                    m_spInflection,
+                    sStem,
+                    AT_A,
+                    SUBPARADIGM_PART_PAST_ACT,
+                    iPos);
+                builder.eBuildParticiple();
+                if (rc != H_NO_ERROR)
                 {
-                    CFormBuilderLongAdj builder(m_spLexeme,
-                        m_spInflection,
-                        sStem,
-                        AT_A,
-                        SUBPARADIGM_PART_PAST_ACT,
-                        iPos);
-                    builder.eBuildParticiple();
-                    if (rc != H_NO_ERROR)
-                    {
-                        return rc;
-                    }
-                }       //  if (STRESS_PRIMARY == eType)
+                    return rc;
+                }
+            }       //  if (STRESS_PRIMARY == eType)
 
-                rcStress = (*it).first->eGetNextStressPos(iPos, eType);
-
-            }       // stress pos. loop
-
+            rcStress = (*it).first->eGetNextStressPos(iPos, eType);
+            if (H_NO_ERROR == rcStress)
+            {
+                ERROR_LOG(L"Multiple stress positions.")
+            }
         }   //  for (; it != mapMSgIrreg.end(); ++it)...
 
         return H_NO_ERROR;

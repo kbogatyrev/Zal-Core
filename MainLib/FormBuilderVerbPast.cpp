@@ -453,7 +453,7 @@ ET_ReturnCode CFormBuilderPast::eRetractStressToPreverb (shared_ptr<CWordForm> s
         }
 
         map<int, ET_StressType> mapCorrectedStress;
-        ET_StressType eType = ET_StressType::STRESS_TYPE_UNDEFINED;
+//        ET_StressType eType = ET_StressType::STRESS_TYPE_UNDEFINED;
         auto& mapStressSylls = spWordForm->mapGetStressPositions();
 //        auto rcStress = spWordForm->eGetFirstStressSyll(iPos, eType);
         auto itStressSyll = mapStressSylls.begin();

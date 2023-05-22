@@ -56,8 +56,7 @@ public:
     CEString sGetDbPath();
     shared_ptr<CSqlite> spGetDb();
     ET_ReturnCode eCreateLexemeForEdit(shared_ptr<CLexeme>&);
-    ET_ReturnCode eCopyEntryForEdit(const shared_ptr<CLexeme> spLSource, const shared_ptr<CInflection> spISource, 
-                                    shared_ptr<CLexeme>& spLCopy, shared_ptr<CInflection>& spICopy);
+    ET_ReturnCode eCopyEntryForEdit(const shared_ptr<CInflection> spSource, shared_ptr<CInflection>& spCopy);
     ET_ReturnCode eGetLexemeById(long long Id, shared_ptr<CLexeme>& spLexeme);
     ET_ReturnCode eGetLexemesByHash(const CEString& sMd5);
 //    ET_ReturnCode eGetLexemesByGraphicStem(const CEString&);
@@ -77,7 +76,7 @@ public:
     ET_ReturnCode Clear(shared_ptr<CLexeme>);
 
     ET_ReturnCode eCreateLexemeEnumerator(shared_ptr<CLexemeEnumerator>&);
-    void DeleteLexemeEnumerator(shared_ptr<CLexemeEnumerator>);
+//    void DeleteLexemeEnumerator(shared_ptr<CLexemeEnumerator>);
 
 //    ET_ReturnCode eGetLexemeInstance (int i, shared_ptr<CLexeme>&);
 
