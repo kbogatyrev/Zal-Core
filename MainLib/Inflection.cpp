@@ -23,9 +23,9 @@ CInflection::CInflection(shared_ptr<CLexeme> spLexeme)
     }
 
     m_spLexeme = spLexeme;
-};
+}
 
-CInflection::CInflection(const CInflection& source)
+CInflection::CInflection(const CInflection& source) : enable_shared_from_this(source)
 {
     auto it = source.m_mmWordForms.begin();
     for (; it != source.m_mmWordForms.end(); ++it)

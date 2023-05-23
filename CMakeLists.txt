@@ -107,13 +107,15 @@ target_sources (ZalMainLib PRIVATE
 	MainLib/Inflection.cpp
 	MainLib/Lexeme.h
 	MainLib/Lexeme.cpp
-	MainLib/MainLib.h
+#	MainLib/MainLib.h
 #	MainLib/MainLib.cpp
 #	MainLib/MainLib.def
 	MainLib/Parser.h
 	MainLib/Parser.cpp
 	MainLib/ParsingTree.h
 	MainLib/ParsingTree.cpp
+	MainLib/Singleton.h
+	MainLib/Singleton.cpp
 	MainLib/Transcriber.h
 	MainLib/Transcriber.cpp
 	MainLib/Verifier.h

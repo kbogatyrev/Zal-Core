@@ -7,7 +7,7 @@
 
 #include "Enums.h"
 #include "EString.h"
-#include "IDictionary.h"
+//#include "IDictionary.h"
 #include "LexemeProperties.h"
 #include "InflectionProperties.h"
 
