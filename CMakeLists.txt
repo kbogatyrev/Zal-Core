@@ -1,5 +1,4 @@
 cmake_minimum_required (VERSION 3.16)
-cmake_minimum_required (VERSION 3.16)
 
 project (Zal-Core VERSION 5.0.0)
 
@@ -107,9 +106,6 @@ target_sources (ZalMainLib PRIVATE
 	MainLib/Inflection.cpp
 	MainLib/Lexeme.h
 	MainLib/Lexeme.cpp
-#	MainLib/MainLib.h
-#	MainLib/MainLib.cpp
-#	MainLib/MainLib.def
 	MainLib/Parser.h
 	MainLib/Parser.cpp
 	MainLib/ParsingTree.h
@@ -125,41 +121,14 @@ target_sources (ZalMainLib PRIVATE
 	ThirdParty/Sqlite/sqlite3.c
 )
 
-# ---------------------------------------------------------------
-
-#
-#	String test
-#
-
-add_executable (ZalStringTest)
-
-target_sources (ZalStringTest PRIVATE
-	HLib/StringTest.cpp
-)
-
-# ---------------------------------------------------------------
-
-#
-#	Standalone analytics
-#
-
-add_executable (ZalAnalytics)
-
-target_sources (ZalAnalytics PRIVATE
-	Zal-CPP/StandaloneAnalytics/StandaloneAnalytics.cpp
-)
-
-target_include_directories (ZalAnalytics PUBLIC
-	HLib
-	MainLib
-	ThirdParty/Sqlite
-	ThirdParty/sha1
-)
-
-if (MSVC)
-	target_link_libraries(ZalAnalytics ZalMainLib)
+if (CMAKE_BUILD_TYPE MATCHES "Debug")
+	add_custom_command(TARGET ZalMainLib POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ZalMainLib> ../../../../Zal-Windows/TestApp/bin/debug
+	)
 else()
-	target_link_libraries(ZalAnalytics ZalMainLib pthread dl)
+	add_custom_command(TARGET ZalMainLib POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ZalMainLib> ../../../../Zal-Windows/TestApp/bin/release
+	)
 endif()
 
 # ---------------------------------------------------------------
@@ -168,7 +137,7 @@ endif()
 #	Python wrapper
 #
 
-add_library (ZalPythonItf)   # TODO: switch to DLL
+add_library (ZalPythonItf) 
 
 target_include_directories (ZalPythonItf PUBLIC
 	HLib
@@ -178,8 +147,8 @@ target_include_directories (ZalPythonItf PUBLIC
 )
 
 target_sources (ZalPythonItf PRIVATE
-	Zal-CPP/MainLibCTypes/dllmain.cpp
-	Zal-CPP/MainLibCTypes/ZalPythonItf.cpp
+#	Zal-CPP/MainLibCTypes/dllmain.cpp
+	MainLibCTypes/ZalPythonItf.cpp
 )
 
 target_link_directories (ZalPythonItf PRIVATE
@@ -189,14 +158,22 @@ target_link_directories (ZalPythonItf PRIVATE
 target_link_libraries (ZalPythonItf 
 	ZalMainLib)
 
+
+# ---------------------------------------------------------------
+#
+#	Tests
+#
 # ---------------------------------------------------------------
 
-#
-#	Test
-#
-#
+add_executable (ZalStringTest)
+
+target_sources (ZalStringTest PRIVATE
+	HLib/StringTest.cpp
+)
 
 add_executable (ZalMainTest)
+
+#-----------------------------------------------------------------
 
 target_sources (ZalMainTest PRIVATE
 	MainLib/Test.cpp
@@ -212,14 +189,4 @@ if (MSVC)
 	target_link_libraries(ZalMainTest ZalMainLib)
 else()
 	target_link_libraries(ZalMainTest ZalMainLib pthread dl)
-endif()
-
-if (CMAKE_BUILD_TYPE MATCHES "Debug")
-	add_custom_command(TARGET ZalMainLib POST_BUILD
-		COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ZalMainLib> ../../../../Zal-Windows/TestApp/bin/debug
-	)
-else()
-	add_custom_command(TARGET ZalMainLib POST_BUILD
-		COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ZalMainLib> ../../../../Zal-Windows/TestApp/bin/release
-	)
 endif()
