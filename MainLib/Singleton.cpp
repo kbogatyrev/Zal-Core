@@ -6,17 +6,19 @@
 
 using namespace Hlib;
 
+Hlib::Singleton* pSingleton;
+
+    Singleton* Singleton::pGetInstance()
+    {
+        if (!pSingleton)
+        {
+            pSingleton = new Singleton();
+        }
+        return pSingleton;
+    }
+
 Singleton::Singleton()
 {}
-
-Singleton* Singleton::pGetInstance()
-{
-    if (!pSingleton)
-    {
-        pSingleton = new Singleton();
-    }
-    return pSingleton;
-}
 
 ET_ReturnCode Singleton::eGetDictionary(shared_ptr<CDictionary>& spDictionary)
 {

@@ -57,9 +57,4 @@ namespace Hlib
     };
 }
 
-//extern "C"
-//{
-    static Hlib::Singleton * pSingleton;
-//}
-
 #endif    //  MAINLIB_H_INCLUDED
