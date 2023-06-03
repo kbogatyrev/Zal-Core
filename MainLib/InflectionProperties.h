@@ -11,7 +11,7 @@ namespace Hlib
     struct StInflectionProperties
     {
         // From inflection table:
-        long long llInflectionId { -1 };
+        int64_t llInflectionId { -1 };
         bool bPrimaryInflectionGroup { false };
         int iType { -1 };
         ET_AccentType eAccentType1 { AT_UNDEFINED };

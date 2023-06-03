@@ -52,6 +52,7 @@ if (MSVC)
 		)
 	endif()
 else()
+	set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 	set(CMAKE_CXX_STANDARD 17)
     add_compile_options(-Wall -Wextra -pedantic -Werror)
 endif()
@@ -118,8 +119,7 @@ target_sources (ZalMainLib PRIVATE
 	MainLib/Verifier.cpp
 	MainLib/WordForm.h
 	MainLib/WordForm.cpp
-	ThirdParty/Sqlite/sqlite3.c
-)
+	ThirdParty/Sqlite/sqlite3.c)
 
 if (CMAKE_BUILD_TYPE MATCHES "Debug")
 	add_custom_command(TARGET ZalMainLib POST_BUILD
@@ -137,7 +137,7 @@ endif()
 #	Python wrapper
 #
 
-add_library (ZalPythonItf) 
+add_library (ZalPythonItf SHARED) 
 
 target_include_directories (ZalPythonItf PUBLIC
 	HLib
@@ -148,9 +148,8 @@ target_include_directories (ZalPythonItf PUBLIC
 
 target_sources (ZalPythonItf PRIVATE
 #	Zal-CPP/MainLibCTypes/dllmain.cpp
-	MainLibCTypes/ZalPythonItf.cpp
-)
-
+	MainLibCTypes/ZalPythonItf.cpp)
+ 
 target_link_directories (ZalPythonItf PRIVATE
 	../../Zal-Core/out/build/x64-debug
 )
@@ -169,7 +168,7 @@ add_executable (ZalStringTest)
 
 target_sources (ZalStringTest PRIVATE
 	HLib/StringTest.cpp
-)
+ "Test/GenerateAllForms.cpp")
 
 add_executable (ZalMainTest)
 
@@ -177,7 +176,7 @@ add_executable (ZalMainTest)
 
 target_sources (ZalMainTest PRIVATE
 	MainLib/Test.cpp
-)
+ "Test/GenerateAllForms.cpp")
 
 target_include_directories (ZalMainTest PUBLIC
 	HLib

@@ -1787,7 +1787,7 @@ ET_ReturnCode CDictionary::eReadInflectionData(shared_ptr<CLexeme>spLexeme, uint
 
             auto& stProperties = spInflection->stGetPropertiesForWriteAccess();
 
-            m_spDb->GetData(0, (int64_t&)stProperties.llInflectionId, uiQueryHandle);             //  0 source
+            m_spDb->GetData(0, stProperties.llInflectionId, uiQueryHandle);            //  0 source
             m_spDb->GetData(1, stProperties.bPrimaryInflectionGroup, uiQueryHandle);             //  1 is_primary
             m_spDb->GetData(2, stProperties.iType, uiQueryHandle);                               //  2 inflection_type
             int iAccentType1 = 0;
