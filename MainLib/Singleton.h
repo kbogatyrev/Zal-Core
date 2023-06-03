@@ -1,7 +1,5 @@
-// MainLib.cpp : Implementation of DLL Exports.
-
-#ifndef MAINLIB_H_INCLUDED
-#define MAINLIB_H_INCLUDED
+#ifndef SINGLETON_H_INCLUDED
+#define SINGLETON_H_INCLUDED
 
 #include <memory>
 
@@ -57,4 +55,4 @@ namespace Hlib
     };
 }
 
-#endif    //  MAINLIB_H_INCLUDED
+#endif    //  SINGLETON_H_INCLUDED

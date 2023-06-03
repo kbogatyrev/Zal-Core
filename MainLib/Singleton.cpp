@@ -8,14 +8,14 @@ using namespace Hlib;
 
 Hlib::Singleton* pSingleton;
 
-    Singleton* Singleton::pGetInstance()
+Singleton* Singleton::pGetInstance()
+{
+    if (!pSingleton)
     {
-        if (!pSingleton)
-        {
-            pSingleton = new Singleton();
-        }
-        return pSingleton;
+        pSingleton = new Singleton();
     }
+    return pSingleton;
+}
 
 Singleton::Singleton()
 {}

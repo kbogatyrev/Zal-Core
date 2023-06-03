@@ -138,13 +138,7 @@ static CEString sQueryBaseInflection
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 CDictionary::CDictionary()
-{
-//    auto rc = eInit();
-//    if (rc != H_NO_ERROR)
-//    {
-//        throw CException(H_ERROR_UNEXPECTED, L"Lexeme enumerator not initialized.");
-//    }
-}
+{}
 
 CDictionary::~CDictionary()
 {
@@ -298,7 +292,6 @@ ET_ReturnCode CDictionary::eGetSecondPart(long long llId, shared_ptr<CLexeme>& s
     ET_ReturnCode rc = H_NO_ERROR;
     CEString sQuery(sQueryBaseDescriptor);
     sQuery += L"FROM headword INNER JOIN descriptor ON descriptor.word_id = headword.id ";
-//    sQuery += L"LEFT OUTER JOIN inflection ON descriptor.id = inflection.descriptor_id ";
     sQuery += L"WHERE descriptor.id = ";
     sQuery += CEString::sToString(llId);
     sQuery += L";";
@@ -310,7 +303,6 @@ ET_ReturnCode CDictionary::eGetSecondPart(long long llId, shared_ptr<CLexeme>& s
         return rc;
     }
 
-//    StLexemeProperties& stProperties = pLexeme->stGetPropertiesForWriteAccess();
     rc = eReadDescriptorData(spLexeme, uiQueryHandle);
     if (H_NO_ERROR != rc)
     {
@@ -327,46 +319,20 @@ ET_ReturnCode CDictionary::eGetSecondPart(long long llId, shared_ptr<CLexeme>& s
         return H_ERROR_UNEXPECTED;
     }
 
-//    uiQueryHandle = 0;
-//    for (auto spLexeme : m_vecLexemes)
-//    {
-        auto sInflectionQuery = sQueryBaseInflection +
-            L" FROM inflection WHERE descriptor_id = " +
-            CEString::sToString(spLexeme->llLexemeId());
-        uint64_t uiInflQueryHandle = 0;
-        rc = eQueryDb(sInflectionQuery, uiInflQueryHandle);
-        if (H_NO_ERROR != rc)
-        {
-            return rc;
-        }
-        while (H_NO_ERROR == rc)
-        {
-            auto bSpryazhSm = false;        // TODO -- are we handling spryazh sm??
-            rc = eReadInflectionData(spLexeme, uiInflQueryHandle, bSpryazhSm);
-        }
-//    }
-
-/*
-// TODO: WHAT'S THAT??????
-    uiQueryHandle = 0;
-    for (auto spLexeme : m_vecLexemes)
+    auto sInflectionQuery = sQueryBaseInflection +
+        L" FROM inflection WHERE descriptor_id = " +
+        CEString::sToString(spLexeme->llLexemeId());
+    uint64_t uiInflQueryHandle = 0;
+    rc = eQueryDb(sInflectionQuery, uiInflQueryHandle);
+    if (H_NO_ERROR != rc)
     {
-        auto sInflectionQuery = sQueryBaseInflection +
-            L" FROM inflection WHERE descriptor_id = " +
-            CEString::sToString(spLexeme->llLexemeId());
-        uint64_t uiQueryHandle = 0;
-        rc = eQueryDb(sQueryBaseInflection, uiQueryHandle);
-        if (H_NO_ERROR != rc)
-        {
-            return rc;
-        }
-        while (H_NO_ERROR == rc)
-        {
-            auto bSpryazhSm = false;        // TODO -- are we handling spryazh sm??
-            rc = eReadInflectionData(spLexeme, uiQueryHandle, bSpryazhSm);
-        }
+        return rc;
     }
-*/
+    while (H_NO_ERROR == rc)
+    {
+        auto bSpryazhSm = false;        // TODO -- are we handling spryazh sm??
+        rc = eReadInflectionData(spLexeme, uiInflQueryHandle, bSpryazhSm);
+    }
 
     return rc;
 
@@ -378,7 +344,6 @@ ET_ReturnCode CDictionary::eGetLexemesByHash(const CEString& sMd5)
     CEString sQuery(sQueryBaseDescriptor);
     sQuery += L"FROM headword INNER JOIN descriptor ON descriptor.word_id = headword.id ";
     sQuery += L"INNER JOIN lexeme_hash_to_descriptor as lhd on lhd.descriptor_id=descriptor.id ";
-//    sQuery += L"LEFT OUTER JOIN inflection ON lhd.inflection_id = inflection.id ";
     sQuery += L"WHERE lexeme_hash = \"";
     sQuery += sMd5;
     sQuery += L"\";";
@@ -410,7 +375,6 @@ ET_ReturnCode CDictionary::eGetLexemesByHash(const CEString& sMd5)
             return rc;
         }
 
-//        uiQueryHandle = 0;
         for (auto spLexeme : m_vecLexemes)
         {
             auto sInflectionQuery = sQueryBaseInflection +
@@ -437,57 +401,11 @@ ET_ReturnCode CDictionary::eGetLexemesByHash(const CEString& sMd5)
 
 }   //  eGetLexemesByHash (...)
 
-/*
-ET_ReturnCode CDictionary::eGetLexemesByGraphicStem(const CEString& sHeadword)
-{
-    ET_ReturnCode rc = H_NO_ERROR;
-    CEString sQuery(sQueryBaseDescriptor);
-    sQuery += L"FROM headword INNER JOIN descriptor ON descriptor.word_id = headword.id ";
-//    sQuery += L"LEFT OUTER JOIN inflection ON descriptor.id = inflection.descriptor_id ";
-    sQuery += L"WHERE descriptor.graphic_stem = \"";
-    sQuery += sHeadword;
-    sQuery += L"\";";
-
-    uint64_t uiQueryHandle = 0;
-    rc = eQueryDb(sQuery, uiQueryHandle);
-    if (H_NO_ERROR != rc)
-    {
-        return rc;
-    }
-
-    while (H_NO_ERROR == rc)
-    {
-        shared_ptr<CLexeme> pLexeme = make_shared<CLexeme>(shared_from_this());
-        if (nullptr == pLexeme)
-        {
-            Clear();
-            return H_ERROR_POINTER;
-        }
-
-        rc = eReadDescriptorData(pLexeme, uiQueryHandle);
-        if (H_NO_ERROR != rc && H_NO_MORE != rc)
-        {
-            Clear();
-            pLexeme = nullptr;
-            ERROR_LOG(L"Error retrieving lexeme data.");
-            return rc;
-        }
-
-        m_vecLexemes.push_back(pLexeme);
-    }
-
-    m_spDb->Finalize(uiQueryHandle);
-
-    return (H_NO_ERROR == rc) ? H_NO_ERROR : rc;
-}
-*/
-
 ET_ReturnCode CDictionary::eGetLexemesByInitialForm(const CEString& sSource)
 {
     ET_ReturnCode rc = H_NO_ERROR;
     CEString sQuery(sQueryBaseDescriptor);
     sQuery += L" FROM headword INNER JOIN descriptor ON descriptor.word_id = headword.id ";
-//    sQuery += L"LEFT OUTER JOIN inflection ON descriptor.id = inflection.descriptor_id ";
     sQuery += L"WHERE headword.source = \"";
     sQuery += sSource;
     sQuery += L"\";";
@@ -522,32 +440,6 @@ ET_ReturnCode CDictionary::eGetLexemesByInitialForm(const CEString& sSource)
             ERROR_LOG(L"Error retrieving lexeme data.");
             return rc;
         }
-
-/*
-        for (auto spLexeme : vecLexemesFound)
-        {
-            auto sInflectionQuery = sQueryBaseInflection +
-                L" FROM inflection WHERE descriptor_id = " +
-                CEString::sToString(spLexeme->llLexemeId());
-            uint64_t uiInflectionQueryHandle = 0;
-            rc = eQueryDb(sInflectionQuery, uiInflectionQueryHandle);
-            if (H_NO_ERROR != rc)
-            {
-                return rc;
-            }
-            while (H_NO_ERROR == rc)
-            {
-                auto bSpryazhSm = false;        // TODO -- are we handling spryazh sm??
-                rc = eReadInflectionData(spLexeme, uiInflectionQueryHandle, bSpryazhSm);
-            }
-            m_spDb->Finalize(uiInflectionQueryHandle);
-
-            if (spLexeme->nInflections() < 1)
-            {
-                spLexeme->AddInflection(make_shared<CInflection>(spLexeme));
-            }
-        }
-*/
     }
 
     m_spDb->Finalize(uiQueryHandle);
@@ -556,7 +448,6 @@ ET_ReturnCode CDictionary::eGetLexemesByInitialForm(const CEString& sSource)
     sSpryazhSmQuery += L", no_aspect_pair ";
     sSpryazhSmQuery += L"FROM headword INNER JOIN spryazh_sm_headwords ON headword.id = spryazh_sm_headwords.headword_id ";
     sSpryazhSmQuery += L"INNER JOIN descriptor ON spryazh_sm_headwords.ref_descriptor_id = descriptor.id ";
-//    sSpryazhSmQuery += L"LEFT OUTER JOIN inflection ON descriptor.id = inflection.descriptor_id ";
     sSpryazhSmQuery += L"WHERE headword.source = \"";
     sSpryazhSmQuery += sSource;
     sSpryazhSmQuery += L"\"";
@@ -639,25 +530,6 @@ ET_ReturnCode CDictionary::eGetLexemesByInitialForm(const CEString& sSource)
     m_vecLexemes.insert(m_vecLexemes.end(), make_move_iterator(vecLexemesFound.begin()),
         make_move_iterator(vecLexemesFound.end()));
 
-//    uiQueryHandle = 0;
-//    for (auto spLexeme : m_vecLexemes)
-//    {
-//        auto sInflectionQuery = sQueryBaseInflection +
-//            L" FROM inflection WHERE descriptor_id = " +
-//            CEString::sToString(spLexeme->llLexemeId());
-//        uint64_t uiInflectionQueryHandle = 0;
-//        rc = eQueryDb(sInflectionQuery, uiInflectionQueryHandle);
-//        if (H_NO_ERROR != rc)
-//        {
-//            return rc;
-//        }
-//        while (H_NO_ERROR == rc)
-//        {
-//            auto bSpryazhSm = false;        // TODO -- are we handling spryazh sm??
-//            rc = eReadInflectionData(spLexeme, uiInflectionQueryHandle, bSpryazhSm);
-//        }
-//    }
-
     return rc;
 
 }   //  eGetLexemesByInitialForm()
@@ -693,24 +565,6 @@ ET_ReturnCode CDictionary::eCreateLexemeEnumerator(shared_ptr<CLexemeEnumerator>
 
     return H_NO_ERROR;
 }
-
-//void CDictionary::DeleteLexemeEnumerator(shared_ptr<CLexemeEnumerator> spLexemeEnumerator)
-//{
-//    delete pLe;
-//}
-
-//ET_ReturnCode CDictionary::eGetLexemeInstance(int iAt, shared_ptr<CLexeme>& spLexeme)
-//{
-//    if (iAt < 0 || iAt >= (int)m_vecLexemes.size())
-//    {
-//        ERROR_LOG(L"Lexeme index out of bounds.");
-//        return H_ERROR_INVALID_ARG;
-//    }
-//
-//    spLexeme = m_vecLexemes[iAt];
-//
-//    return H_NO_ERROR;
-//}
 
 ET_ReturnCode CDictionary::eGetParser(shared_ptr<CParser>& spParser)
 {
@@ -837,92 +691,12 @@ ET_ReturnCode CDictionary::eImportTestData(CEString& sPath, PROGRESS_CALLBACK_CL
         return H_ERROR_GENERAL;
     }
 
-//    ET_ReturnCode rc = ePopulateHashToDescriptorTable(pProgressCallback);
-
     pProgressCallback(100, true);
 
     return H_NO_ERROR;
 
 }       //  eImportTestData()
 #endif
-
-//shared_ptr<CSqlite> CDictionary::spGetDbHandle()
-//{
-//    if (m_spDb)
-//    {
-//        return m_spDb;
-//    }
-//    throw CException(H_ERROR_POINTER, L"Database handle not initialized.");
-//}
-
-//
-// Generate all wordforms for lexemes in m_vecLexemes
-//
-/*
-ET_ReturnCode CDictionary::eGenerateFormsForSelectedLexemes()
-{
-    if (!m_spDb)
-    {
-        return H_ERROR_DB;
-    }
-
-    ET_ReturnCode rc = H_NO_ERROR;
-//    m_spDb->BeginTransaction();
-
-//    vector<shared_ptr<CLexeme>>::iterator itLexeme = m_vecLexemes.begin();
-//    for (; itLexeme != m_vecLexemes.end(); ++itLexeme)
-    for (auto pLexeme : m_vecLexemes)
-    {
-        CInflectionEnumerator inflectionEnum(pLexeme.get());
-
-        CInflection* pInflection = nullptr;
-        auto eLoop = inflectionEnum.eGetFirstInflection(pInflection);
-        if (eLoop != H_NO_ERROR || nullptr == pInflection)
-        {
-            ERROR_LOG(L"Unable to get inflection info.");
-            break;
-        }
-
-        do {
-            try
-            {
-                auto eRet = pInflection->eGenerateParadigm();
-
-                //if (H_NO_ERROR != rc)
-                //{
-                //    ERROR_LOG(L"Error generating paradigm.")
-                //}
-                eRet = pInflection->eSaveStemsToDb();
-                if (H_NO_ERROR != eRet)
-                {
-                    ERROR_LOG(L"Error saving stems to database.");
-                }
-
-                pInflection->eAssignStemIds();
-
-                eRet = pInflection->eSaveWordFormsToDb();
-                if (H_NO_ERROR != eRet)
-                {
-                    ERROR_LOG(L"Error saving word forms to database.");
-                }
-
-            }
-            catch (CException& ex)
-            {
-                ERROR_LOG(ex.szGetDescription());
-                break;
-                //            return H_EXCEPTION;
-            }
-
-            eLoop = inflectionEnum.eGetFirstInflection(pInflection);
-
-        } while (H_NO_ERROR == eLoop);
-    }       //  for (int iRow = 0; iRow < iLexemes; ++iRow)
-
-    return (H_NO_MORE == rc) ? H_NO_ERROR : rc;
-
-}    //  eGenerateFormsForSelectedLexemes()
-*/
 
 //
 // Generate all word forms and store them in DB
@@ -937,9 +711,7 @@ ET_ReturnCode CDictionary::eGenerateAllForms()
     ET_ReturnCode rc = H_NO_ERROR;
 
     rc = ePopulateStemsTable();
-//    CLogger::pGetInstance()->Flush();
     rc = ePopulateWordFormDataTables();
-//    CLogger::pGetInstance()->Flush();
 
     return rc;
 
@@ -963,13 +735,10 @@ ET_ReturnCode CDictionary::ePopulateStemsTable()
         return rc;
     }
 
-    //int iRows = 0;
-
     cout << endl << endl << "****      POPULATING STEMS TABLE" << endl << endl;
 
     m_spDb->BeginTransaction();
 
-//    int iPercentDone = 0;
     bool bMoreData = true;
     for (int iRow = 0; bMoreData; ++iRow)
     {
@@ -1002,7 +771,6 @@ ET_ReturnCode CDictionary::ePopulateStemsTable()
         //
         // Generate word forms
         //
-
         try
         {
             CInflectionEnumerator ie(spLexeme);
@@ -1057,15 +825,12 @@ ET_ReturnCode CDictionary::ePopulateStemsTable()
     CEString sSpryazhSmQuery(sQueryBaseDescriptor);
     sSpryazhSmQuery += L"FROM headword INNER JOIN spryazh_sm_headwords ON headword.id = spryazh_sm_headwords.headword_id ";
     sSpryazhSmQuery += L"INNER JOIN descriptor ON spryazh_sm_headwords.ref_descriptor_id = descriptor.id ";
-//    sSpryazhSmQuery += L"LEFT OUTER JOIN inflection ON descriptor.id = inflection.descriptor_id ";
     uint64_t uiSpryazhSmQueryHandle = 0;
     rc = eQueryDb(sSpryazhSmQuery, uiSpryazhSmQueryHandle);
     if (H_NO_ERROR != rc)
     {
         return rc;
     }
-
-    //iRows = 0;
 
     std::cout << endl << endl << "Processing spryazh. sm. verbs... ";
 
@@ -1406,16 +1171,6 @@ ET_ReturnCode CDictionary::ePopulateWordFormDataTables()
                     continue;
                 }
 
-    //            if (!pWf->bIrregular() && 0 == pWf->m_llStemId)
-    //            {
-    //                CEString sMsg(L"Unable to find stem id for \"");
-    //                sMsg += pWf->m_sStem;
-    //                sMsg += L'"';
-    //                sMsg += L" lexeme = " + itLexeme->sSourceForm();
-    //                ERROR_LOG(sMsg);
-    //                continue;
-    //            }
-
                 spWf->bSaveToDb();
 
                 if (spWf->bIrregular())
@@ -1526,7 +1281,6 @@ ET_ReturnCode CDictionary::ePopulateHashToDescriptorTable(PROGRESS_CALLBACK_CLR 
     map<CEString, StLexemeIds> mapHashToIds;
 
     std::clock_t totalTime = 0;
-//    int iPercentDone = 0;
     bool bMoreData = true;
     for (int iRow = 0; bMoreData; ++iRow)
     {
@@ -1882,36 +1636,6 @@ ET_ReturnCode CDictionary::eReadDescriptorData(shared_ptr<CLexeme> spLexeme, uin
             m_spDb->GetData(44, stProperties.sContexts, uiQueryHandle);                          // 44 contexts
             m_spDb->GetData(45, stProperties.sCognate, uiQueryHandle);                           // 45 cognate
             m_spDb->GetData(46, stProperties.sTrailingComment, uiQueryHandle);                   // 46 trailing_comment
-
-/*
-            uint64_t uiInflectionId = -1;
-            m_spDb->GetData(47, uiInflectionId, uiQueryHandle);                                  // 47 inflection.id
-            stProperties.llInflectionId = uiInflectionId;
-            m_spDb->GetData(48, stProperties.bPrimaryInflectionGroup, uiQueryHandle);            // 48 is_primary
-            m_spDb->GetData(49, stProperties.iType, uiQueryHandle);                              // 49 inflection_type
-            int iAccentType1 = 0;
-            m_spDb->GetData(50, iAccentType1, uiQueryHandle);                                    // 50 accent_type1
-            stProperties.eAccentType1 = (ET_AccentType)iAccentType1;
-            int iAccentType2 = 0;
-            m_spDb->GetData(51, iAccentType2, uiQueryHandle);                                    // 51 accent_type2
-            stProperties.eAccentType2 = (ET_AccentType)iAccentType2;
-            m_spDb->GetData(52, stProperties.bShortFormsRestricted, uiQueryHandle);              // 52 short_form_restrictions
-            if (L"м" == stProperties.sMainSymbol)
-            {
-                stProperties.bShortFormsRestricted = false;     // nominalized adjectives: text parser may copy that from source
-            }
-            m_spDb->GetData(53, stProperties.bPastParticipleRestricted, uiQueryHandle);          // 53 past_part_restrictions
-            m_spDb->GetData(54, stProperties.bShortFormsIncomplete, uiQueryHandle);              // 54 no_short_form
-            if (L"м" == stProperties.sMainSymbol)
-            {
-                stProperties.bShortFormsIncomplete = false;     // nominalized adjectives: text parser may copy that from source
-            }
-            m_spDb->GetData(55, stProperties.bNoPassivePastParticiple, uiQueryHandle);           // 55 no_past_part
-            m_spDb->GetData(56, stProperties.bFleetingVowel, uiQueryHandle);                     // 56 fleeting_vowel
-
-            m_spDb->GetData(57, stProperties.iStemAugment, uiQueryHandle);                       // 57 stem_augment
-*/
-
             if (bIsSpryazhSm)
             {
                 m_spDb->GetData(58, stProperties.bSpryazhSmNoAspectPair, uiQueryHandle);         // 58 no_aspect_pair (optional)
@@ -1978,22 +1702,6 @@ ET_ReturnCode CDictionary::eReadDescriptorData(shared_ptr<CLexeme> spLexeme, uin
             }
             m_spDb->Finalize(uiHomonymsHandle);
 
-/*
-            CEString sDeviationQuery(L"SELECT deviation_type, is_optional FROM common_deviation WHERE inflection_id = ");
-            sDeviationQuery += CEString::sToString(stProperties.llInflectionId);
-
-            uint64_t uiDeviationHandle = m_spDb->uiPrepareForSelect(sDeviationQuery);
-            while (m_spDb->bGetRow(uiDeviationHandle))
-            {
-                int iType = -1;
-                bool bOptional = false;
-                m_spDb->GetData(0, iType, uiDeviationHandle);
-                m_spDb->GetData(1, bOptional, uiDeviationHandle);
-                stProperties.mapCommonDeviations[iType] = bOptional;
-            }
-            m_spDb->Finalize(uiDeviationHandle);
-*/
-
             if (POS_NOUN == stProperties.ePartOfSpeech)
             {
                 rc = eGetP2Data(stProperties.llDescriptorId, stProperties);
@@ -2036,12 +1744,6 @@ ET_ReturnCode CDictionary::eReadDescriptorData(shared_ptr<CLexeme> spLexeme, uin
                     m_spDb->Finalize(uiAspectPairHandle);
                 }
             }
-
-//            if (nullptr == spLexeme)
-//            {
-//                return H_ERROR_POINTER;
-//            }
-
         }   // if (m_spDb->b_GetRow())
         else
         {
@@ -2109,8 +1811,6 @@ ET_ReturnCode CDictionary::eReadInflectionData(shared_ptr<CLexeme>spLexeme, uint
             m_spDb->GetData(9, stProperties.bFleetingVowel, uiQueryHandle);                      //  9 fleeting_vowel
 
             m_spDb->GetData(10, stProperties.iStemAugment, uiQueryHandle);                       // 10 stem_augment
-
-//            m_spDb->Finalize(uiQueryHandle);
 
             CEString sDeviationQuery(L"SELECT deviation_type, is_optional FROM common_deviation WHERE inflection_id = ");
             sDeviationQuery += CEString::sToString(stProperties.llInflectionId);
@@ -2193,19 +1893,7 @@ ET_ReturnCode CDictionary::eGetP2Data(int64_t llLexemeId, StLexemeProperties& st
 //static CEString sHeadwordInsertQuery(L"INSERT source, plural_of, comment, usage, variant, variant_comment, see_ref, back_ref ");
 //static CEString sHomonyms(L"INSERT headword_id, homonym_number, is_variant");
 //static CEString sStressInsertQuery(L"INSERT headword_id, stress_position, is_primary, is_variant");
-/*
-static CEString sDescriptorInsertQuery(L"INSERT word_id, graphic_stem, is_variant, main_symbol, part_of_speech, is_plural_of, \
-                                        is_intransitive, is_reflexive, main_symbol_plural_of, alt_main_symbol, inflection_type, \
-                                        comment, alt_main_symbol_comment, alt_inflection_comment, verb_stem_alternation, \
-                                        part_past_pass_zhd, section, no_comparative, assumed_forms, yo_alternation, o_alternation, \
-                                        second_genitive, is_impersonal, is_iterative, has_aspect_pair, has_difficulties, \
-                                        difficult_and_missing_forms, has_irregular_forms, irregular_forms_lead_comment, \
-                                        has_deficiencies, restricted_contexts, contexts, cognate, trailing_comment ");
-*/
-/*                                        
-static CEString sInflectionInsertQuery(L"INSERT descriptor_id, is_primary, inflection_type, accent_type1, accent_type2, short_from_restrictions, \
-                                        past_part_restrictions, no_short_forms, no_past_part, fleeting_vowel, stem_augment, inflected_parts ");
-                                        */
+
 ET_ReturnCode CDictionary::eDeleteLexeme(shared_ptr<CLexeme> spLexeme)
 {
     const StLexemeProperties& stProperties = spLexeme->stGetProperties();
@@ -2490,13 +2178,6 @@ ET_ReturnCode CDictionary::eSaveNewHeadword(shared_ptr<CLexeme> spLexeme)
 
             m_spDb->Finalize(llInsertHandle);
         }
-/*
-        CEString sDescriptorUpdateQuery(L"UPDATE descriptor SET word_id = ");
-        sDescriptorUpdateQuery += CEString::sToString(stProperties.llHeadwordId);
-        sDescriptorUpdateQuery += L" WHERE id = ";
-        sDescriptorUpdateQuery += CEString::sToString(stProperties.llDescriptorId);
-        m_spDb->Exec(sDescriptorUpdateQuery);
-*/
         m_spDb->CommitTransaction();
 
     }
@@ -3049,87 +2730,6 @@ ET_ReturnCode CDictionary::eSaveDescriptorInfo(shared_ptr<CLexeme> spLexeme)
     return H_NO_ERROR;
 
 }       //  eSaveDescriptorInfo()
-
-/*
-ET_ReturnCode CDictionary::eSaveMissingFormHashes(ILexeme* pLexeme)
-{
-//  CREATE TABLE nonexistent_forms (id INTEGER PRIMARY KEY ASC, descriptor_id INTEGER, gram_hash TEXT, is_edited BOOLEAN DEFAULT (0), FOREIGN KEY (descriptor_id) REFERENCES descriptor (id));
-
-    ET_ReturnCode eRet = H_NO_ERROR;
-
-    vector <CEString> vecMissingFormHashes;
-
-    try
-    {
-        CEString sHash;
-        eRet = pLexeme->eGetFirstMissingFormHash(sHash);
-        if (H_FALSE == eRet)
-        {
-            return H_NO_ERROR;  // No missing forms: that's most common case
-        }
-
-        if (eRet != H_NO_ERROR || sHash.bIsEmpty())
-        {
-            ERROR_LOG(L"Error getting gramm hash for the first missing form.");
-            return eRet;
-        }
-
-        vecMissingFormHashes.push_back(sHash);
-
-        while (H_NO_ERROR == eRet)
-        {
-            eRet = pLexeme->eGetFirstMissingFormHash(sHash);
-            if (H_FALSE == eRet)
-            {
-                continue;
-            }
-
-            if (eRet != H_NO_ERROR || sHash.bIsEmpty())
-            {
-                ERROR_LOG(L"Error getting gramm hash for the first missing form.");
-                return eRet;
-            }
-
-            vecMissingFormHashes.push_back(sHash);
-        }
-
-        if (nullptr == m_spDb)
-        {
-            ERROR_LOG(L"Bad DB handle.");
-            return H_ERROR_UNEXPECTED;
-        }
-
-        m_spDb->BeginTransaction();
-
-        CEString sDeleteQuery(L"DELETE FROM nonexistent_forms WHERE descriptor_id = ");
-        sDeleteQuery += CEString::sToString(pLexeme->llLexemeId());
-        m_spDb->Exec(sDeleteQuery);
-
-        for (auto sHash : vecMissingFormHashes)
-        {
-            m_spDb->PrepareForInsert(L"nonexistent_forms", 3);
-
-            m_spDb->Bind(1, pLexeme->llLexemeId());
-            m_spDb->Bind(2, sHash);
-            m_spDb->Bind(3, true);       // is_edited
-
-            m_spDb->InsertRow();
-            m_spDb->Finalize();
-        }
-
-        m_spDb->CommitTransaction();
-
-    }
-    catch (CException & ex)
-    {
-        ERROR_LOG(ex.szGetDescription());
-        return H_EXCEPTION;
-    }
-
-    return H_NO_ERROR;
-
-}       //  eSaveMissingFormHashes()
-*/
 
 ET_ReturnCode CDictionary::eGetWordIdFromLemexeId(int64_t llDescriptorId, int64_t& llWordId)
 {
