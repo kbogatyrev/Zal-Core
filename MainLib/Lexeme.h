@@ -774,7 +774,6 @@ namespace Hlib
             m_stProperties.bSecondPart = bIsSecondPart;
         }
 
-//        virtual bool bFindCommonDeviation(int iNum, bool& bIsOptional);
         bool bFindStandardAlternation(const CEString& sKey, CEString& sValue);
 
         ET_ReturnCode eGetSourceFormWithStress(CEString& sSourceForm, bool bIsVariant=false);
@@ -784,61 +783,15 @@ namespace Hlib
         ET_ReturnCode eGetFirstSecondaryStemStressPos(int& iPos);
         ET_ReturnCode eGetNextSecondaryStemStressPos(int& iPos);
 
-//        virtual ET_ReturnCode eGetAlternatingPreverb(const CEString& sVerbForm, CEString& sPreverb, bool& bVoicing);
-
-//        virtual CEString sHash();
-//        virtual CEString sParadigmHash();
-//        virtual ET_ReturnCode eWordFormFromHash(CEString sHash, int iAt, IWordForm *& pWf);
-//        virtual ET_ReturnCode eCreateWordForm(IWordForm *&);
-//        virtual ET_ReturnCode eRemoveWordForm(CEString sHash, int iAt);
-//        virtual ET_ReturnCode eRemoveWordForms(CEString sHash);
-//        virtual void AddWordForm(IWordForm* pWordForm);         // ITF version, cf internal version below
-
-//        virtual bool bHasIrregularForm(CEString sGramHash);
-//        virtual bool bNoRegularForms(CEString sGramHash);
-
-//        ET_ReturnCode eGetFirstWordForm(IWordForm *& pWf);
-//        ET_ReturnCode eGetNextWordForm(IWordForm *& pWf);
-
-        //virtual ET_ReturnCode eGetFirstIrregularForm(CEString sHash, IWordForm *&, bool& bIsOptional);
-        //virtual ET_ReturnCode eGetFirstIrregularForm(IWordForm *&, bool& bIsOptional);
-        //virtual ET_ReturnCode eGetNextIrregularForm(IWordForm *&, bool& bIsOptional);
-
-        //ET_ReturnCode eGetFirstIrregularForm(CEString sHash, CWordForm *&, bool& bIsOptional);
-        //ET_ReturnCode eGetFirstIrregularForm(CWordForm *&, bool& bIsOptional);
-        //ET_ReturnCode eGetNextIrregularForm(CWordForm *&, bool& bIsOptional);
-
         ET_ReturnCode eGetAspectPair(CEString&, int&);
         ET_ReturnCode eGetAltAspectPair(CEString&, int&);
-//        virtual int iFormCount(CEString sHash);
-//        virtual bool bHasCommonDeviation(int iCd);
-//        virtual bool bDeviationOptional(int iCd);
-//        virtual ET_ReturnCode eFormExists(const CEString& hash);
-//        virtual ET_ReturnCode eSetFormExists(const CEString& hash, bool bExists);
-        //virtual ET_ReturnCode eIsFormDifficult(const CEString& sGramHash);
-        //virtual ET_ReturnCode eSetFormDifficult(const CEString& hash, bool bIsDifficult);
-        //virtual ET_ReturnCode eDifficultFormsHashes(vector<CEString>&);
-        //virtual ET_ReturnCode eIsFormAssumed(const CEString& sGramHash);
-        //virtual ET_ReturnCode eSetHasAssumedForms(bool bIsAssumed);
-        //virtual bool bIsMultistressedCompound();
         ET_ReturnCode eSetDb(const CEString& sDbPath);
-//        virtual ET_ReturnCode eGenerateParadigm();
-//        virtual ET_ReturnCode eSaveTestData();
-//        virtual ET_ReturnCode eDeleteIrregularForm(const CEString& sFormHash);
-//        virtual ET_ReturnCode eSaveIrregularForm(const CEString& sFormHash, IWordForm *&);
-//        virtual ET_ReturnCode eSaveIrregularForms(const CEString& sGramHash);
-
-//        virtual ET_ReturnCode eMakeGraphicStem();
-//        virtual ET_ReturnCode eMakeGraphicStem(const CEString& sSource, CEString& sGraphicStem);
-
-//        ET_ReturnCode eClone(shared_ptr<CLexeme>&);
         ET_ReturnCode eCheckLexemeProperties();
         ET_ReturnCode eGetErrorMsg(CEString& sErrorMsg);
 
-        // Non-virtual public functions (not available to external consumers)
+    // Public functions that may not be not available to external consumers
     public:
         shared_ptr<CSqlite> spGetDb();
-//        StLexemeProperties& stGetSecondPartProperties();
         shared_ptr<CLexeme> spGetSecondPart()
         {
             return m_spSecondPart;
@@ -846,81 +799,38 @@ namespace Hlib
 
         void AddInflection(shared_ptr<CInflection>);
 
-//        ET_ReturnCode eWordFormFromHash(CEString sHash, int iAt, CWordForm *& pWf);
         ET_ReturnCode eGetStemStressPositions(const CEString& sStem, vector<int>& vecPosition);
         ET_ReturnCode eGetIrregularForms(CEString sHash, map<shared_ptr<CWordForm>, bool>& mapResult);
         void AssignPrimaryStress(shared_ptr<CWordForm>);
         void AssignSecondaryStress(shared_ptr<CWordForm>);
-//        void AddWordForm(CWordForm* pWordForm);
-//        void SetHypotheticalForm(CEString& sGramHash);
-//        bool bIsHypotheticalForm(CEString& sGramHash);
-//        uint64_t uiTotalWordForms();
-
-        // Populate DB:
-//        ET_ReturnCode eSaveStemsToDb();
-//        ET_ReturnCode eAssignStemIds();
-//        ET_ReturnCode ePrepareDataInsert(uint64_t& uiStmtHandle);
-//        ET_ReturnCode eSaveWordFormsToDb();
-//        ET_ReturnCode eSaveIrregularFormsToDb();  // for spryazh sm entries
 
         // Helpers:
-//        ET_ReturnCode eLoadDifficultAndMissingForms();
-//        ET_ReturnCode eLoadIrregularForms();
         ET_ReturnCode eHandleSpryazhSmEntry();
-//        ET_ReturnCode eSaveIrregularForms(long long llDescriptorDbKey);
-//        ET_ReturnCode eLoadDifficultForms();
-//
         CEString sGramHashNSgMLong();
-//        ET_ReturnCode eDifficultFormLabelToGramHash(const CEString sLabel);
         void SetSecondPart(shared_ptr<CLexeme>);
 
         // Support for manual editing
         ET_ReturnCode eUpdateDescriptorInfo(shared_ptr<CLexeme>);
-//        ET_ReturnCode eGetWordForm(unsigned int uiAt, CWordForm *&);
         ET_ReturnCode eExtractStressSymbols();
         ET_ReturnCode eInitializeFromProperties();
 
     private:
         void Init();
-//        ET_ReturnCode eAlignInflectedParts();
-//        ET_ReturnCode eConcatenateInflectedParts(CWordForm& left, CWordForm& right);
 
     private:
-//        CLexeme() {}
         shared_ptr<CInflectionEnumerator> m_spInflectionEnumerator;
 
         StLexemeProperties m_stProperties, m_stProperties2ndPart;
         vector<shared_ptr<CInflection>> m_vecInflections;
 
-//        bool m_bFormsGenerated;
-//        multimap<CEString, CWordForm *> m_mmWordForms;        // gramm. hash --> wordform struct
         map<CEString, ET_MainSymbol> m_mapMainSymbol;
         map<CEString, ET_Gender> m_mapMainSymbolToGender;
         map<CEString, ET_Animacy> m_mapMainSymbolToAnimacy;
         map<CEString, CEString> m_mapStandardAlternations;
         multimap<int, int> m_mmEndingsHash;
-//        vector<CEString> m_vecAlternatingPreverbs, m_vecAlternatingPreverbsWithVoicing;
 
         shared_ptr<CDictionary> m_spDictionary;
         shared_ptr<CLexeme> m_spSecondPart;
-/*
-        vector<CEString> m_vecHypotheticalForms;     //  gram hashes of missing forms that were generated anyway 
-                                                     //  to be used in generation of other forms
-
-        // Word forms
-        multimap<CEString, CWordForm *>::iterator m_itCurrentWordForm;
-
-        // Irregular forms
-        multimap<CEString, StIrregularForm> m_mmapIrregularForms;    // hash to irregular form struct
-        typedef pair<multimap<CEString, StIrregularForm>::iterator,
-            multimap<CEString, StIrregularForm>::iterator> Pair_itIrregularFormRange;
-        Pair_itIrregularFormRange m_pairItIfRange;
-        multimap<CEString, StIrregularForm>::iterator m_itCurrentIrregularForm;
-
-        // Difficult and missing forms
-//        vector<CEString> m_vecDifficultForms;
-//        vector<CEString> m_vecMissingForms;
-*/
 
         vector<int>::iterator m_itCurrentStressPos;
 
