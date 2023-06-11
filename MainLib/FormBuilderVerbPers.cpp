@@ -380,7 +380,7 @@ ET_ReturnCode CFormBuilderPersonal::eBuild()
                         {
                             if (itStressPos != vecStress.begin())
                             {
-                                shared_ptr<CWordForm> spWfVariant;
+                                shared_ptr<CWordForm> spWfVariant = make_shared<CWordForm>();
 //                                CloneWordForm (spWordForm, spWfVariant);
                                 spWfVariant->eCloneFrom(spWordForm);
                                 spWordForm = spWfVariant;

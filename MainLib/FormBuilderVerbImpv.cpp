@@ -24,7 +24,7 @@ ET_ReturnCode CFormBuilderImperative::eGetStem (CEString& sStem)
             sHash = hasher.sGramHash();
         }
 
-        shared_ptr<CWordForm> spTemplate = NULL;
+        auto spTemplate = make_shared<CWordForm>();
         ET_ReturnCode rc = m_spInflection->eWordFormFromHash (sHash, 0, spTemplate);
         if (rc != H_NO_ERROR)
         {
@@ -464,7 +464,7 @@ ET_ReturnCode CFormBuilderImperative::eBuild()
 
 //                vector<int>::iterator itStressPos = vecStress.begin();
 
-                shared_ptr<CWordForm> m_spWordForm;
+                auto m_spWordForm = make_shared<CWordForm>();
                 rc = eCreateFormTemplate(sStem, sEnding, llEndingKey, eNumber, m_spWordForm);
                 if (rc != H_NO_ERROR)
                 {
@@ -489,7 +489,7 @@ ET_ReturnCode CFormBuilderImperative::eBuild()
                     {
                         if (itStressPos != vecStress.begin())
                         {
-                            shared_ptr<CWordForm> spWfVariant;
+                            auto spWfVariant = make_shared<CWordForm>();
 //                            CloneWordForm(m_spWordForm, spWfVariant);
                             spWfVariant->eCloneFrom(m_spWordForm);
                             m_spWordForm = spWfVariant;

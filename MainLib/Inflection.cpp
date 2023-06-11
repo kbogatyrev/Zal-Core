@@ -299,7 +299,12 @@ void CInflection::AddWordForm(shared_ptr<CWordForm> spWordForm)
 {
     if (nullptr == spWordForm)
     {
-        throw CException(H_ERROR_POINTER, L"Invalid wordform");
+        throw CException(H_ERROR_POINTER, L"Invalid wordform: NULL instance");
+    }
+
+    if (nullptr == spWordForm->m_spInflection)
+    {
+        throw CException(H_ERROR_POINTER, L"Invalid wordform: inflection instance is NULL");
     }
 
     m_spLexeme->AssignSecondaryStress(spWordForm);

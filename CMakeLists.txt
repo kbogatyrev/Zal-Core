@@ -148,10 +148,15 @@ target_include_directories (ZalPythonItf PUBLIC
 
 target_sources (ZalPythonItf PRIVATE
 #	Zal-CPP/MainLibCTypes/dllmain.cpp
-	MainLibCTypes/ZalPythonItf.cpp)
+	MainLibCTypes/ZalPythonItf.cpp
+)
  
 target_link_directories (ZalPythonItf PRIVATE
+if (CMAKE_BUILD_TYPE MATCHES "Debug")
 	../../Zal-Core/out/build/x64-debug
+else()
+	../../Zal-Core/out/build/x64-release
+endif()
 )
 
 target_link_libraries (ZalPythonItf 

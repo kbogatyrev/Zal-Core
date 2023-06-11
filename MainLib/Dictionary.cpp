@@ -501,7 +501,7 @@ ET_ReturnCode CDictionary::eGetLexemesByInitialForm(const CEString& sSource)
         }
         m_spDb->Finalize(uiInflectionQueryHandle);
 
-        if (spLexeme->nInflections() < 1)
+        if (spLexeme->nInflections() < 1)   // Add dummy inflection instance if none was retrieved
         {
             spLexeme->AddInflection(make_shared<CInflection>(spLexeme));
         }
@@ -762,6 +762,27 @@ ET_ReturnCode CDictionary::ePopulateStemsTable()
                 }
                 continue;
             }
+            auto sInflectionQuery = sQueryBaseInflection +
+                L" FROM inflection WHERE descriptor_id = " +
+                CEString::sToString(spLexeme->llLexemeId());
+            uint64_t uiInflectionQueryHandle = 0;
+            rc = eQueryDb(sInflectionQuery, uiInflectionQueryHandle);
+            if (H_NO_ERROR != rc)
+            {
+                return rc;
+            }
+            while (H_NO_ERROR == rc)
+            {
+                auto bSpryazhSm = false;        // TODO -- are we handling spryazh sm??
+                rc = eReadInflectionData(spLexeme, uiInflectionQueryHandle, bSpryazhSm);
+            }
+            m_spDb->Finalize(uiInflectionQueryHandle);
+
+            if (spLexeme->nInflections() < 1)
+            {
+                spLexeme->AddInflection(make_shared<CInflection>(spLexeme));
+            }
+
         }
         catch (CException& ex)
         {
@@ -923,8 +944,8 @@ ET_ReturnCode CDictionary::ePopulateWordFormDataTables()
 
     uint64_t uiQueryHandle = 0;
     CEString sQuery(sQueryBaseDescriptor);
+
     sQuery += L"FROM headword INNER JOIN descriptor ON descriptor.word_id = headword.id ";
-    sQuery += L"LEFT OUTER JOIN inflection ON descriptor.id = inflection.descriptor_id;";
     rc = eQueryDb(sQuery, uiQueryHandle);
     if (H_NO_ERROR != rc)
     {

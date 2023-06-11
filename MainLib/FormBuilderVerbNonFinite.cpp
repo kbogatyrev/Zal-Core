@@ -930,7 +930,7 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastAdverbial()
                 return H_ERROR_POINTER;
             }
 
-            auto spWordForm = make_shared<CWordForm>();
+            auto spWordForm = make_shared<CWordForm>(m_spInflection);
             if (nullptr == spWordForm)
             {
                 assert(0);
