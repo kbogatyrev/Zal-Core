@@ -79,7 +79,6 @@ ET_ReturnCode CParser::eParseWord(const CEString& sWord)
             continue;
         }
         spWf->SetPos(spLexeme->ePartOfSpeech());
-//        spWf->SetInflection(&&&&)
     }
 
     return m_vecWordForms.empty() ? H_FALSE : H_NO_ERROR;
@@ -270,11 +269,18 @@ ET_ReturnCode CParser::eIrregularFormLookup(const CEString& sWord, bool bSpryazh
             bool bIsAlternative = false;
             m_spDb->GetData(4, bIsAlternative, uiFormQueryHandle);       // what to do with this one?
 
-            unique_ptr<CWordForm> pWf = make_unique<CWordForm>(sGramHash);
-            pWf->SetIrregular(true);
-            pWf->SetInflectionId(llInflectionId);
-            pWf->SetIrregularFormId(llFormId);
-            pWf->SetWordForm(sWordForm);
+//            unique_ptr<CWordForm> pWf = make_unique<CWordForm>(sGramHash);
+            auto spWf = make_unique<CWordForm>();
+            auto rc = spWf->eInitFromHash(sGramHash);
+            if (rc != H_NO_ERROR)
+            {
+                ERROR_LOG(L"Unable to initialize wordfrom from hash.");
+                return rc;
+            }
+            spWf->SetIrregular(true);
+            spWf->SetInflectionId(llInflectionId);
+            spWf->SetIrregularFormId(llFormId);
+            spWf->SetWordForm(sWordForm);
 
             CEString sIrregStressQuery(L"SELECT position, is_primary FROM ");
             if (bSpryazhSm)
@@ -297,11 +303,11 @@ ET_ReturnCode CParser::eIrregularFormLookup(const CEString& sWord, bool bSpryazh
                 int iType = (int)eType;
                 m_spDb->GetData(1, iType, uiStressHandle);
                 int iStressedSyll = sWordForm.uiGetSyllableFromVowelPos(iPosition);
-                pWf->SetStressPos(iStressedSyll, (ET_StressType)iType);
+                spWf->SetStressPos(iStressedSyll, (ET_StressType)iType);
             }
             m_spDb->Finalize(uiStressHandle);
 
-            m_vecWordForms.push_back(move(pWf));
+            m_vecWordForms.push_back(move(spWf));
         }
         m_spDb->Finalize(uiFormQueryHandle);
     }
@@ -344,10 +350,16 @@ ET_ReturnCode CParser::eWholeWordLookup(const CEString& sWord)
 
         if (llEndingId < 0 || H_TRUE == m_spEndingsTree->eIsEmptyEnding(llEndingId))
         {
-            unique_ptr<CWordForm> pWf = nullptr;
+            unique_ptr<CWordForm> spWf;
             try
             {
-                pWf = make_unique<CWordForm>(sGramHash);
+                spWf = make_unique<CWordForm>();
+                auto rc = spWf->eInitFromHash(sGramHash);
+                if (rc != H_NO_ERROR)
+                {
+                    ERROR_LOG(L"Unable to initialize wordfrom from hash.");
+                    return rc;
+                }
             }
             catch (CException& ex)
             {
@@ -366,10 +378,10 @@ ET_ReturnCode CParser::eWholeWordLookup(const CEString& sWord)
                 return H_ERROR_GENERAL;
             }
 
-            pWf->SetIrregular(false);
-            pWf->SetInflectionId(llInflectionId);
-            pWf->SetDbKey(llFormId);
-            pWf->SetWordForm(sWord);
+            spWf->SetIrregular(false);
+            spWf->SetInflectionId(llInflectionId);
+            spWf->SetDbKey(llFormId);
+            spWf->SetWordForm(sWord);
 
             CEString sStressQuery(L"SELECT position, is_primary FROM stress_data WHERE form_id = \"");
             sStressQuery += CEString::sToString(llFormId);
@@ -379,15 +391,14 @@ ET_ReturnCode CParser::eWholeWordLookup(const CEString& sWord)
             {
                 int iPosition = -1;
                 m_spDb->GetData(0, iPosition, uiStressHandle);
-
                 bool bIsPrimary = false;
                 m_spDb->GetData(1, bIsPrimary, uiStressHandle);
                 ET_StressType eType = bIsPrimary ? STRESS_PRIMARY : STRESS_SECONDARY;
-                pWf->SetStressPos(iPosition, eType);
+                spWf->SetStressPos(iPosition, eType);
             }
             m_spDb->Finalize(uiStressHandle);
 
-            m_vecWordForms.push_back(move(pWf));
+            m_vecWordForms.push_back(move(spWf));
         }
     }       //  while (m_spDb->bGetRow(...)) 
     m_spDb->Finalize(uiFormQueryHandle);
@@ -441,11 +452,17 @@ ET_ReturnCode CParser::eFormLookup(const CEString& sWord)
                     int64_t llInflectionId = -1;
                     m_spDb->GetData(2, llInflectionId, uiFormQueryHandle);
 
-                    unique_ptr<CWordForm> pWf = make_unique<CWordForm>(sGramHash);
-                    pWf->SetDbKey(llFormId);
-                    pWf->SetIrregular(false);
-                    pWf->SetInflectionId(llInflectionId);
-                    pWf->SetWordForm(sWord);
+                    auto spWf = make_unique<CWordForm>();
+                    auto rc = spWf->eInitFromHash(sGramHash);
+                    if (rc != H_NO_ERROR)
+                    {
+                        ERROR_LOG(L"Unable to initialize wordfrom from hash.");
+                        return rc;
+                    }
+                    spWf->SetDbKey(llFormId);
+                    spWf->SetIrregular(false);
+                    spWf->SetInflectionId(llInflectionId);
+                    spWf->SetWordForm(sWord);
 
                     CEString sStressQuery(L"SELECT position, is_primary FROM stress_data WHERE form_id = \"");
                     sStressQuery += CEString::sToString(llFormId);
@@ -459,10 +476,10 @@ ET_ReturnCode CParser::eFormLookup(const CEString& sWord)
 
                         bool bIsPrimary = false;
                         m_spDb->GetData(1, bIsPrimary, uiStressHandle);
-                        pWf->SetStressPos(iPosition, bIsPrimary ? STRESS_PRIMARY : STRESS_SECONDARY);
+                        spWf->SetStressPos(iPosition, bIsPrimary ? STRESS_PRIMARY : STRESS_SECONDARY);
                     }
                     m_spDb->Finalize(uiStressHandle);
-                    m_vecWordForms.push_back(move(pWf));
+                    m_vecWordForms.push_back(move(spWf));
 
                 }       //  while (m_spDb->bGetRow(...))
 

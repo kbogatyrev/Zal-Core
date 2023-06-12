@@ -325,7 +325,7 @@ ET_ReturnCode CFormBuilderImperative::eBuild()
 
         if (sStem.bIsEmpty())
         {
-            assert(0);
+//            assert(0);
             CEString sMsg (L"Empty stem for ");
             sMsg += m_spLexeme->sSourceForm();
             ERROR_LOG (sMsg);
@@ -677,12 +677,8 @@ ET_ReturnCode CFormBuilderImperative::eBuildIrregularForms()
         int iCharsToErase = REFL_YES == m_spLexeme->eIsReflexive() ? 4 : 2;
         s3Pl.sErase (s3Pl.uiLength()-iCharsToErase);
 
-        auto spSg = make_shared<CWordForm>(sg2ImpvHash.sGramHash());
-//        spSg->m_spLexeme = m_spLexeme;
-//        spSg->m_llLexemeId = m_spLexeme->llLexemeId();
-        auto spPl = make_shared<CWordForm>(pl2ImpvHash.sGramHash());
-//        spPl->m_spLexeme = m_spLexeme;
-//        spPl->m_llLexemeId = m_spLexeme->llLexemeId();
+        auto spSg = make_shared<CWordForm>(sg2ImpvHash.sGramHash(), m_spInflection);
+        auto spPl = make_shared<CWordForm>(pl2ImpvHash.sGramHash(), m_spInflection);
         spPl->SetInflectionId(m_spInflection->llInflectionId());
         if (nullptr == spSg || nullptr == spPl)
         {

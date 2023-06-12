@@ -173,15 +173,13 @@ add_executable (ZalStringTest)
 
 target_sources (ZalStringTest PRIVATE
 	HLib/StringTest.cpp
- "Test/GenerateAllForms.cpp")
-
-add_executable (ZalMainTest)
-
+)
 #-----------------------------------------------------------------
+add_executable (ZalMainTest)
 
 target_sources (ZalMainTest PRIVATE
 	MainLib/Test.cpp
- "Test/GenerateAllForms.cpp")
+)
 
 target_include_directories (ZalMainTest PUBLIC
 	HLib

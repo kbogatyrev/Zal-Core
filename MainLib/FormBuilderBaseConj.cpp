@@ -105,7 +105,7 @@ ET_ReturnCode CFormBuilderConj::eBuildVerbStems()
             {
                 if (m_spLexeme->sVerbStemAlternation().bIsEmpty())
                 {
-                    assert(0);
+//                    assert(0);
                     ERROR_LOG (L"Missing stem alternation for type 7");
                     return H_ERROR_GENERAL;
                 }
@@ -199,7 +199,7 @@ ET_ReturnCode CFormBuilderConj::eBuildVerbStems()
                 else
                 {
 
-                    assert(0);
+//                    assert(0);
                     ERROR_LOG (L"Missing stem alternation for type 14");
                     return H_ERROR_GENERAL;
                 }

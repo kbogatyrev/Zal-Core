@@ -6,7 +6,6 @@
 
 #include "Lexeme.h"
 
-//#include "IInflection.h"
 #include "InflectionProperties.h"
 
 using namespace std;
@@ -30,11 +29,6 @@ namespace Hlib
         CInflection() = delete;
         CInflection(const CInflection&);
         ~CInflection();
-
-//        CInflection* pGetInflectionPtr()
-//        {
-//            return this;
-//        }
 
         shared_ptr<CLexeme> spGetLexeme()
         {

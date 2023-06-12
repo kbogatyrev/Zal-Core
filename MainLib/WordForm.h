@@ -27,9 +27,8 @@ namespace Hlib
     public:
         CWordForm();
         CWordForm(shared_ptr<CInflection>);
-        CWordForm(const CEString& sHash);
+        CWordForm(const CEString& sHash, shared_ptr<CInflection>);
         CWordForm(const CWordForm&);
-//        CWordForm(const shared_ptr<CWordForm>);
 
         const CWordForm& operator= (const CWordForm&);
 
@@ -38,9 +37,6 @@ namespace Hlib
         // Partial copy
         // TODO: Can we use copy ctor instead?
         ET_ReturnCode eCloneFrom(const shared_ptr<CWordForm>);
-
-//        ILexeme* pLexemeItf() override;
-//        IInflection * pInflectionItf() override;
 
         shared_ptr<CLexeme> spLexeme()
         {

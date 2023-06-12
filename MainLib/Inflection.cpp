@@ -679,7 +679,7 @@ ET_ReturnCode CInflection::eLoadIrregularForms()
     CEString sQuery
         (L"SELECT id, gram_hash, wordform, is_alternative, lead_comment, trailing_comment, is_edited FROM irregular_forms WHERE descriptor_id = ");
     sQuery += CEString::sToString(m_spLexeme->stGetProperties().llDescriptorId);
-sQuery += L";";
+    sQuery += L";";
 
     shared_ptr<CSqlite> spDb;
 
@@ -687,7 +687,6 @@ sQuery += L";";
 
     try
     {
-//        spDb = m_pDictionary->pGetDbHandle();
         spDb = m_spLexeme->spGetDb();
         uint64_t uiQueryHandle = spDb->uiPrepareForSelect(sQuery);
         while (spDb->bGetRow(uiQueryHandle))
@@ -712,10 +711,9 @@ sQuery += L";";
             if (bIsVariant)
             {
                 m_spLexeme->SetHasIrregularVariants(true);
-//                m_stProperties.bHasIrregularVariants = true;
             }
 
-            shared_ptr<CWordForm> spWf = make_shared<CWordForm>(sHash);
+            auto spWf = make_shared<CWordForm>(sHash, shared_from_this());
             spWf->m_spInflection = shared_from_this();
             spWf->m_bIrregular = true;
             spWf->m_llDbKey = iId;
@@ -1048,7 +1046,7 @@ ET_ReturnCode CInflection::eGenerateParadigm()
             
         if (POS_PRONOUN == stLexemeProperties.ePartOfSpeech || POS_NUM == stLexemeProperties.ePartOfSpeech)
         {
-            shared_ptr<CWordForm> spWordForm = NULL;
+            shared_ptr<CWordForm> spWordForm;
             bool bOptional = false;
             rc = eGetFirstIrregularForm(spWordForm, bOptional);
             while (H_NO_ERROR == rc)

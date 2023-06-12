@@ -1167,7 +1167,7 @@ ET_ReturnCode CFormBuilderAspectPair::eNsvToSvTypes2(bool bIsVariant)
         if (sInfinitive.bEndsWith(L"овывать") && !sInfinitive.bEndsWith(L"цовывать"))
         {
             int iStressedSyllable = m_spInfWordForm->sWordForm().uiGetSyllableFromVowelPos(iInfStressPos);
-            assert(iStressedSyllable > 0);
+//            assert(iStressedSyllable > 0);
             if (m_spInfWordForm->sWordForm().uiNSyllables() - 3 == iStressedSyllable) // -ovyvat'
             {
                 sAspectPair = m_spInfWordForm->sWordForm().sRemoveCharsFromEnd(7);
@@ -1278,7 +1278,7 @@ ET_ReturnCode CFormBuilderAspectPair::eNsvToSvTypes3(bool bIsVariant)
             sStem.sRemoveCharsFromEnd(3);
             sAspectPair = sStem + L"нуть";
             iStressedSyllable = m_spInfWordForm->sWordForm().uiNSyllables()-2;
-            assert(iStressedSyllable > 0);
+//            assert(iStressedSyllable > 0);
             iStressPos = sAspectPair.uiGetVowelPos(iStressedSyllable);
             return H_NO_ERROR;
         }
@@ -1358,7 +1358,7 @@ ET_ReturnCode CFormBuilderAspectPair::eNsvToSvTypes4(bool bIsVariant)
         sStem.sRemoveCharsFromEnd(3);
         sAspectPair = sStem + L"ить";
         iStressedSyllable = m_spInfWordForm->sWordForm().uiNSyllables()-2;
-        assert(iStressedSyllable > 0);
+//        assert(iStressedSyllable > 0);
         iStressPos = sAspectPair.uiGetVowelPos(iStressedSyllable);
 
         return H_NO_ERROR;

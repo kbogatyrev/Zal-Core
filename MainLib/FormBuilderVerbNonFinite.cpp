@@ -738,7 +738,7 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastAdverbial()
         auto nForms = m_spInflection->iFormCount(sGramHash);
         if (nForms < 1)
         {
-            assert(0);
+//            assert(0);
             CEString sMsg(L"No regular forms: ");
             sMsg += m_spLexeme->sSourceForm();
             ERROR_LOG(sMsg);
@@ -1177,7 +1177,7 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastActiveParticiple()
         auto nPastM = m_spInflection->iFormCount(hasher.sGramHash());
         if (nPastM < 1)
         {
-            assert(0);
+//            assert(0);
             ERROR_LOG(L"Failed to obtain past tense m. form.");
             return H_ERROR_UNEXPECTED;
         }

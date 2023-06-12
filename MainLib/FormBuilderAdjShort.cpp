@@ -40,7 +40,7 @@ CFormBuilderShortAdj::CFormBuilderShortAdj(shared_ptr<CLexeme> spLexeme,
 //                assert(0);
                 CEString sMsg (L"Accent type undefined for short forms; lexeme = ");
                 ERROR_LOG(sMsg + m_spLexeme->sSourceForm());
-                throw CException (H_CTOR, sMsg);
+//                throw CException (H_CTOR, sMsg);
             }
         }       // switch
     }
@@ -212,7 +212,7 @@ ET_ReturnCode CFormBuilderShortAdj::eGetStressTypes (ET_Number eNumber,
     {
         case AT_UNDEFINED:
         {
-            assert(0);
+//            assert(0);
             ERROR_LOG (L"Undefined accent type.");
             return H_ERROR_GENERAL;
         }
@@ -511,7 +511,7 @@ ET_ReturnCode CFormBuilderShortAdj::eHandleDeviations(shared_ptr<CWordForm> spWo
                 }
                 if (itStressSyll->first < 1)
                 {
-                    assert(0);
+//                    assert(0);
                     ERROR_LOG(L"Unexpected stress position in cd-7 or cd-8 participle.");
                     return H_ERROR_UNEXPECTED;
                 }

@@ -66,8 +66,8 @@ CWordForm::CWordForm(const shared_ptr<CInflection> spInflection) :
     m_sEnding.SetVowels(CEString::g_szRusVowels);
 }
 
-CWordForm::CWordForm(const CEString& sHash) : 
-    m_spInflection(0),
+CWordForm::CWordForm(const CEString& sHash, shared_ptr<CInflection> spInflection) : 
+    m_spInflection(spInflection),
     m_ullDbInsertHandle(0),
     m_llDbKey(-1),
     m_sWordForm(L""),
