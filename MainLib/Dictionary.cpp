@@ -229,7 +229,6 @@ ET_ReturnCode CDictionary::eGetLexemeById(long long llId, shared_ptr<CLexeme>& s
     ET_ReturnCode rc = H_NO_ERROR;
     CEString sQuery(sQueryBaseDescriptor);
     sQuery += L"FROM headword INNER JOIN descriptor ON descriptor.word_id = headword.id ";
-//    sQuery += L"LEFT OUTER JOIN inflection ON descriptor.id = inflection.descriptor_id ";
     sQuery += L"WHERE descriptor.id = ";
     sQuery += CEString::sToString(llId);
     sQuery += L";";
@@ -271,7 +270,7 @@ ET_ReturnCode CDictionary::eGetLexemeById(long long llId, shared_ptr<CLexeme>& s
                                 L" FROM inflection WHERE descriptor_id = " + 
                                 CEString::sToString(spLexeme->llLexemeId());
         uint64_t uiQueryHandle = 0;
-        rc = eQueryDb(sQueryBaseInflection, uiQueryHandle);
+        rc = eQueryDb(sInflectionQuery, uiQueryHandle);
         if (H_NO_ERROR != rc)
         {
             return rc;
@@ -507,18 +506,18 @@ ET_ReturnCode CDictionary::eGetLexemesByInitialForm(const CEString& sSource)
         }
     }
 
-    for (auto& pLexeme : vecLexemesFound)
+    for (auto& spLexeme : vecLexemesFound)
     {
-        if (pLexeme->stGetProperties().llSecondPartId > 0)
+        if (spLexeme->stGetProperties().llSecondPartId > 0)
         {
             shared_ptr<CLexeme> spSecondLexeme = make_shared<CLexeme>(shared_from_this());
-            rc = eGetSecondPart(pLexeme->stGetProperties().llSecondPartId, spSecondLexeme);
-            pLexeme->SetSecondPart(spSecondLexeme);
+            rc = eGetSecondPart(spLexeme->stGetProperties().llSecondPartId, spSecondLexeme);
+            spLexeme->SetSecondPart(spSecondLexeme);
         }
 
-        if (pLexeme->stGetProperties().bSpryazhSm)
+        if (spLexeme->stGetProperties().bSpryazhSm)
         {
-            pLexeme->eHandleSpryazhSmEntry();   // currently, it is always H_NO_ERROR
+            spLexeme->eHandleSpryazhSmEntry();   // currently, it is always H_NO_ERROR
         }
     }
 
@@ -726,110 +725,69 @@ ET_ReturnCode CDictionary::ePopulateStemsTable()
 
     ET_ReturnCode rc = H_NO_ERROR;
     uint64_t uiQueryHandle = 0;
-    CEString sQuery(sQueryBaseDescriptor);
-    sQuery += L"FROM headword INNER JOIN descriptor ON descriptor.word_id = headword.id ";
-    sQuery += L"LEFT OUTER JOIN inflection ON descriptor.id = inflection.descriptor_id;";
+    CEString sQuery(L"SELECT source FROM headword;");
     rc = eQueryDb(sQuery, uiQueryHandle);
     if (H_NO_ERROR != rc)
     {
         return rc;
     }
 
-    cout << endl << endl << "****      POPULATING STEMS TABLE" << endl << endl;
+    std::wcout << endl << endl << "****      POPULATING STEMS TABLE" << endl << endl;
 
     m_spDb->BeginTransaction();
 
     bool bMoreData = true;
     for (int iRow = 0; bMoreData; ++iRow)
     {
-        shared_ptr<CLexeme> spLexeme = make_shared<CLexeme>(shared_from_this());
-        try
+        auto bRet = m_spDb->bGetRow(uiQueryHandle);
+        if (!bRet)
         {
-            rc = eReadDescriptorData(spLexeme, uiQueryHandle);
-            if (H_NO_ERROR != rc)
+            bMoreData = false;
+        }
+
+        CEString sHeadword;
+        m_spDb->GetData(0, sHeadword, uiQueryHandle);
+        auto rc = eGetLexemesByInitialForm(sHeadword);
+        if (rc != H_NO_ERROR && rc != H_NO_MORE)
+        {
+            CEString sMsg(L"Unable to retrieve lexeme data for ");
+            sMsg += sHeadword;
+            return H_ERROR_UNEXPECTED;
+        }
+
+        for (auto spLexeme : m_vecLexemes)
+        {
+            for (auto spInflection : spLexeme->m_vecInflections)
             {
-                if (H_NO_MORE == rc)
+                try
                 {
-                    bMoreData = false;
+                    rc = spInflection->eGenerateParadigm();
+                    if (H_NO_ERROR != rc)
+                    {
+                        CEString sMsg(L"Error generating paradigm for ");
+                        sMsg += spLexeme->sSourceForm();
+                        ERROR_LOG(sMsg);
+                    }
+
+                    rc = spInflection->eSaveStemsToDb();
+                    if (H_NO_ERROR != rc)
+                    {
+                        CEString sMsg(L"Error saving stems for ");
+                        sMsg += spLexeme->sSourceForm();
+                        ERROR_LOG(sMsg);
+                    }
                 }
-                else
+                catch (CException& ex)
                 {
-                    CEString sMsg(L"Error retrieving lexeme data: ");
-                    sMsg += spLexeme->sSourceForm();
-                    sMsg += L".";
-                    ERROR_LOG(sMsg);
-                    //                return rc;
+                    ERROR_LOG(ex.szGetDescription());
+                    //            return H_EXCEPTION;
                 }
-                continue;
-            }
-            auto sInflectionQuery = sQueryBaseInflection +
-                L" FROM inflection WHERE descriptor_id = " +
-                CEString::sToString(spLexeme->llLexemeId());
-            uint64_t uiInflectionQueryHandle = 0;
-            rc = eQueryDb(sInflectionQuery, uiInflectionQueryHandle);
-            if (H_NO_ERROR != rc)
-            {
-                return rc;
-            }
-            while (H_NO_ERROR == rc)
-            {
-                auto bSpryazhSm = false;        // TODO -- are we handling spryazh sm??
-                rc = eReadInflectionData(spLexeme, uiInflectionQueryHandle, bSpryazhSm);
-            }
-            m_spDb->Finalize(uiInflectionQueryHandle);
-
-            if (spLexeme->nInflections() < 1)
-            {
-                spLexeme->AddInflection(make_shared<CInflection>(spLexeme));
-            }
-
-        }
-        catch (CException& ex)
-        {
-            ERROR_LOG(ex.szGetDescription());
-        }
-
-        //
-        // Generate word forms
-        //
-        try
-        {
-            CInflectionEnumerator ie(spLexeme);
-            shared_ptr<CInflection> spInflection;
-            rc = ie.eGetFirstInflection(spInflection);
-            if (rc != H_NO_ERROR || nullptr == spInflection)
-            {
-                CEString sMsg(L"Unable to read inflection data for ");
-                sMsg += spLexeme->sSourceForm();
-                ERROR_LOG(sMsg);
-                continue;
-            }
-            rc = spInflection->eGenerateParadigm();
-            if (H_NO_ERROR != rc)
-            {
-                CEString sMsg(L"Error generating paradigm for ");
-                sMsg += spLexeme->sSourceForm();
-                ERROR_LOG(sMsg);
-            }
-
-            rc = spInflection->eSaveStemsToDb();
-            if (H_NO_ERROR != rc)
-            {
-                CEString sMsg(L"Error saving stems for ");
-                sMsg += spLexeme->sSourceForm();
-                ERROR_LOG(sMsg);
             }
         }
-        catch (CException& ex)
-        {
-            ERROR_LOG(ex.szGetDescription());
-            //            return H_EXCEPTION;
-        }
 
-        //
-        // Update progress
-        //
-        if ((H_NO_ERROR == rc) && (iRow > 0) && (iRow % 1000 == 0))
+        m_vecLexemes.clear();
+
+        if ((H_NO_ERROR == rc) && (iRow > 0) && (iRow % 1000 == 0 || !bMoreData))
         {
             m_spDb->CommitTransaction();
             m_spDb->BeginTransaction();
@@ -837,97 +795,12 @@ ET_ReturnCode CDictionary::ePopulateStemsTable()
             sMsg += L" rows";
             ERROR_LOG(sMsg);
 
-            cout << right << setw(7) << iRow << " rows" << endl;
+            std::wcout << right << setw(7) << iRow << " rows" << endl;
         }
-    }       //  for (...)
+    }       //  for (int iRow = 0; bMoreData; ++iRow)
 
     m_spDb->CommitTransaction();
-
-    CEString sSpryazhSmQuery(sQueryBaseDescriptor);
-    sSpryazhSmQuery += L"FROM headword INNER JOIN spryazh_sm_headwords ON headword.id = spryazh_sm_headwords.headword_id ";
-    sSpryazhSmQuery += L"INNER JOIN descriptor ON spryazh_sm_headwords.ref_descriptor_id = descriptor.id ";
-    uint64_t uiSpryazhSmQueryHandle = 0;
-    rc = eQueryDb(sSpryazhSmQuery, uiSpryazhSmQueryHandle);
-    if (H_NO_ERROR != rc)
-    {
-        return rc;
-    }
-
-    std::cout << endl << endl << "Processing spryazh. sm. verbs... ";
-
-    m_spDb->BeginTransaction();
-
-    bMoreData = true;
-    for (int iRow = 0; bMoreData; ++iRow)
-    {
-        auto spLexeme = make_shared<CLexeme>(shared_from_this());
-        try
-        {
-            auto bSpryazhSm = true;
-            rc = eReadDescriptorData(spLexeme, uiSpryazhSmQueryHandle, bSpryazhSm);
-            if (H_NO_ERROR != rc)
-            {
-                if (H_NO_MORE == rc)
-                {
-                    bMoreData = false;
-                }
-                else
-                {
-                    CEString sMsg(L"Error retrieving lexeme data: ");
-                    sMsg += spLexeme->sSourceForm();
-                    sMsg += L".";
-                    ERROR_LOG(sMsg);
-                    //                return rc;
-                }
-                continue;
-            }
-        }
-        catch (CException& ex)
-        {
-            ERROR_LOG(ex.szGetDescription());
-        }
-
-        //
-        // Generate word forms
-        //
-        try
-        {
-            CInflectionEnumerator ie(spLexeme);
-            shared_ptr<CInflection> spInflection;
-            rc = ie.eGetFirstInflection(spInflection);
-            if (rc != H_NO_ERROR || nullptr == spInflection)
-            {
-                CEString sMsg(L"Unable to read inflection data for ");
-                sMsg += spLexeme->sSourceForm();
-                ERROR_LOG(sMsg);
-                continue;
-            }
-            rc = spInflection->eGenerateParadigm();
-            if (H_NO_ERROR != rc)
-            {
-                CEString sMsg(L"Error generating paradigm for ");
-                sMsg += spLexeme->sSourceForm();
-                ERROR_LOG(sMsg);
-            }
-
-            rc = spInflection->eSaveStemsToDb();
-            if (H_NO_ERROR != rc)
-            {
-                CEString sMsg(L"Error saving stems for ");
-                sMsg += spLexeme->sSourceForm();
-                ERROR_LOG(sMsg);
-            }
-        }
-        catch (CException& ex)
-        {
-            ERROR_LOG(ex.szGetDescription());
-            //            return H_EXCEPTION;
-        }
-    }       // for...
-
-    m_spDb->CommitTransaction();
-
-    std::cout << "done." << endl << endl;
+    std::wcout << "done." << endl << endl;
 
     return (H_NO_MORE == rc) ? H_NO_ERROR : rc;
 
@@ -941,66 +814,62 @@ ET_ReturnCode CDictionary::ePopulateWordFormDataTables()
     }
 
     ET_ReturnCode rc = H_NO_ERROR;
-
     uint64_t uiQueryHandle = 0;
-    CEString sQuery(sQueryBaseDescriptor);
-
-    sQuery += L"FROM headword INNER JOIN descriptor ON descriptor.word_id = headword.id ";
+    CEString sQuery(L"SELECT source FROM headword;");
     rc = eQueryDb(sQuery, uiQueryHandle);
     if (H_NO_ERROR != rc)
     {
         return rc;
     }
 
-    cout << endl << endl << "****      GENERATING WORDFORMS" << endl << endl;
+    std::wcout << endl << endl << "****      GENERATING WORDFORMS" << endl << endl;
 
     std::clock_t totalTime = 0;
 
-//    int iPercentDone = 0;
-    bool bMoreData = true;
-    vector<shared_ptr<CLexeme>> vecLexemes;
+    std::vector<shared_ptr<CLexeme>> vecProcessedLexemes;
 
+    bool bMoreData = true;
     for (int iRow = 0; bMoreData; ++iRow)
     {
-        shared_ptr<CLexeme> spLexeme = make_shared<CLexeme>(shared_from_this());
-        try
+        auto bRet = m_spDb->bGetRow(uiQueryHandle);
+        if (!bRet)
         {
-            rc = eReadDescriptorData(spLexeme, uiQueryHandle);
-            if (H_NO_ERROR == rc)
-            {
-                uiQueryHandle = 0;
-                for (auto spLexeme : m_vecLexemes)
-                {
-                    auto sInflectionQuery = sQueryBaseInflection +
-                        L" FROM inflection WHERE descriptor_id = " +
-                        CEString::sToString(spLexeme->llLexemeId());
-                    uint64_t uiQueryHandle = 0;
-                    rc = eQueryDb(sQueryBaseInflection, uiQueryHandle);
-                    if (H_NO_ERROR != rc)
-                    {
-                        return rc;
-                    }
-                    while (H_NO_ERROR == rc)
-                    {
-                        auto bSpryazhSm = false;        // TODO -- are we handling spryazh sm??
-                        rc = eReadInflectionData(spLexeme, uiQueryHandle, bSpryazhSm);
-                    }
-                }
+            bMoreData = false;
+        }
 
+        CEString sHeadword;
+        m_spDb->GetData(0, sHeadword, uiQueryHandle);
+        auto rc = eGetLexemesByInitialForm(sHeadword);
+        if (rc != H_NO_ERROR && rc != H_NO_MORE)
+        {
+            CEString sMsg(L"Unable to retrieve lexeme data for ");
+            sMsg += sHeadword;
+            return H_ERROR_UNEXPECTED;
+        }
+
+        for (auto spLexeme : m_vecLexemes)
+        {
+            for (auto spInflection : spLexeme->m_vecInflections)
+            {
                 try
                 {
-                    CInflectionEnumerator ie(spLexeme);
-                    shared_ptr<CInflection> spInflection;
-                    rc = ie.eGetFirstInflection(spInflection);
-                    if (rc != H_NO_ERROR || nullptr == spInflection)
+                    rc = spInflection->eGenerateParadigm();
+                    if (H_NO_ERROR != rc)
                     {
-                        CEString sMsg(L"Unable to read inflection data for ");
+                        CEString sMsg(L"Error generating paradigm for ");
                         sMsg += spLexeme->sSourceForm();
                         ERROR_LOG(sMsg);
-                        continue;
                     }
-                    spInflection->eGenerateParadigm();
-                    spInflection->eAssignStemIds();
+
+                    rc = spInflection->eAssignStemIds();
+                    if (H_NO_ERROR != rc)
+                    {
+                        CEString sMsg(L"Error saving stems for ");
+                        sMsg += spLexeme->sSourceForm();
+                        ERROR_LOG(sMsg);
+                    }
+
+                    vecProcessedLexemes.push_back(spLexeme);
                 }
                 catch (CException& ex)
                 {
@@ -1008,46 +877,22 @@ ET_ReturnCode CDictionary::ePopulateWordFormDataTables()
                     //            return H_EXCEPTION;
                 }
             }
-            else
-            {
-                if (H_NO_MORE == rc)
-                {
-                    bMoreData = false;
-                }
-                else
-                {
-                    ERROR_LOG(L"Error retrieving lexeme data.");
-                    continue;
-                }
-            }
-        }
-        catch (CException& ex)
-        {
-            ERROR_LOG(ex.szGetDescription());
-        }
+        }       //   for (auto spLexeme : m_vecLexemes)
 
-        if (iRow > 0 && (iRow % 1000 == 0 || !bMoreData))
+        m_vecLexemes.clear();
+
+        if ((H_NO_ERROR == rc) && (iRow > 0) && (iRow % 1000 == 0 || !bMoreData))
         {
             clock_t dbProcTime = clock();
-
             m_spDb->BeginTransaction();
+            CEString sMsg = CEString::sToString(iRow);
+            sMsg += L" rows";
+            MESSAGE_LOG(sMsg);
 
-            for (vector<shared_ptr<CLexeme>>::iterator itLexeme = vecLexemes.begin(); 
-                itLexeme != vecLexemes.end(); 
-                ++itLexeme)
+            for (auto spLexeme : vecProcessedLexemes)
             {
-                try
+                for (auto spInflection : spLexeme->m_vecInflections)
                 {
-                    CInflectionEnumerator ie(spLexeme);
-                    shared_ptr<CInflection> spInflection;
-                    rc = ie.eGetFirstInflection(spInflection);
-                    if (rc != H_NO_ERROR || nullptr == spInflection)
-                    {
-                        CEString sMsg(L"Unable to read inflection data for ");
-                        sMsg += spLexeme->sSourceForm();
-                        ERROR_LOG(sMsg);
-                        continue;
-                    }
                     for (unsigned int uiWf = 0; uiWf < spInflection->uiTotalWordForms(); ++uiWf)
                     {
                         shared_ptr<CWordForm> spWf;
@@ -1062,18 +907,13 @@ ET_ReturnCode CDictionary::ePopulateWordFormDataTables()
                             CEString sMsg(L"Unable to find stem id for \"");
                             sMsg += spWf->sStem();
                             sMsg += L'"';
-                            sMsg += L" lexeme = " + (*itLexeme)->sSourceForm();
+                            sMsg += L" lexeme = " + spLexeme->sSourceForm();
                             ERROR_LOG(sMsg);
 
                             continue;
                         }
                         spWf->bSaveToDb();
                     }
-                }
-                catch (CException& ex)
-                {
-                    ERROR_LOG(ex.szGetDescription());
-                    //            return H_EXCEPTION;
                 }
             }
 
@@ -1087,131 +927,13 @@ ET_ReturnCode CDictionary::ePopulateWordFormDataTables()
             sDurationMsg += CEString::sToString(dDuration);
             sDurationMsg += L" seconds total";
             ERROR_LOG(sDurationMsg);
-            cout << "Row " << right << setw(6) << iRow << ", " << fixed << setprecision(3) << dDuration << " seconds" << endl;
-
-            vecLexemes.clear();
-
-        }       //  if (iRow > 0 && (iRow % 1000 == 0 || !bMoreData))
-
-    }       //  for ...
-
-    std::cout << endl << endl << "Processing spryazh. sm. verbs... ";
-
-    m_spDb->BeginTransaction();
-
-    CEString sSpryazhSmQuery(sQueryBaseDescriptor);
-    sSpryazhSmQuery += L"FROM headword INNER JOIN spryazh_sm_headwords ON headword.id = spryazh_sm_headwords.headword_id ";
-    sSpryazhSmQuery += L"INNER JOIN descriptor ON spryazh_sm_headwords.ref_descriptor_id = descriptor.id ";
-    sSpryazhSmQuery += L"LEFT OUTER JOIN inflection ON descriptor.id = inflection.descriptor_id ";
-    uint64_t uiSpryazhSmQueryHandle = 0;
-    rc = eQueryDb(sSpryazhSmQuery, uiSpryazhSmQueryHandle);
-    if (H_NO_ERROR != rc)
-    {
-        return rc;
-    }
-
-    bMoreData = true;
-
-    for (int iRow = 0; bMoreData; ++iRow)
-    {
-        shared_ptr<CLexeme> spLexeme = make_shared<CLexeme>(shared_from_this());
-        try
-        {
-            auto bSpryazhSm = true;
-            rc = eReadDescriptorData(spLexeme, uiSpryazhSmQueryHandle, bSpryazhSm);
-            if (H_NO_ERROR == rc)
-            {
-                try
-                {
-                    CInflectionEnumerator ie(spLexeme);
-                    shared_ptr<CInflection> spInflection;
-                    rc = ie.eGetFirstInflection(spInflection);
-                    if (rc != H_NO_ERROR || nullptr == spInflection)
-                    {
-                        CEString sMsg(L"Unable to read inflection data for ");
-                        sMsg += spLexeme->sSourceForm();
-                        ERROR_LOG(sMsg);
-                        continue;
-                    }
-                    spInflection->eGenerateParadigm();
-                    spInflection->eAssignStemIds();
-                }
-                catch (CException& ex)
-                {
-                    ERROR_LOG(ex.szGetDescription());
-                    //            return H_EXCEPTION;
-                }
-                vecLexemes.push_back(spLexeme);            // TODO: must be (shared) ptr
-            }
-            else
-            {
-                if (H_NO_MORE == rc)
-                {
-                    bMoreData = false;
-                }
-                else
-                {
-                    ERROR_LOG(L"Error retrieving lexeme data.");
-                    continue;
-                }
-            }
+//            std::wcout << "Row " << right << setw(6) << iRow << ", " << fixed << setprecision(3) << dDuration << " seconds" << endl;
         }
-        catch (CException& ex)
-        {
-            ERROR_LOG(ex.szGetDescription());
-        }
-    }
+    }       //   for (int iRow = 0; bMoreData; ++iRow)
 
-    for (vector<shared_ptr<CLexeme>>::iterator itLexeme = vecLexemes.begin(); 
-        itLexeme != vecLexemes.end(); 
-        ++itLexeme)
-    {
-        try
-        {
-            CInflectionEnumerator ie(*itLexeme);       // TODO!!!
-            shared_ptr<CInflection> spInflection;
-            rc = ie.eGetFirstInflection(spInflection);
-            if (rc != H_NO_ERROR || nullptr == spInflection)
-            {
-                CEString sMsg(L"Unable to read inflection data for ");
-                sMsg += (*itLexeme)->sSourceForm();
-                ERROR_LOG(sMsg);
-                continue;
-            }
-            spInflection->eGenerateParadigm();
-            spInflection->eAssignStemIds();
-            for (unsigned int uiWf = 0; uiWf < spInflection->uiTotalWordForms(); ++uiWf)
-            {
-                shared_ptr<CWordForm> spWf;
-                rc = spInflection->eGetWordForm(uiWf, spWf);
+    std::wcout << "done." << endl << endl;
 
-                ERROR_LOG(spWf->sWordForm());
-
-                if (rc != H_NO_ERROR)
-                {
-                    continue;
-                }
-
-                spWf->bSaveToDb();
-
-                if (spWf->bIrregular())
-                {
-                    spWf->bSaveIrregularForm();
-                }
-            }
-        }
-        catch (CException& ex)
-        {
-            ERROR_LOG(ex.szGetDescription());
-            //            return H_EXCEPTION;
-        }
-    }
-
-    m_spDb->CommitTransaction();
-
-    std::cout << endl << "Done." << endl << endl;
-
-    return H_NO_ERROR;
+    return (H_NO_MORE == rc) ? H_NO_ERROR : rc;
 
 }       //  ePopulateWordFormDataTables()
 
@@ -1442,7 +1164,7 @@ ET_ReturnCode CDictionary::ePopulateHashToDescriptorTable(PROGRESS_CALLBACK_CLR 
 //          sMsg += CEString::sToString(iRow);
 //          CLogger::bWriteLog(wstring(xxxx));
 //          ERROR_LOG(sMsg)
-//          std::cout << string(sMsg.stl_sToUtf8()) << std::endl;
+//          std::wcout << string(sMsg.stl_sToUtf8()) << std::endl;
 
 //          CEString sDurationMsg(L"Row ");
 //          sDurationMsg += CEString::sToString(iRow);
@@ -1450,7 +1172,7 @@ ET_ReturnCode CDictionary::ePopulateHashToDescriptorTable(PROGRESS_CALLBACK_CLR 
 //          sDurationMsg += CEString::sToString(dDuration);
 //          sDurationMsg += L" seconds total"; 
 //          CLogger::bWriteLog(wstring(sDurationMsg));
-//          std::cout << string(sDurationMsg.stl_sToUtf8()) << std::endl;
+//          std::wcout << string(sDurationMsg.stl_sToUtf8()) << std::endl;
 //          totalTime = 0;
 
         }

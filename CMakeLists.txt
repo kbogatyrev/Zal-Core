@@ -175,20 +175,20 @@ target_sources (ZalStringTest PRIVATE
 	HLib/StringTest.cpp
 )
 #-----------------------------------------------------------------
-add_executable (ZalMainTest)
+add_executable (ZalGenerateAllForms)
 
-target_sources (ZalMainTest PRIVATE
-	MainLib/Test.cpp
+target_sources (ZalGenerateAllForms PRIVATE
+	MainLib/GenerateAllForms.cpp
 )
 
-target_include_directories (ZalMainTest PUBLIC
+target_include_directories (ZalGenerateAllForms PUBLIC
 	HLib
 	ThirdParty/Sqlite
 	ThirdParty/sha1
 )
 
 if (MSVC)
-	target_link_libraries(ZalMainTest ZalMainLib)
+	target_link_libraries(ZalGenerateAllForms ZalMainLib)
 else()
-	target_link_libraries(ZalMainTest ZalMainLib pthread dl)
+	target_link_libraries(ZalGenerateAllForms ZalMainLib pthread dl)
 endif()

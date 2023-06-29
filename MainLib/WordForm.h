@@ -136,10 +136,15 @@ namespace Hlib
             m_llEndingDataId = llEndingDataId;
         }
 
-//        long long llLexemeId()
-//        {
-//            return m_pLexeme->llLexemeId();
-//        }
+        long long llLexemeId()
+        {
+            return m_llLexemeId;
+        }
+
+        void SetLexemeId(long long llLexemeId)
+        {
+            m_llLexemeId = llLexemeId;
+        }
 
         long long llInflectionId()
         {

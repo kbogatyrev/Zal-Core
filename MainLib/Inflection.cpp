@@ -929,20 +929,22 @@ ET_ReturnCode CInflection::eGenerateParadigm()
                 {
                     return rc;
                 }
-                if (m_spLexeme->spGetSecondPart())
+                auto spLexeme2 = m_spLexeme->spGetSecondPart();
+                if (spLexeme2)
                 {
-                    CInflectionEnumerator ie(m_spLexeme);
-                    shared_ptr<CInflection> spInflection = nullptr;
-                    rc = ie.eGetFirstInflection(spInflection);
-                    if (rc != H_NO_ERROR || nullptr == spInflection)
+                    CInflectionEnumerator ie2(spLexeme2);
+                    shared_ptr<CInflection> spInflection2;
+                    rc = ie2.eGetFirstInflection(spInflection2);
+                    if (rc != H_NO_ERROR || nullptr == spInflection2)
                     {
                         CEString sMsg(L"Unable to read inflection data for ");
-                        sMsg += m_spLexeme->sSourceForm();
+                        sMsg += spLexeme2->sSourceForm();
                         ERROR_LOG(sMsg);
                         return H_ERROR_UNEXPECTED;
                     }
 
-                    rc = spInflection->eGenerateParadigm();
+                    rc = spInflection2->eGenerateParadigm();
+//                    rc = eAlignInflectedParts();
 // TODO: check and warn if there's more than one second part infl-n
                 }
             }
@@ -956,20 +958,21 @@ ET_ReturnCode CInflection::eGenerateParadigm()
                     return rc;
                 }
 
-                if (m_spLexeme->spGetSecondPart())
+                auto spLexeme2 = m_spLexeme->spGetSecondPart();
+                if (spLexeme2)
                 {
-                    CInflectionEnumerator ie(m_spLexeme);
-                    shared_ptr<CInflection> spInflection;
-                    rc = ie.eGetFirstInflection(spInflection);
-                    if (rc != H_NO_ERROR || nullptr == spInflection)
+                    CInflectionEnumerator ie(spLexeme2);
+                    shared_ptr<CInflection> spInflection2;
+                    rc = ie.eGetFirstInflection(spInflection2);
+                    if (rc != H_NO_ERROR || nullptr == spInflection2)
                     {
                         CEString sMsg(L"Unable to read inflection data for ");
-                        sMsg += m_spLexeme->sSourceForm();
+                        sMsg += spLexeme2->sSourceForm();
                         ERROR_LOG(sMsg);
                         return H_ERROR_UNEXPECTED;
                     }
 
-                    rc = spInflection->eGenerateParadigm();
+//                    rc = spInflection2->eGenerateParadigm();
                 }
   
                 if (!stLexemeProperties.bNoComparative && !stLexemeProperties.sSourceForm.bEndsWith(L"ийся"))
@@ -2203,7 +2206,7 @@ ET_ReturnCode CInflection::eAssignStemIds()
     for (; itWf != m_mmWordForms.end(); ++itWf)
     {
         //        if (0 == (*itWf).second->m_llStemId)    // stem string not found, look up in DB
-        {
+        //{
             CEString sQuery(L"SELECT id FROM stems WHERE stem_string=\"");
             sQuery += (*itWf).second->m_sStem;
             sQuery += L'"';
@@ -2237,7 +2240,7 @@ ET_ReturnCode CInflection::eAssignStemIds()
                 ERROR_LOG(L"Unknown exception.");
             }
 
-        }
+        //}
     }       // for (...)
 
     return eRet;

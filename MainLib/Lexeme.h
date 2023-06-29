@@ -52,6 +52,7 @@ namespace Hlib
     class CLexeme : public enable_shared_from_this<CLexeme>
     {
         friend class CInflectionEnumerator;
+        friend class CDictionary;
 
     public:
         CLexeme() = delete;
