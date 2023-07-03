@@ -24,6 +24,8 @@ ET_ReturnCode CParser::eParseWord(const CEString& sWord)
 {
 //    clock_t startTime = clock();
 
+    m_spDictionary->Clear();    // clear lexemes
+
     m_vecWordForms.clear();
 
     if (!m_spDictionary)
@@ -69,8 +71,8 @@ ET_ReturnCode CParser::eParseWord(const CEString& sWord)
 
     for (auto& spWf : m_vecWordForms)
     {
+        m_spDictionary->Clear();
         shared_ptr<CLexeme> spLexeme;
-//        m_spDictionary->eGetLexemeById(spWf->spLexeme()->llLexemeId(), spLexeme);
         m_spDictionary->eGetLexemeById(spWf->llLexemeId(), spLexeme);
         if (nullptr == spLexeme)
         {
@@ -105,7 +107,8 @@ ET_ReturnCode CParser::eRemoveFalsePositives()
 
         for (pwfIterator itOther = m_vecWordForms.begin(); itOther != m_vecWordForms.end(); ++itOther)
         {
-            if (spMe->spLexeme()->llLexemeId() == (*itOther)->spLexeme()->llLexemeId())
+//            if (spMe->spLexeme()->llLexemeId() == (*itOther)->spLexeme()->llLexemeId())
+            if (spMe->llLexemeId() == (*itOther)->llLexemeId())
             {
                 if (spMe->sGramHash() == (*itOther)->sGramHash())
                 {
@@ -236,7 +239,7 @@ ET_ReturnCode CParser::eQueryDb(const CEString& sSelect, uint64_t& uiQueryHandle
 
 ET_ReturnCode CParser::eIrregularFormLookup(const CEString& sWord, bool bSpryazhSm)
 {
-    CEString sIrregFormQuery(L"SELECT DISTINCT if.id, if.descriptor_id, inflection.id, if.gram_hash, if.wordform, if.is_alternative FROM ");
+    CEString sIrregFormQuery(L"SELECT DISTINCT if.id, if.descriptor_id, inf.id, if.gram_hash, if.wordform, if.is_alternative FROM ");
     if (bSpryazhSm)
     {
         sIrregFormQuery += L"irregular_forms_spryazh_sm AS if ";
@@ -246,7 +249,7 @@ ET_ReturnCode CParser::eIrregularFormLookup(const CEString& sWord, bool bSpryazh
         sIrregFormQuery += L"irregular_forms AS if ";
     }
 
-    sIrregFormQuery += L" INNER JOIN inflection ON inflection.descriptor_id=if.descriptor_id ";
+    sIrregFormQuery += L" LEFT OUTER JOIN inflection as inf ON inf.descriptor_id=if.descriptor_id ";
     sIrregFormQuery += L" WHERE wordform = \"";
     sIrregFormQuery += sWord;
     sIrregFormQuery += L'\"';
@@ -330,7 +333,7 @@ ET_ReturnCode CParser::eIrregularFormLookup(const CEString& sWord, bool bSpryazh
 
 }       //  eIrregularFormLookup()
 
-static CEString s_sWholeWordQuery(L"SELECT DISTINCT sd.gram_hash, sd.inflection_id, wf.id, wf.ending_data_id \
+static CEString s_sWholeWordQuery(L"SELECT DISTINCT sd.gram_hash, sd.lexeme_id, sd.inflection_id, wf.id, wf.ending_data_id \
                                    FROM stems AS s INNER JOIN stem_data as sd \
                                    ON (sd.stem_id = s.id) INNER JOIN wordforms as wf \
                                    ON sd.id = wf.stem_data_id  \
@@ -346,14 +349,17 @@ ET_ReturnCode CParser::eWholeWordLookup(const CEString& sWord)
         CEString sGramHash;
         m_spDb->GetData(0, sGramHash, uiFormQueryHandle);
 
+        int64_t llLexemeId = -1;
+        m_spDb->GetData(1, llLexemeId, uiFormQueryHandle);
+
         int64_t llInflectionId = -1;
-        m_spDb->GetData(1, llInflectionId, uiFormQueryHandle);
+        m_spDb->GetData(2, llInflectionId, uiFormQueryHandle);
 
         int64_t llFormId = -1;
-        m_spDb->GetData(2, llFormId, uiFormQueryHandle);
+        m_spDb->GetData(3, llFormId, uiFormQueryHandle);
 
         int64_t llEndingId = -1;
-        m_spDb->GetData(3, llEndingId, uiFormQueryHandle);
+        m_spDb->GetData(4, llEndingId, uiFormQueryHandle);
 
         if (llEndingId < 0 || H_TRUE == m_spEndingsTree->eIsEmptyEnding(llEndingId))
         {
@@ -386,6 +392,7 @@ ET_ReturnCode CParser::eWholeWordLookup(const CEString& sWord)
             }
 
             spWf->SetIrregular(false);
+            spWf->SetLexemeId(llLexemeId);
             spWf->SetInflectionId(llInflectionId);
             spWf->SetDbKey(llFormId);
             spWf->SetWordForm(sWord);

@@ -280,6 +280,11 @@ ET_ReturnCode CDictionary::eGetLexemeById(long long llId, shared_ptr<CLexeme>& s
             auto bSpryazhSm = false;        // TODO -- are we handling spryazh sm??
             rc = eReadInflectionData(spLexeme, uiQueryHandle, bSpryazhSm);
         }
+
+        if (spLexeme->nInflections() < 1)   // Add dummy inflection instance if none was retrieved
+        {
+            spLexeme->AddInflection(make_shared<CInflection>(spLexeme));
+        }
     }
 
     return H_NO_ERROR;
@@ -709,7 +714,7 @@ ET_ReturnCode CDictionary::eGenerateAllForms()
 
     ET_ReturnCode rc = H_NO_ERROR;
 
-    rc = ePopulateStemsTable();
+//    rc = ePopulateStemsTable();
     rc = ePopulateWordFormDataTables();
 
     return rc;
@@ -729,6 +734,7 @@ ET_ReturnCode CDictionary::ePopulateStemsTable()
     rc = eQueryDb(sQuery, uiQueryHandle);
     if (H_NO_ERROR != rc)
     {
+        std::wcout << "**** exiting." << endl << endl;
         return rc;
     }
 
@@ -743,16 +749,18 @@ ET_ReturnCode CDictionary::ePopulateStemsTable()
         if (!bRet)
         {
             bMoreData = false;
+            continue;
         }
 
         CEString sHeadword;
         m_spDb->GetData(0, sHeadword, uiQueryHandle);
         auto rc = eGetLexemesByInitialForm(sHeadword);
-        if (rc != H_NO_ERROR && rc != H_NO_MORE)
+        if (rc != H_NO_ERROR && rc != H_NO_MORE && rc != H_FALSE)
         {
             CEString sMsg(L"Unable to retrieve lexeme data for ");
             sMsg += sHeadword;
-            return H_ERROR_UNEXPECTED;
+//            return H_ERROR_UNEXPECTED;
+            continue;
         }
 
         for (auto spLexeme : m_vecLexemes)
@@ -790,6 +798,7 @@ ET_ReturnCode CDictionary::ePopulateStemsTable()
         if ((H_NO_ERROR == rc) && (iRow > 0) && (iRow % 1000 == 0 || !bMoreData))
         {
             m_spDb->CommitTransaction();
+
             m_spDb->BeginTransaction();
             CEString sMsg = CEString::sToString(iRow);
             sMsg += L" rows";
@@ -801,7 +810,6 @@ ET_ReturnCode CDictionary::ePopulateStemsTable()
 
     m_spDb->CommitTransaction();
     std::wcout << "done." << endl << endl;
-
     return (H_NO_MORE == rc) ? H_NO_ERROR : rc;
 
 }       //  ePopulateStemsTable()
@@ -810,15 +818,18 @@ ET_ReturnCode CDictionary::ePopulateWordFormDataTables()
 {
     if (!m_spDb)
     {
+        std::wcout << endl << "****  No database." << endl;
         return H_ERROR_DB;
     }
 
     ET_ReturnCode rc = H_NO_ERROR;
     uint64_t uiQueryHandle = 0;
     CEString sQuery(L"SELECT source FROM headword;");
+
     rc = eQueryDb(sQuery, uiQueryHandle);
     if (H_NO_ERROR != rc)
     {
+        std::wcout << endl << "****  DB query failed" << endl;
         return rc;
     }
 
@@ -836,49 +847,49 @@ ET_ReturnCode CDictionary::ePopulateWordFormDataTables()
         {
             bMoreData = false;
         }
-
-        CEString sHeadword;
-        m_spDb->GetData(0, sHeadword, uiQueryHandle);
-        auto rc = eGetLexemesByInitialForm(sHeadword);
-        if (rc != H_NO_ERROR && rc != H_NO_MORE)
+        else
         {
-            CEString sMsg(L"Unable to retrieve lexeme data for ");
-            sMsg += sHeadword;
-            return H_ERROR_UNEXPECTED;
-        }
-
-        for (auto spLexeme : m_vecLexemes)
-        {
-            for (auto spInflection : spLexeme->m_vecInflections)
+            CEString sHeadword;
+            m_spDb->GetData(0, sHeadword, uiQueryHandle);
+            auto rc = eGetLexemesByInitialForm(sHeadword);
+            if (rc != H_NO_ERROR && rc != H_NO_MORE)
             {
-                try
-                {
-                    rc = spInflection->eGenerateParadigm();
-                    if (H_NO_ERROR != rc)
-                    {
-                        CEString sMsg(L"Error generating paradigm for ");
-                        sMsg += spLexeme->sSourceForm();
-                        ERROR_LOG(sMsg);
-                    }
-
-                    rc = spInflection->eAssignStemIds();
-                    if (H_NO_ERROR != rc)
-                    {
-                        CEString sMsg(L"Error saving stems for ");
-                        sMsg += spLexeme->sSourceForm();
-                        ERROR_LOG(sMsg);
-                    }
-
-                    vecProcessedLexemes.push_back(spLexeme);
-                }
-                catch (CException& ex)
-                {
-                    ERROR_LOG(ex.szGetDescription());
-                    //            return H_EXCEPTION;
-                }
+                CEString sMsg(L"Unable to retrieve lexeme data for ");
+                sMsg += sHeadword;
             }
-        }       //   for (auto spLexeme : m_vecLexemes)
 
+            for (auto spLexeme : m_vecLexemes)
+            {
+                for (auto spInflection : spLexeme->m_vecInflections)
+                {
+                    try
+                    {
+                        rc = spInflection->eGenerateParadigm();
+                        if (H_NO_ERROR != rc)
+                        {
+                            CEString sMsg(L"Error generating paradigm for ");
+                            sMsg += spLexeme->sSourceForm();
+                            ERROR_LOG(sMsg);
+                        }
+
+                        rc = spInflection->eAssignStemIds();
+                        if (H_NO_ERROR != rc)
+                        {
+                            CEString sMsg(L"Error saving stems for ");
+                            sMsg += spLexeme->sSourceForm();
+                            ERROR_LOG(sMsg);
+                        }
+
+                        vecProcessedLexemes.push_back(spLexeme);
+                    }
+                    catch (CException& ex)
+                    {
+                        ERROR_LOG(ex.szGetDescription());
+                        //            return H_EXCEPTION;
+                    }
+                }
+            }       //   for (auto spLexeme : m_vecLexemes)
+        }
         m_vecLexemes.clear();
 
         if ((H_NO_ERROR == rc) && (iRow > 0) && (iRow % 1000 == 0 || !bMoreData))
@@ -918,6 +929,8 @@ ET_ReturnCode CDictionary::ePopulateWordFormDataTables()
             }
 
             m_spDb->CommitTransaction();
+
+            vecProcessedLexemes.clear();
 
             totalTime += clock() - dbProcTime;
             double dDuration = (clock() - dbProcTime) / (double)CLOCKS_PER_SEC;

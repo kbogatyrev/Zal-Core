@@ -7,15 +7,18 @@
 using namespace Hlib;
 
 CWordForm::CWordForm() : 
-    m_spInflection(0),
     m_ullDbInsertHandle(0),
-    m_llDbKey(-1),
+    m_llDbKey(0),
     m_sWordForm(L""),
     m_sStem(L""),
     m_llStemId(0),
+    m_llStemDataId(0),
+    m_llIrregularFormId(0),
     m_sEnding(L""),
-    m_llEndingDataId(-1),
-//                         m_llLexemeId(-1),
+    m_llEndingDataId(0),
+    m_llLexemeId(0),
+    m_llInflectionId(0),
+    //                         m_llLexemeId(-1),
     m_ePos(POS_UNDEFINED),
     m_eCase(CASE_UNDEFINED),
     m_eNumber(NUM_UNDEFINED),
@@ -570,12 +573,9 @@ bool CWordForm::bSaveToDb()
             return false;
         }
 
-        if (0 == m_ullDbInsertHandle)
-        {
-            sqlite3_stmt * pStmt = nullptr;     // TODO: smart ptr??
-            spDbHandle->uiPrepareForInsert(L"stem_data", 4, pStmt, false);
-            m_ullDbInsertHandle = (unsigned long long)pStmt;
-        }
+        sqlite3_stmt * pStmt = nullptr;     // TODO: smart ptr??
+        spDbHandle->uiPrepareForInsert(L"stem_data", 4, pStmt, false);
+        m_ullDbInsertHandle = (unsigned long long)pStmt;
         spDbHandle->Bind(1, (int64_t)m_llStemId, m_ullDbInsertHandle);
         spDbHandle->Bind(2, sGramHash(), m_ullDbInsertHandle);
         spDbHandle->Bind(3, (int64_t)stLexemeProperties.llDescriptorId, m_ullDbInsertHandle);
