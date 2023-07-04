@@ -714,7 +714,7 @@ ET_ReturnCode CDictionary::eGenerateAllForms()
 
     ET_ReturnCode rc = H_NO_ERROR;
 
-//    rc = ePopulateStemsTable();
+    rc = ePopulateStemsTable();
     rc = ePopulateWordFormDataTables();
 
     return rc;
