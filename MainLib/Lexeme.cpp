@@ -271,6 +271,20 @@ ET_ReturnCode CLexeme::eGetInflectionInstance(int iAt, shared_ptr<CInflection>& 
     return H_NO_ERROR;
 }
 
+ET_ReturnCode CLexeme::eGetInflectionById(long long llInflectionId, shared_ptr<CInflection>& spInflection)
+{
+    for (auto spInfl : m_vecInflections)
+    {
+        if (spInfl->llInflectionId() == llInflectionId)
+        {
+            spInflection = spInfl;
+            return H_NO_ERROR;
+        }
+    }
+
+    return H_ERROR_UNEXPECTED;
+}
+
 ET_ReturnCode CLexeme::eCreateInflectionForEdit(shared_ptr<CInflection>& spInflection)
 {
     spInflection = make_shared<CInflection>(shared_from_this());

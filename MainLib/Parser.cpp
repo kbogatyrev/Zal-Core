@@ -82,6 +82,16 @@ ET_ReturnCode CParser::eParseWord(const CEString& sWord)
             continue;
         }
         spWf->SetPos(spLexeme->ePartOfSpeech());
+        shared_ptr<CInflection> spInflection;
+        auto rcInfl = spLexeme->eGetInflectionById(spWf->llInflectionId(), spInflection);
+        if (rcInfl != H_NO_ERROR)
+        {
+            CEString sMsg(L"Failed to get inflection by ID, ID = ");
+            sMsg += CEString::sToString(spWf->llInflectionId());
+            ERROR_LOG(sMsg);
+            continue;
+        }
+        spWf->SetInflection(spInflection);
     }
 
     return m_vecWordForms.empty() ? H_FALSE : H_NO_ERROR;
@@ -468,7 +478,7 @@ ET_ReturnCode CParser::eFormLookup(const CEString& sWord)
                     m_spDb->GetData(2, llLexemeId, uiFormQueryHandle);
 
                     int64_t llInflectionId = -1;
-                    m_spDb->GetData(2, llInflectionId, uiFormQueryHandle);
+                    m_spDb->GetData(3, llInflectionId, uiFormQueryHandle);
 
                     auto spWf = make_unique<CWordForm>();
                     auto rc = spWf->eInitFromHash(sGramHash);

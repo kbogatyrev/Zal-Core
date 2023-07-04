@@ -109,11 +109,6 @@ CWordForm::CWordForm(const CEString& sHash, shared_ptr<CInflection> spInflection
     m_sEnding.SetVowels(CEString::g_szRusVowels);
 }
 
-//CWordForm::CWordForm(const shared_ptr<CWordForm> spSource)
-//{
-//    Copy(*spSource);
-//}
-
 CWordForm::CWordForm(const CWordForm& source)
 {
     Copy(source);
@@ -124,16 +119,6 @@ const CWordForm& CWordForm::operator=(const CWordForm& rhs)
     Copy(rhs);
     return *this;
 }
-
-//ILexeme * CWordForm::pLexeme()
-//{
-//    return m_pInflection->lex
-//}
-
-//void CWordForm::SetLexeme(ILexeme * pLexeme)
-//{
-//    m_pLexeme = dynamic_cast<CLexeme *>(pLexeme);
-//}
 
 void CWordForm::SetInflection(shared_ptr<CInflection> spInflection)
 {

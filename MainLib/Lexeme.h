@@ -66,13 +66,12 @@ namespace Hlib
         }
 
         ET_ReturnCode eCreateInflectionEnumerator(shared_ptr<CInflectionEnumerator>&);  // Standard version
-//        ET_ReturnCode eCreateInflectionEnumerator(CInflectionEnumerator*&);             // Raw ptr version for CLI
-
-//        void DeleteInflectionEnumerator(shared_ptr<CInflectionEnumerator>);
 
         int nInflections();
 
         ET_ReturnCode eGetInflectionInstance(int iAt, shared_ptr<CInflection>& spInflection);
+
+        ET_ReturnCode eGetInflectionById(long long llInflectionId, shared_ptr<CInflection>& spInflection);
 
         void SetDictionary(shared_ptr<CDictionary> spDict);
 
