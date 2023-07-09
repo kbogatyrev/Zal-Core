@@ -83,13 +83,21 @@ ET_ReturnCode CParser::eParseWord(const CEString& sWord)
         }
         spWf->SetPos(spLexeme->ePartOfSpeech());
         shared_ptr<CInflection> spInflection;
-        auto rcInfl = spLexeme->eGetInflectionById(spWf->llInflectionId(), spInflection);
-        if (rcInfl != H_NO_ERROR)
+        if (spWf->llInflectionId())
         {
-            CEString sMsg(L"Failed to get inflection by ID, ID = ");
-            sMsg += CEString::sToString(spWf->llInflectionId());
-            ERROR_LOG(sMsg);
-            continue;
+            auto rcInfl = spLexeme->eGetInflectionById(spWf->llInflectionId(), spInflection);
+            if (rcInfl != H_NO_ERROR)
+            {
+                CEString sMsg(L"Failed to get inflection by ID, ID = ");
+                sMsg += CEString::sToString(spWf->llInflectionId());
+                ERROR_LOG(sMsg);
+                continue;
+            }
+        }
+        else
+        {
+            spInflection = make_shared<CInflection>(spLexeme);
+            spLexeme->AddInflection(spInflection);    // use dummy inflection
         }
         spWf->SetInflection(spInflection);
     }
