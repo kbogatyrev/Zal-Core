@@ -8,7 +8,6 @@
 
 #include "Enums.h"
 #include "EString.h"
-//#include "IAnalytics.h"
 #include "WordForm.h"
 
 using namespace std;
@@ -100,6 +99,18 @@ namespace Hlib
         {
             return sSource.uiGetTokenNum(sSource.stGetTokenFromOffset(iTextPos));
         }
+
+        void AddWord(InvariantParses setParse, const CEString& sWord)
+        {
+            ++iNumOfWords;
+            m_vecParses.push_back(setParse);
+            if (sSource.uiLength() > 0)
+            { 
+                sSource += L' ';
+            }
+            sSource += sWord;
+        }
+
     };      //  StTactGroup
 
     class CAnalytics
@@ -110,7 +121,6 @@ namespace Hlib
         ~CAnalytics();
 
         virtual ET_ReturnCode eParseText(const CEString& sTextName, const CEString& sMetadata, const CEString& sText, long long& llParsedTextId, bool bIsProse = false);
-//        virtual void ClearResults();
 
     private:
         ET_ReturnCode eInit();
@@ -122,9 +132,9 @@ namespace Hlib
 //        ET_ReturnCode eCountSyllables(StTactGroup&);
         ET_ReturnCode eGetStress(shared_ptr<StTactGroup>);
         ET_ReturnCode eTranscribe(shared_ptr<StTactGroup>);
-        ET_ReturnCode eAssembleTactGroups_old(CEString& sLine);
-        ET_ReturnCode eAssembleTactGroups_x(CEString& sLine, int iWord, StTactGroup& tg);
-        ET_ReturnCode eNewTactGroup(shared_ptr<StTactGroup> current, CEString& sLine, int iNextWord);
+//        ET_ReturnCode eAssembleTactGroups_old(CEString& sLine);
+//        ET_ReturnCode eAssembleTactGroups_x(CEString& sLine, int iWord, StTactGroup& tg);
+//        ET_ReturnCode eNewTactGroup(shared_ptr<StTactGroup> current, CEString& sLine, int iNextWord);
         ET_ReturnCode eSaveLine(int iLineNum, int iTextOffset, int iLength, int iNumOfWords, const CEString& sText, long long& llDbKey);
         ET_ReturnCode eSaveWord(long long llLineDbId, int iWord, int iWordsInLine, int iLineOffset, int iSegmentLength, const CEString& sWord, long long& llWordDbKey);
         ET_ReturnCode eSaveWordParse(long long llSegmentId, long long llWordFormId, long long& llWordToWordFormId);
@@ -132,7 +142,8 @@ namespace Hlib
         ET_ReturnCode eClearTextData(long long llText);
         ET_WordStressType eGetStressType(CWordForm&);
         bool bArePhoneticallyIdentical(CWordForm& wf1, CWordForm& wf2);
-        ET_ReturnCode eAddParsesToTactGroup(shared_ptr<StTactGroup>, int iLinePos);
+        ET_ReturnCode eAddParsesToTactGroup(int iLineNum, int iWord, shared_ptr<StTactGroup> spTactGroup);
+//        ET_ReturnCode eAddWordToTactGroup(StTactGroup&, int iLineNum, int iWord);
 
     private:
         shared_ptr<CSqlite> m_spDb;
@@ -144,10 +155,9 @@ namespace Hlib
         CEString m_sText;
         long long m_llTextDbId;
 
-//        multimap<int, StWordParse> m_mmapLinePosToParses;
         multimap<int, InvariantParses> m_mmapLinePosToHomophones;
         vector<pair<CEString, CEString>> m_vecMetadataKeyValPairs;
-        shared_ptr<StTactGroup> m_pTactGroupListHead;
+        vector<shared_ptr<StTactGroup>> m_vecTactGroupListHead;
         int m_iWordsInCurrentLine;
 
     };      //  class CAnalytics

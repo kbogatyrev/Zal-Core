@@ -166,9 +166,13 @@ ET_ReturnCode CAnalytics::eParseText(const CEString& sTextName, const CEString& 
                 m_mmapLinePosToHomophones.insert(make_pair(iField, setInvariants));
             }
         }       // for (int iField ...)
+
+        m_vecTactGroupListHead.clear();        // TODO -- verify that it is empty first?
+        auto spTactGroup = make_shared<StTactGroup>();
+        eRet = eAddParsesToTactGroup(iLine, 0, spTactGroup);
+
     }       //  for (int iLine = 0 ...)
 
-    m_pTactGroupListHead = make_shared<StTactGroup>();
 
     m_spDb->CommitTransaction();
 
@@ -905,197 +909,152 @@ bool CAnalytics::bArePhoneticallyIdentical(CWordForm& wf1, CWordForm& wf2)
 
 }       //  bArePhoneticallyIdentical()
 
-ET_ReturnCode CAnalytics::eAddParsesToTactGroup(shared_ptr<StTactGroup> pCurrentTactGroup, int iWordPos)
+// Recursively create tact groups as a liniked list 
+ET_ReturnCode CAnalytics::eAddParsesToTactGroup(int iLine, int iPos, shared_ptr<StTactGroup> spCurrentTactGroup)
 {
-    if (iWordPos >= m_iWordsInCurrentLine)
+    if (iPos >= m_iWordsInCurrentLine)
     {
         return H_NO_ERROR;
     }
 
-    if (nullptr == pCurrentTactGroup)
+    if (m_mmapLinePosToHomophones.empty())
     {
-        CEString sMsg(L"Null tact group, line pos. = ");
-        sMsg += CEString::sToString(iWordPos) + L".";
-        ERROR_LOG(sMsg);
-        return H_ERROR_POINTER;
-    }
-
-    if ((int)pCurrentTactGroup->m_vecParses.size() != pCurrentTactGroup->iNumOfWords)
-    {
-        CEString sMsg(L"Unexpected number of parses in tact group, word num ");
-        sMsg += CEString::sToString(iWordPos) + L".";
-        ERROR_LOG(sMsg);
-        return H_ERROR_UNEXPECTED;
-    }
-
-    auto pairRange = m_mmapLinePosToHomophones.equal_range(iWordPos);
-    if (pairRange.first == pairRange.second)
-    {
-        CEString sMsg(L"Empty variant vector for the word at position ");
-        sMsg += CEString::sToString(iWordPos) + L".";
+        CEString sMsg(L"No parsing data for line ");
+        sMsg += CEString::sToString(iLine) + L".";
         ERROR_LOG(sMsg);
         return H_ERROR_UNEXPECTED;
     }
 
     // Loop over all distinct phonetic variants; invariant set is a set of all phonetically
     // identical parses
+    auto pairRange = m_mmapLinePosToHomophones.equal_range(iPos);
+    if (pairRange.first == pairRange.second)
+    {
+        CEString sMsg(L"No invariant set for the word at position 0 in line ");
+        sMsg += CEString::sToString(iLine) + L".";
+        ERROR_LOG(sMsg);
+//        return H_ERROR_UNEXPECTED;
+        auto eRc = eAddParsesToTactGroup(iLine, iPos + 1, spCurrentTactGroup);
+        if (eRc != H_NO_ERROR)
+        {
+            CEString sMsg(L"Unable to add parse to the tact group, word position is ");
+            sMsg += CEString::sToString(iPos) + L".";
+            ERROR_LOG(sMsg);
+            return H_FALSE;
+        }
+    }
+
+    if (0 == iPos)
+    {
+        m_vecTactGroupListHead.push_back(spCurrentTactGroup);
+    }
+
     for (auto itInvariantSet = pairRange.first; itInvariantSet != pairRange.second; ++itInvariantSet)
     {
         if (itInvariantSet->second.empty())
         {
-            CEString sMsg(L"Empty invariant set for the word at position ");
-            sMsg += CEString::sToString(iWordPos) + L".";
+            CEString sMsg(L"Empty invariant set for the word at position 0 in line ");
+            sMsg += CEString::sToString(iLine) + L".";
             ERROR_LOG(sMsg);
-            return H_ERROR_UNEXPECTED;
+//            return H_ERROR_UNEXPECTED;
+            auto eRc = eAddParsesToTactGroup(iLine, iPos + 1, spCurrentTactGroup);
+            if (eRc != H_NO_ERROR)
+            {
+                CEString sMsg(L"Unable to add parse to the tact group, word position is ");
+                sMsg += CEString::sToString(iPos) + L".";
+                ERROR_LOG(sMsg);
+                continue;
+            }
         }
 
-        auto pNextWordParse = *(itInvariantSet->second.begin());   // just take the first parse, they are phonetically identical
+        auto spWordParse = *(itInvariantSet->second.begin());   // just take the first parse, they are phonetically identical
 
-        if (ET_WordStressType::WORD_STRESS_TYPE_ENCLITIC == pNextWordParse->eStressType)
-        {   //  Next word is enclitic: add to current tact group
-            if (pCurrentTactGroup->iNumOfWords < 1)
+        switch (spWordParse->eStressType)
+        {
+
+        case ET_WordStressType::WORD_STRESS_TYPE_ENCLITIC:  // add to current tg if it is not empty
+            if (spCurrentTactGroup->iNumOfWords < 1)
             {
                 CEString sMsg(L"No preceding tact group before enclitic, word num ");
-                sMsg += CEString::sToString(iWordPos) + L".";
+                sMsg += CEString::sToString(iLine) + L".";
                 ERROR_LOG(sMsg);
                 continue;
             }
-            pCurrentTactGroup->iNumOfWords++;
-            pCurrentTactGroup->m_vecParses.push_back(itInvariantSet->second);
-            pCurrentTactGroup->sSource += L" " + pNextWordParse->WordForm.sWordForm();
-            auto eRc = eAddParsesToTactGroup(pCurrentTactGroup, iWordPos+1);
-            if (eRc != H_NO_ERROR)
-            { 
-                CEString sMsg(L"Unable to add parse to the tact group, word position is ");
-                sMsg += CEString::sToString(iWordPos) + L".";
-                ERROR_LOG(sMsg);
-                continue;
+            spCurrentTactGroup->AddWord(itInvariantSet->second, spWordParse->WordForm.sWordForm());
+            break;
+
+        case ET_WordStressType::WORD_STRESS_TYPE_PROCLITIC:     // may be first in tg or follow another proclitic
+            if (spCurrentTactGroup->iNumOfWords < 1)
+            {   // First word in TG
+                spCurrentTactGroup->AddWord(itInvariantSet->second, spWordParse->WordForm.sWordForm());
             }
-        }
-        else if (ET_WordStressType::WORD_STRESS_TYPE_PROCLITIC == pNextWordParse->eStressType)
+            else
+            {
+                auto spLastParse = *spCurrentTactGroup->m_vecParses.back().begin();  // nevermind, just take the first 
+                if (spLastParse->eStressType == ET_WordStressType::WORD_STRESS_TYPE_PROCLITIC)
+                {
+                    spCurrentTactGroup->AddWord(itInvariantSet->second, spWordParse->WordForm.sWordForm());
+                }
+                else
+                {   // Current word is proclitic preceded by anything other than a proclitic: start a new tact group
+                    shared_ptr<StTactGroup> spNextTactGroup = make_shared<StTactGroup>();
+                    spNextTactGroup->iFirstWordNum = iPos;
+                    spNextTactGroup->AddWord(itInvariantSet->second, spWordParse->WordForm.sWordForm());
+                    spCurrentTactGroup->m_vecNext.push_back(spNextTactGroup);
+                    spCurrentTactGroup = spNextTactGroup;
+                }
+            }
+            break;
+
+        case ET_WordStressType::WORD_STRESS_TYPE_CLITIC:
+            break;
+
+        case ET_WordStressType::WORD_STRESS_TYPE_AUTONOMOUS:
+            if (spCurrentTactGroup->iNumOfWords < 1)
+            {   // First word in TG
+                spCurrentTactGroup->AddWord(itInvariantSet->second, spWordParse->WordForm.sWordForm());
+            }
+            else
+            {
+                auto spLastParse = *spCurrentTactGroup->m_vecParses.back().begin();  // nevermind, just take the first 
+                if (spLastParse->eStressType == ET_WordStressType::WORD_STRESS_TYPE_PROCLITIC)
+                {
+                    spCurrentTactGroup->AddWord(itInvariantSet->second, spWordParse->WordForm.sWordForm());
+                }
+                else
+                {   // Current word is autonomous preceded by anything other than a proclitic: start a new tact group
+                    shared_ptr<StTactGroup> spNextTactGroup = make_shared<StTactGroup>();
+                    spNextTactGroup->iFirstWordNum = iPos;
+                    spNextTactGroup->AddWord(itInvariantSet->second, spWordParse->WordForm.sWordForm());
+                    spCurrentTactGroup->m_vecNext.push_back(spNextTactGroup);
+                    spCurrentTactGroup = spNextTactGroup;
+                }
+            }
+            break;
+
+        default:
+            CEString sMsg(L"Unknown stress type ");
+            sMsg += CEString::sToString(spWordParse->eStressType) + L".";
+            ERROR_LOG(sMsg);
+            continue;
+        
+        }       // switch...
+
+        // Next word?
+        auto eRc = eAddParsesToTactGroup(iLine, iPos + 1, spCurrentTactGroup);
+        if (eRc != H_NO_ERROR)
         {
-            if (pCurrentTactGroup->iNumOfWords > 0)
-            {   // Next word is proclitic preceded by a proclitic: add to current tact group
-                auto& setParses = *pCurrentTactGroup->m_vecParses.begin();
-                if ((*setParses.begin())->eStressType == ET_WordStressType::WORD_STRESS_TYPE_PROCLITIC)
-                {
-                    pCurrentTactGroup->iNumOfWords++;
-                    pCurrentTactGroup->m_vecParses.push_back(itInvariantSet->second);
-                    pCurrentTactGroup->sSource += L" " + pNextWordParse->WordForm.sWordForm();
-                    auto eRc = eAddParsesToTactGroup(pCurrentTactGroup, iWordPos+1);
-                    if (eRc != H_NO_ERROR)
-                    {
-                        CEString sMsg(L"Unable to add parse to the tact group, word position is ");
-                        sMsg += CEString::sToString(iWordPos) + L".";
-                        ERROR_LOG(sMsg);
-                        continue;
-                    }
-                }
-            }
-            else
-            {   // Next word is proclitic preceded by anything other than a proclitic: start a new tact group
-                shared_ptr<StTactGroup> pNextTactGroup = make_shared<StTactGroup>();
-                pNextTactGroup->iFirstWordNum = iWordPos;
-                pNextTactGroup->iNumOfWords = 1;
-                pNextTactGroup->llLineId = pNextWordParse->llLineDbId;
-                pNextTactGroup->m_vecParses.push_back(itInvariantSet->second);
-                pCurrentTactGroup->sSource += pNextWordParse->WordForm.sWordForm();
-                auto& setParses = *pCurrentTactGroup->m_vecParses.begin();
-                if (ET_WordStressType::WORD_STRESS_TYPE_AUTONOMOUS == (*setParses.begin())->eStressType)
-                {
-                    pNextTactGroup->iMainWordPos = iWordPos;
-                }
-                pCurrentTactGroup->m_vecNext.push_back(pNextTactGroup);
-                auto eRc = eAddParsesToTactGroup(pNextTactGroup, iWordPos+1);
-                if (eRc != H_NO_ERROR)
-                {
-                    CEString sMsg(L"Unable to add parse to the tact group, word position is ");
-                    sMsg += CEString::sToString(iWordPos) + L".";
-                    ERROR_LOG(sMsg);
-                    continue;
-                }
-            }
+            CEString sMsg(L"Unable to add parse to the tact group, word position is ");
+            sMsg += CEString::sToString(iPos) + L".";
+            ERROR_LOG(sMsg);
+            continue;
         }
-        else if (ET_WordStressType::WORD_STRESS_TYPE_CLITIC == pNextWordParse->eStressType)
-        {   // Next word is proclitic or enclitic: treat as enclitic if the preceding word is full-stressed.
-            auto& setParses = *pCurrentTactGroup->m_vecParses.begin();
-            if ((*setParses.begin())->eStressType == ET_WordStressType::WORD_STRESS_TYPE_AUTONOMOUS)
-            {
-                pCurrentTactGroup->iNumOfWords++;
-                pCurrentTactGroup->m_vecParses.push_back(itInvariantSet->second);
-                pCurrentTactGroup->sSource += L" " + pNextWordParse->WordForm.sWordForm();
-                auto eRc = eAddParsesToTactGroup(pCurrentTactGroup, iWordPos+1);
-                if (eRc != H_NO_ERROR)
-                {
-                    CEString sMsg(L"Unable to add parse to the tact group, word position is ");
-                    sMsg += CEString::sToString(iWordPos) + L".";
-                    ERROR_LOG(sMsg);
-                    continue;
-                }
-            }
-            else
-            {
-                shared_ptr<StTactGroup> pNextTactGroup = make_shared<StTactGroup>();
-                pNextTactGroup->iFirstWordNum = iWordPos;
-                pNextTactGroup->iNumOfWords = 1;
-                pNextTactGroup->llLineId = pNextWordParse->llLineDbId;
-                pNextTactGroup->m_vecParses.push_back(itInvariantSet->second);
-                pCurrentTactGroup->sSource += pNextWordParse->WordForm.sWordForm();
-//                auto& setParses = *pCurrentTactGroup->m_vecParses.begin();
-                pCurrentTactGroup->m_vecNext.push_back(pNextTactGroup);
-                auto eRc = eAddParsesToTactGroup(pNextTactGroup, iWordPos + 1);
-                if (eRc != H_NO_ERROR)
-                {
-                    CEString sMsg(L"Unable to add parse to the tact group, word position is ");
-                    sMsg += CEString::sToString(iWordPos) + L".";
-                    ERROR_LOG(sMsg);
-                    continue;
-                }
-            }
-        }
-        else if (ET_WordStressType::WORD_STRESS_TYPE_AUTONOMOUS == pNextWordParse->eStressType)
-        {   // Next word is full-stressed: if the preceding word is proclitic add to the current tact group,
-            // otherwise, create a new tact group
-            auto& setParses = *pCurrentTactGroup->m_vecParses.begin();
-            if ((*setParses.begin())->eStressType == ET_WordStressType::WORD_STRESS_TYPE_PROCLITIC)
-            {
-                pCurrentTactGroup->iNumOfWords++;
-                pCurrentTactGroup->m_vecParses.push_back(itInvariantSet->second);
-                pCurrentTactGroup->sSource += L" " + pNextWordParse->WordForm.sWordForm();
-                auto eRc = eAddParsesToTactGroup(pCurrentTactGroup, iWordPos+1);
-                if (eRc != H_NO_ERROR)
-                {
-                    CEString sMsg(L"Unable to add parse to the tact group, word position is ");
-                    sMsg += CEString::sToString(iWordPos) + L".";
-                    ERROR_LOG(sMsg);
-                    continue;
-                }
-            }
-            else
-            {
-                shared_ptr<StTactGroup> pNextTactGroup = make_shared<StTactGroup>();
-                pNextTactGroup->iFirstWordNum = iWordPos;
-                pNextTactGroup->iNumOfWords = 1;
-                pNextTactGroup->llLineId = pNextWordParse->llLineDbId;
-                pNextTactGroup->m_vecParses.push_back(itInvariantSet->second);
-                pCurrentTactGroup->sSource += pNextWordParse->WordForm.sWordForm();
-//                auto& setParses = *pCurrentTactGroup->m_vecParses.begin();
-                pCurrentTactGroup->m_vecNext.push_back(pNextTactGroup);
-                auto eRc = eAddParsesToTactGroup(pNextTactGroup, iWordPos+1);
-                if (eRc != H_NO_ERROR)
-                {
-                    CEString sMsg(L"Unable to add parse to the tact group, word position is ");
-                    sMsg += CEString::sToString(iWordPos) + L".";
-                    ERROR_LOG(sMsg);
-                    continue;
-                }
-            }
-        }
+
     }           // for (auto itInvariantSet ...)
 
     return H_NO_ERROR;
-}
 
+}   //  eAddParsesToTactGroup()
 
 // Save tact groups for a line
 //  CREATE TABLE tact_group(id INTEGER PRIMARY KEY ASC, line_id INTEGER, first_word_position INTEGER, 
