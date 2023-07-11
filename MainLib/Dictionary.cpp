@@ -837,7 +837,7 @@ ET_ReturnCode CDictionary::ePopulateWordFormDataTables()
 
     std::clock_t totalTime = 0;
 
-    std::vector<shared_ptr<CLexeme>> vecProcessedLexemes;
+    std::vector<shared_ptr<CInflection>> vecProcessedInflections;
 
     bool bMoreData = true;
     for (int iRow = 0; bMoreData; ++iRow)
@@ -880,7 +880,7 @@ ET_ReturnCode CDictionary::ePopulateWordFormDataTables()
                             ERROR_LOG(sMsg);
                         }
 
-                        vecProcessedLexemes.push_back(spLexeme);
+                        vecProcessedInflections.push_back(spInflection);
                     }
                     catch (CException& ex)
                     {
@@ -900,37 +900,34 @@ ET_ReturnCode CDictionary::ePopulateWordFormDataTables()
             sMsg += L" rows";
             MESSAGE_LOG(sMsg);
 
-            for (auto spLexeme : vecProcessedLexemes)
+            for (auto spInflection : vecProcessedInflections)
             {
-                for (auto spInflection : spLexeme->m_vecInflections)
+                for (unsigned int uiWf = 0; uiWf < spInflection->uiTotalWordForms(); ++uiWf)
                 {
-                    for (unsigned int uiWf = 0; uiWf < spInflection->uiTotalWordForms(); ++uiWf)
+                    shared_ptr<CWordForm> spWf;
+                    rc = spInflection->eGetWordForm(uiWf, spWf);
+                    if (rc != H_NO_ERROR)
                     {
-                        shared_ptr<CWordForm> spWf;
-                        rc = spInflection->eGetWordForm(uiWf, spWf);
-                        if (rc != H_NO_ERROR)
-                        {
-                            continue;
-                        }
-
-                        if (0 == spWf->llStemId())
-                        {
-                            CEString sMsg(L"Unable to find stem id for \"");
-                            sMsg += spWf->sStem();
-                            sMsg += L'"';
-                            sMsg += L" lexeme = " + spLexeme->sSourceForm();
-                            ERROR_LOG(sMsg);
-
-                            continue;
-                        }
-                        spWf->bSaveToDb();
+                        continue;
                     }
+
+                    if (0 == spWf->llStemId())
+                    {
+                        CEString sMsg(L"Unable to find stem id for \"");
+                        sMsg += spWf->sStem();
+                        sMsg += L'"';
+                        sMsg += L" lexeme = " + spInflection->spLexeme()->sSourceForm();
+                        ERROR_LOG(sMsg);
+
+                        continue;
+                    }
+                    spWf->bSaveToDb();
                 }
             }
 
             m_spDb->CommitTransaction();
 
-            vecProcessedLexemes.clear();
+            vecProcessedInflections.clear();
 
             totalTime += clock() - dbProcTime;
             double dDuration = (clock() - dbProcTime) / (double)CLOCKS_PER_SEC;
