@@ -129,12 +129,8 @@ namespace Hlib
         ET_ReturnCode eParseWord(const CEString& sWord, const CEString& sLine, int iNumInLine, 
                                  int iWordsInLine, long long llLineDbKey, vector<shared_ptr<StWordParse>>& vecParses);
         ET_ReturnCode eFindEquivalencies(const vector<shared_ptr<StWordParse>>&, vector<InvariantParses>&);
-//        ET_ReturnCode eCountSyllables(StTactGroup&);
         ET_ReturnCode eGetStress(shared_ptr<StTactGroup>);
         ET_ReturnCode eTranscribe(shared_ptr<StTactGroup>);
-//        ET_ReturnCode eAssembleTactGroups_old(CEString& sLine);
-//        ET_ReturnCode eAssembleTactGroups_x(CEString& sLine, int iWord, StTactGroup& tg);
-//        ET_ReturnCode eNewTactGroup(shared_ptr<StTactGroup> current, CEString& sLine, int iNextWord);
         ET_ReturnCode eSaveLine(int iLineNum, int iTextOffset, int iLength, int iNumOfWords, const CEString& sText, long long& llDbKey);
         ET_ReturnCode eSaveWord(long long llLineDbId, int iWord, int iWordsInLine, int iLineOffset, int iSegmentLength, const CEString& sWord, long long& llWordDbKey);
         ET_ReturnCode eSaveWordParse(long long llSegmentId, long long llWordFormId, long long& llWordToWordFormId);
@@ -142,8 +138,7 @@ namespace Hlib
         ET_ReturnCode eClearTextData(long long llText);
         ET_WordStressType eGetStressType(CWordForm&);
         bool bArePhoneticallyIdentical(CWordForm& wf1, CWordForm& wf2);
-        ET_ReturnCode eAddParsesToTactGroup(int iLineNum, int iWord, shared_ptr<StTactGroup> spTactGroup);
-//        ET_ReturnCode eAddWordToTactGroup(StTactGroup&, int iLineNum, int iWord);
+        ET_ReturnCode eAddParsesToTactGroup(int iLineNum, int iWord);
 
     private:
         shared_ptr<CSqlite> m_spDb;
@@ -155,6 +150,7 @@ namespace Hlib
         CEString m_sText;
         long long m_llTextDbId;
 
+        shared_ptr<StTactGroup> m_spCurrentTactGroup;
         multimap<int, InvariantParses> m_mmapLinePosToHomophones;
         vector<pair<CEString, CEString>> m_vecMetadataKeyValPairs;
         vector<shared_ptr<StTactGroup>> m_vecTactGroupListHead;
