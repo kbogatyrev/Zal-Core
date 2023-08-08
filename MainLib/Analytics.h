@@ -131,14 +131,15 @@ namespace Hlib
         ET_ReturnCode eFindEquivalencies(const vector<shared_ptr<StWordParse>>&, vector<InvariantParses>&);
         ET_ReturnCode eGetStress(shared_ptr<StTactGroup>);
         ET_ReturnCode eTranscribe(shared_ptr<StTactGroup>);
-        ET_ReturnCode eSaveLine(int iLineNum, int iTextOffset, int iLength, int iNumOfWords, const CEString& sText, long long& llDbKey);
+        ET_ReturnCode eSaveLineDescriptor(int iLineNum, int iTextOffset, int iLength, int iNumOfWords, const CEString& sText, long long& llDbKey);
+        ET_ReturnCode eSaveLineParses(shared_ptr<StTactGroup> spTactGroupListHead);
         ET_ReturnCode eSaveWord(long long llLineDbId, int iWord, int iWordsInLine, int iLineOffset, int iSegmentLength, const CEString& sWord, long long& llWordDbKey);
         ET_ReturnCode eSaveWordParse(long long llSegmentId, long long llWordFormId, long long& llWordToWordFormId);
         ET_ReturnCode eSaveTactGroup(shared_ptr<StTactGroup>);
         ET_ReturnCode eClearTextData(long long llText);
         ET_WordStressType eGetStressType(CWordForm&);
         bool bArePhoneticallyIdentical(CWordForm& wf1, CWordForm& wf2);
-        ET_ReturnCode eAddParsesToTactGroup(int iLineNum, int iWord);
+        ET_ReturnCode eAddParsesToTactGroup(int iLineNum, int iWord, shared_ptr<StTactGroup>);
 
     private:
         shared_ptr<CSqlite> m_spDb;
@@ -150,10 +151,10 @@ namespace Hlib
         CEString m_sText;
         long long m_llTextDbId;
 
-        shared_ptr<StTactGroup> m_spCurrentTactGroup;
+//        shared_ptr<StTactGroup> m_spCurrentTactGroup;
         multimap<int, InvariantParses> m_mmapLinePosToHomophones;
         vector<pair<CEString, CEString>> m_vecMetadataKeyValPairs;
-        vector<shared_ptr<StTactGroup>> m_vecTactGroupListHead;
+        vector<shared_ptr<StTactGroup>> m_vecTactGroupListHeads;
         int m_iWordsInCurrentLine;
 
     };      //  class CAnalytics
