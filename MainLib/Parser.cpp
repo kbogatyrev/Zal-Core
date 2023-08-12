@@ -379,7 +379,7 @@ ET_ReturnCode CParser::eWholeWordLookup(const CEString& sWord)
         int64_t llEndingId = -1;
         m_spDb->GetData(4, llEndingId, uiFormQueryHandle);
 
-        if (llEndingId < 0 || H_TRUE == m_spEndingsTree->eIsEmptyEnding(llEndingId))
+        if (llEndingId <= 0 || H_TRUE == m_spEndingsTree->eIsEmptyEnding(llEndingId))
         {
             unique_ptr<CWordForm> spWf;
             try

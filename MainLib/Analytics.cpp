@@ -168,7 +168,6 @@ ET_ReturnCode CAnalytics::eParseText(const CEString& sTextName, const CEString& 
         }       // for (int iField ...)
 
         m_vecTactGroupListHeads.clear();        // TODO -- verify that it is empty first?
-//        auto spTactGroup = make_shared<StTactGroup>();
 
         auto spCurrentTactGroup = make_shared<StTactGroup>();
         eRet = eAddParsesToTactGroup(iLine, 0, spCurrentTactGroup);
@@ -398,6 +397,12 @@ ET_ReturnCode CAnalytics::eParseWord(const CEString& sWord,
 
     ET_ReturnCode eRet = H_NO_ERROR;
 
+    eRet = m_spParser->eParseWord(sWord);
+    if (eRet != H_NO_ERROR)
+    {
+        return eRet;
+    }
+
     int iOffset = const_cast<CEString&>(sLine).uiGetFieldOffset(iNumInLine);
     long long llWordInLineDbKey = -1;
     eRet = eSaveWord(llLineDbKey, iNumInLine, iWordsInLine, iOffset, sWord.uiLength(), sWord, llWordInLineDbKey);   // words_in_line
@@ -406,12 +411,6 @@ ET_ReturnCode CAnalytics::eParseWord(const CEString& sWord,
         CEString sMsg(L"Unable to save a word '");
         sMsg += sWord + L"'";
         ERROR_LOG(L"Unable to save a word.");
-        return eRet;
-    }
-
-    eRet = m_spParser->eParseWord(sWord);
-    if (eRet != H_NO_ERROR)
-    {
         return eRet;
     }
 
@@ -950,7 +949,8 @@ ET_ReturnCode CAnalytics::eAddParsesToTactGroup(int iLine, int iPos, shared_ptr<
     auto pairRange = m_mmapLinePosToHomophones.equal_range(iPos);
     if (pairRange.first == pairRange.second)
     {
-        CEString sMsg(L"No invariant set for the word at position 0 in line ");
+        CEString sMsg(L"No invariant set for the word at position ");
+        sMsg += CEString::sToString(iPos) + L" in line ";
         sMsg += CEString::sToString(iLine) + L".";
         ERROR_LOG(sMsg);
 //        return H_ERROR_UNEXPECTED;
@@ -968,7 +968,8 @@ ET_ReturnCode CAnalytics::eAddParsesToTactGroup(int iLine, int iPos, shared_ptr<
     {
         if (itInvariantSet->second.empty())
         {
-            CEString sMsg(L"Empty invariant set for the word at position 0 in line ");
+            CEString sMsg(L"Empty invariant set for the word at position ");
+            sMsg += CEString::sToString(iPos) + L" in line ";
             sMsg += CEString::sToString(iLine) + L".";
             ERROR_LOG(sMsg);
 //            return H_ERROR_UNEXPECTED;
