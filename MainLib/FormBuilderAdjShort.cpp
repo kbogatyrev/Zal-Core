@@ -428,7 +428,6 @@ ET_ReturnCode CFormBuilderShortAdj::eHandleDeviations(shared_ptr<CWordForm> spWo
             {
                 auto spMVariant = make_shared<CWordForm>();
                 spMVariant->eCloneFrom(spWordForm);
-//                CloneWordForm(spWordForm, spMVariant);
                 m_spInflection->AddWordForm(spMVariant);
                 spWordForm = spMVariant;
             }
@@ -436,11 +435,11 @@ ET_ReturnCode CFormBuilderShortAdj::eHandleDeviations(shared_ptr<CWordForm> spWo
             if (GENDER_M == spWordForm->eGender())
             {
                 auto sWf = spWordForm->sWordForm().sErase(spWordForm->sWordForm().uiLength() - 1);
-//                spWordForm->SetWordForm(sWf);
+                auto sStem = sWf;
                 if (m_bFleetingVowel)
                 {
-//                    spWordForm->m_sWordForm.sErase(spWordForm->m_sWordForm.uiLength() - 1);
                     sWf.sErase(sWf.uiLength()-1);
+                    sStem = sWf;
                 }
 
                 auto nSyll = sWf.uiNSyllables();
@@ -450,8 +449,6 @@ ET_ReturnCode CFormBuilderShortAdj::eHandleDeviations(shared_ptr<CWordForm> spWo
                 {
                     if (STRESS_PRIMARY == eType)
                     {
-//                        spWordForm->m_mapStress.erase(nSyll);
-//                        spWordForm->m_mapStress[nSyll - 1] = STRESS_PRIMARY;
                         rc = spWordForm->eRemoveStressPos(nSyll);
                         if (rc != H_NO_ERROR)
                         {
@@ -463,12 +460,16 @@ ET_ReturnCode CFormBuilderShortAdj::eHandleDeviations(shared_ptr<CWordForm> spWo
                     }
                 }
                 spWordForm->SetWordForm(sWf);
+                spWordForm->SetStem(sStem);
             }
             else if (2 == iCd || (2 == m_iVerbDeviation && SUBPARADIGM_PART_PAST_PASS_SHORT == m_eSubparadigm))
             {
                 auto sWf = spWordForm->sWordForm();
                 sWf.sErase(sWf.uiLength()-2, 1);
                 spWordForm->SetWordForm(sWf);
+                auto sStem = spWordForm->sStem();
+                sStem.sErase(sStem.uiLength()-1);
+                spWordForm->SetStem(sStem);
             }
         }
 
@@ -494,7 +495,6 @@ ET_ReturnCode CFormBuilderShortAdj::eHandleDeviations(shared_ptr<CWordForm> spWo
             if (m_spInflection->bDeviationOptional(iCd))   // store both forms
             {
                 auto spMVariant = make_shared<CWordForm>();
-//                CloneWordForm (spWordForm, spMVariant);
                 spMVariant->eCloneFrom(spWordForm);
                 m_spInflection->AddWordForm(spMVariant);
                 spWordForm = spMVariant;
@@ -723,13 +723,11 @@ ET_ReturnCode CFormBuilderShortAdj::eBuild()
                         return rc;
                     }                   
 
-//                    long iGramHash = pWordForm->i_GramHash();
                     if (1 == vecStressPos.size() || m_spInflection->bIsMultistressedCompound())
                     {
                         vector<int>::iterator itStressPos = vecStressPos.begin();
                         for (; itStressPos != vecStressPos.end(); ++itStressPos)
                         {
-//                            spWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;
                             spWordForm->SetStressPos(*itStressPos, STRESS_PRIMARY);
                             rc = eHandleYoAlternation(*itStressType, *itStressPos, sStem, sEnding);
                             if (rc != H_NO_ERROR)
@@ -754,11 +752,9 @@ ET_ReturnCode CFormBuilderShortAdj::eBuild()
                             if (itStressPos != vecStressPos.begin())
                             {
                                 auto spWfVariant = make_shared<CWordForm>();
-//                                CloneWordForm(spWordForm, spWfVariant);
                                 spWfVariant->eCloneFrom(spWordForm);
                                 spWordForm = spWfVariant;
                             }
-//                            spWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;
                             spWordForm->SetStressPos(*itStressPos, STRESS_PRIMARY);
                             rc = eHandleYoAlternation(*itStressType, *itStressPos, sStem, sEnding);
                             if (rc != H_NO_ERROR)

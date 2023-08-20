@@ -1505,6 +1505,7 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastPassiveParticiple()
                         ERROR_LOG(L"Unexpected part. past pass. ending in -Янный or -Анный");
                         return H_ERROR_UNEXPECTED;
                     }
+                    // Predislovie p. 86: 1 *а"2"
                     CFormBuilderShortAdj shortAdj(m_spLexeme,
                         m_spInflection,
                         bYoAlternation,
@@ -1525,7 +1526,6 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastPassiveParticiple()
                     {
                         return rc;
                     }
-
                 }
                 else
                 {
