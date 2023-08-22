@@ -81,19 +81,7 @@ namespace Hlib
         ET_Subparadigm eSubparadigm { SUBPARADIGM_UNDEFINED };    // currently only used with numerals
         bool bHasPresPassParticiple { false };
 
-        // From inflection table:
-        //long long llInflectionId;
-        //bool bPrimaryInflectionGroup;
-        //int iType;
-        //ET_AccentType eAccentType1;
-        //ET_AccentType eAccentType2;
-        //bool bShortFormsRestricted;
-        //bool bPastParticipleRestricted;
         bool bNoLongForms { false };
-        //bool bShortFormsIncomplete;
-        //bool bNoPassivePastParticiple;
-        //bool bFleetingVowel;
-        //int iStemAugment;
         bool bSecondPart { false };
         int iSpryazhSmRefPrefixLength { -1 };
         bool bSpryazhSmNoAspectPair { false };
@@ -106,8 +94,6 @@ namespace Hlib
         CEString s3SgStem;
 
         CEString sInfinitive;
-
-//        map<int, bool> mapCommonDeviations;
 
         // Spryazh sm. 
         CEString sSpryazhSmRefSource;

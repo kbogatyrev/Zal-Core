@@ -704,6 +704,11 @@ ET_ReturnCode CAnalytics::eSaveLineDescriptor(int iLineNum, int iTextOffset, int
 ET_ReturnCode CAnalytics::eSaveLineParses(shared_ptr<StTactGroup> spTactGroup)
 {
     auto rc = eSaveTactGroup(spTactGroup);
+    if (rc != H_NO_ERROR)
+    {
+        return rc;
+    }
+
     if (spTactGroup->m_vecNext.empty())
     {
         return H_NO_ERROR;
