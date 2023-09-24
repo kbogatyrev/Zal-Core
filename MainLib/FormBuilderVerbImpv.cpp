@@ -559,27 +559,12 @@ ET_ReturnCode CFormBuilderImperative::eBuildIrregularForms()
                 return H_ERROR_POINTER;
             }
 
-//            if (REFL_YES == m_spLexeme->eIsReflexive())
-//            {
-//                int iAt = pSgWf->m_sWordForm.uiLength() - 1;
-//                if (CEString::bIn(pSgWf->m_sWordForm[iAt], g_szRusVowels))
-//                {
-//                    pSgWf->m_sWordForm += L"сь";
-//                }
-//                else
-//                {
-//                    pSgWf->m_sWordForm += L"ся";
-//                }
-//            }
-
-//            spSgWf->m_llLexemeId = m_spLexeme->llLexemeId();
             spSgWf->SetInflectionId(m_spInflection->llInflectionId());
             m_spInflection->AddWordForm(spSgWf);
 
             auto spPlWf = make_shared<CWordForm>(m_spInflection);
             spPlWf->Copy(*spSgWf);
             spPlWf->SetNumber(NUM_PL);
-//            spPlWf->m_llLexemeId = m_spLexeme->llLexemeId();
 
             auto sWordForm = spPlWf->sWordForm();
             if (REFL_YES == m_spLexeme->eIsReflexive())
@@ -610,9 +595,6 @@ ET_ReturnCode CFormBuilderImperative::eBuildIrregularForms()
         return H_ERROR_UNEXPECTED;
     }
 
-    //
-    // No imperative forms provided -- construct imperative from the present tense
-    //
     if (m_spLexeme->bHasMissingForms())
     {
         CEString sGramHash(L"Impv_*_*");
@@ -622,6 +604,16 @@ ET_ReturnCode CFormBuilderImperative::eBuildIrregularForms()
         }
     }
 
+    m_spEndings = make_shared<CImperativeEndings>(m_spLexeme, m_spInflection);
+    if (nullptr == m_spEndings)
+    {
+        return rc;
+    }
+
+    //
+    // No imperative forms provided -- construct imperative from the present tense using
+    // the rules for conjugation tables and abbreviated entries (p.88-89)
+    //
     CGramHasher pl3Hash (SUBPARADIGM_PRESENT_TENSE, NUM_PL, GENDER_UNDEFINED, PERSON_3, ANIM_UNDEFINED, 
                          m_spLexeme->eAspect(), CASE_UNDEFINED, m_spLexeme->eIsReflexive());
 
@@ -632,93 +624,113 @@ ET_ReturnCode CFormBuilderImperative::eBuildIrregularForms()
         return rc;
     }
 
-    auto it = mapPl3.begin();
-    for (; it != mapPl3.end(); ++it)
+    auto itPl3 = mapPl3.begin();
+    for (; itPl3 != mapPl3.end(); ++itPl3)
     {
-        CEString s3Pl ((*it).first->sWordForm());
-        s3Pl.SetVowels(CEString::g_szRusVowels);
-        if (REFL_NO == m_spLexeme->eIsReflexive())
+        for (ET_Number eNumber = ET_Number::NUM_SG; eNumber != ET_Number::NUM_COUNT; ++eNumber)
         {
-            if (!s3Pl.bEndsWith (L"ют") && !s3Pl.bEndsWith (L"ут") && !s3Pl.bEndsWith (L"ят") && 
-                !s3Pl.bEndsWith (L"ат"))
+            CEString s3PlStem((*itPl3).first->sWordForm());
+            s3PlStem.SetVowels(CEString::g_szRusVowels);
+            if (REFL_NO == m_spLexeme->eIsReflexive())
             {
-                assert(0);
-                CEString sMsg (L"Unexpected 3 Pl ending: ");
-                sMsg += s3Pl;
-                sMsg += L"; lexeme = ";
-                sMsg += m_spLexeme->sSourceForm();
-                ERROR_LOG (sMsg);
-                return H_ERROR_UNEXPECTED;
+                if (!s3PlStem.bEndsWith(L"ют") && !s3PlStem.bEndsWith(L"ут") && !s3PlStem.bEndsWith(L"ят") &&
+                    !s3PlStem.bEndsWith(L"ат"))
+                {
+                    assert(0);
+                    CEString sMsg(L"Unexpected 3 Pl ending: ");
+                    sMsg += s3PlStem;
+                    sMsg += L"; lexeme = ";
+                    sMsg += m_spLexeme->sSourceForm();
+                    ERROR_LOG(sMsg);
+                    return H_ERROR_UNEXPECTED;
+                }
             }
-        }
-        else if (REFL_YES == m_spLexeme->eIsReflexive())
-        {
-            if (!s3Pl.bEndsWith (L"ются") && !s3Pl.bEndsWith (L"утся") && 
-                !s3Pl.bEndsWith (L"ятся") && !s3Pl.bEndsWith (L"атся"))
+            else if (REFL_YES == m_spLexeme->eIsReflexive())
             {
-                assert(0);
-                CEString sMsg (L"Unexpected 3 Pl refl. ending: ");
-                sMsg += s3Pl;
-                ERROR_LOG (sMsg);
-                return H_ERROR_UNEXPECTED;
-            }
-        }
-        else
-        {
-            assert(0);
-            CEString sMsg (L"Unexpected eo_Reflexive value for: ");
-            sMsg += s3Pl;
-            sMsg += L"; lexeme = ";
-            sMsg += m_spLexeme->sSourceForm();
-            ERROR_LOG(sMsg);
-            return H_ERROR_UNEXPECTED;
-        }
-
-        int iCharsToErase = REFL_YES == m_spLexeme->eIsReflexive() ? 4 : 2;
-        s3Pl.sErase (s3Pl.uiLength()-iCharsToErase);
-
-        auto spSg = make_shared<CWordForm>(sg2ImpvHash.sGramHash(), m_spInflection);
-        auto spPl = make_shared<CWordForm>(pl2ImpvHash.sGramHash(), m_spInflection);
-        spPl->SetInflectionId(m_spInflection->llInflectionId());
-        if (nullptr == spSg || nullptr == spPl)
-        {
-            assert(0);
-            CEString sMsg (L"Unable to instantiate CWordForm for ");
-            sMsg += m_spLexeme->sSourceForm();
-            ERROR_LOG (sMsg);
-            return H_ERROR_UNEXPECTED;
-        }
-
-        if (s3Pl.bEndsWithOneOf (CEString::g_szRusConsonants))
-        {
-            spSg->SetWordForm(s3Pl + L"и");
-            spSg->SetStressPos(s3Pl.uiGetNumOfSyllables(), STRESS_PRIMARY);
-        }
-        else
-        {
-            spSg->SetWordForm(s3Pl + L"й");
-            spSg->AssignStress((*it).first->mapGetStressPositions());
-        }
-
-        spPl->SetWordForm(spSg->sWordForm() + L"те");
-        spPl->AssignStress(spSg->mapGetStressPositions());
-
-        if (REFL_YES == m_spLexeme->eIsReflexive())
-        {
-            int iAt = spSg->sWordForm().uiLength() - 1;
-            if (CEString::bIn(spSg->sWordForm()[iAt], CEString::g_szRusVowels))
-            {
-                spSg->SetWordForm(spSg->sWordForm() + L"сь");
+                if (!s3PlStem.bEndsWith(L"ются") && !s3PlStem.bEndsWith(L"утся") &&
+                    !s3PlStem.bEndsWith(L"ятся") && !s3PlStem.bEndsWith(L"атся"))
+                {
+                    assert(0);
+                    CEString sMsg(L"Unexpected 3 Pl refl. ending: ");
+                    sMsg += s3PlStem;
+                    ERROR_LOG(sMsg);
+                    return H_ERROR_UNEXPECTED;
+                }
             }
             else
             {
-                spSg->SetWordForm(spSg->sWordForm() + L"ся");
+                assert(0);
+                CEString sMsg(L"Unexpected eo_Reflexive value for: ");
+                sMsg += s3PlStem;
+                sMsg += L"; lexeme = ";
+                sMsg += m_spLexeme->sSourceForm();
+                ERROR_LOG(sMsg);
+                return H_ERROR_UNEXPECTED;
             }
-            spPl->SetWordForm(spPl->sWordForm() + L"сь");
-        }
 
-        m_spInflection->AddWordForm (spSg);
-        m_spInflection->AddWordForm (spPl);
+            auto gramHash = (ET_Number::NUM_SG == eNumber) ? sg2ImpvHash : pl2ImpvHash;
+            auto spWf = make_shared<CWordForm>(gramHash.sGramHash(), m_spInflection);
+            if (nullptr == spWf)
+            {
+                assert(0);
+                CEString sMsg(L"Unable to instantiate CWordForm for ");
+                sMsg += m_spLexeme->sSourceForm();
+                ERROR_LOG(sMsg);
+                return H_ERROR_UNEXPECTED;
+            }
+
+            spWf->SetInflectionId(m_spInflection->llInflectionId());
+
+            int iCharsToErase = REFL_YES == m_spLexeme->eIsReflexive() ? 4 : 2;
+            s3PlStem.sErase(s3PlStem.uiLength() - iCharsToErase);
+            spWf->SetStem(s3PlStem);
+
+            if (s3PlStem.bEndsWithOneOf(CEString::g_szRusConsonants))
+            {
+                int iEndingType = 4;
+                rc = static_pointer_cast<CImperativeEndings>(m_spEndings)->eSelect(eNumber, iEndingType);
+                if (rc < 0 || m_spEndings->iCount() < 1)
+                {
+                    assert(0);
+                    CEString sMsg(L"No imperative ending for ");
+                    sMsg += m_spLexeme->sSourceForm();
+                    ERROR_LOG(sMsg);
+                    continue;
+                }
+
+                //            spSg->SetWordForm(s3Pl + &&&&);
+                spWf->SetStressPos(s3PlStem.uiGetNumOfSyllables(), STRESS_PRIMARY);
+            }
+            else
+            {
+                int iEndingType = 3;
+                rc = static_pointer_cast<CImperativeEndings>(m_spEndings)->eSelect(eNumber, iEndingType);
+                if (rc < 0 || m_spEndings->iCount() < 1)
+                {
+                    assert(0);
+                    CEString sMsg(L"No imperative ending for ");
+                    sMsg += m_spLexeme->sSourceForm();
+                    ERROR_LOG(sMsg);
+                    continue;
+                }
+                spWf->AssignStress((*itPl3).first->mapGetStressPositions());
+            }
+
+            CEString sEnding;
+            int64_t llEndingKey = -1;
+            rc = m_spEndings->eGetEnding(0, sEnding, llEndingKey);
+            if (rc != H_NO_ERROR)
+            {
+                continue;
+            }
+
+            spWf->SetEnding(sEnding);
+            spWf->SetEndingDataId(llEndingKey);
+            spWf->SetWordForm(spWf->sStem() + sEnding);
+            spWf->AssignStress(spWf->mapGetStressPositions());
+
+            m_spInflection->AddWordForm(spWf);
+        }
     }
 
     return H_NO_ERROR;

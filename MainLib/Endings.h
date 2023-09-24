@@ -136,6 +136,7 @@ public:
     CImperativeEndings(shared_ptr<CLexeme>, shared_ptr<CInflection>);
 
     ET_ReturnCode eSelect(ET_Number, int iType, bool bIsVariant = false);
+    //                                ^-- see CFormBuilderImperative::eGetEndingType()
 
 };
 
