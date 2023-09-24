@@ -1526,7 +1526,8 @@ ET_ReturnCode CInflection::eIsFormDifficult(const CEString& sFH)
         sDifficult.SetBreakChars(L"_");
         if (sDifficult.uiNFields() != sFormHash.uiNFields())
         {
-            return bNegate ? H_TRUE : H_FALSE;
+//            return bNegate ? H_TRUE : H_FALSE;
+            continue;
         }
 
         bMatch = true;

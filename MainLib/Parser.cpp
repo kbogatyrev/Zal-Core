@@ -355,7 +355,7 @@ static CEString s_sWholeWordQuery(L"SELECT DISTINCT sd.gram_hash, sd.lexeme_id, 
                                    FROM stems AS s INNER JOIN stem_data as sd \
                                    ON (sd.stem_id = s.id) INNER JOIN wordforms as wf \
                                    ON sd.id = wf.stem_data_id  \
-                                   WHERE s.stem_string='#WORDFORM#'");
+                                   WHERE s.stem_string='#WORDFORM#' AND wf.ending_data_id <= 0");
 
 ET_ReturnCode CParser::eWholeWordLookup(const CEString& sWord)
 {
@@ -461,7 +461,7 @@ ET_ReturnCode CParser::eFormLookup(const CEString& sWord)
     ET_ReturnCode rc = m_spEndingsTree->eGetFirstMatch(iEndingLength);
     while (H_NO_ERROR == rc || H_FALSE == rc)
     {
-        if (iEndingLength > 0)
+        if (iEndingLength >= 0)
         {
             try
             {

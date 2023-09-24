@@ -99,6 +99,7 @@ ET_ReturnCode CFormBuilderPast::eCreateFormTemplate (const CEString& sStem,
     spWordForm->SetAspect(m_spLexeme->eAspect());
     spWordForm->SetReflexivity(m_spLexeme->eIsReflexive());
     spWordForm->SetStem(sStem);
+    spWordForm->SetEnding(sEnding);
     spWordForm->SetWordForm(sStem + sEnding);
     spWordForm->SetGender(eGender);
     spWordForm->SetNumber(eNumber);
