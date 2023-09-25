@@ -332,34 +332,40 @@ namespace MainLibForPython {
 
     long long llParseText(const wchar_t* szTextName, const wchar_t* szMetadata, const wchar_t* szText, bool bIsProse)
     {
-        ET_ReturnCode eRet = H_NO_ERROR;
-
-        if (nullptr == g_spDictionary)
+        try
         {
-            ERROR_LOG(L"Dictionary is not available.");
-            return - 1;
-        }
+            ET_ReturnCode eRet = H_NO_ERROR;
 
-        if (nullptr == g_spAnalytics)
-        {
-            eRet = g_spDictionary->eGetAnalytics(g_spAnalytics);
-            if (eRet != H_NO_ERROR)
+            if (nullptr == g_spDictionary)
             {
-                ERROR_LOG(L"Unable to get analytics object, exiting.");
+                ERROR_LOG(L"Dictionary is not available.");
                 return -1;
             }
-        }
 
-        long long llParsedTextId = 0;
-        eRet = g_spAnalytics->eParseText(szTextName, szMetadata, szText, llParsedTextId, bIsProse);
-        if (H_NO_ERROR != eRet)
+            if (nullptr == g_spAnalytics)
+            {
+                eRet = g_spDictionary->eGetAnalytics(g_spAnalytics);
+                if (eRet != H_NO_ERROR)
+                {
+                    ERROR_LOG(L"Unable to get analytics object, exiting.");
+                    return -1;
+                }
+            }
+
+            long long llParsedTextId = 0;
+            eRet = g_spAnalytics->eParseText(szTextName, szMetadata, szText, llParsedTextId, bIsProse);
+            if (H_NO_ERROR != eRet)
+            {
+                llParsedTextId = -1;
+                ERROR_LOG(L"Failed to parse text.");
+                //            wcout << endl << L"Failed to parse text " << szTextName << endl << endl;
+            }
+            return llParsedTextId;
+        }
+        catch (...)
         {
-            llParsedTextId = -1;
-            wcout << endl << L"Failed to parse text " << szTextName << endl << endl;
+            ERROR_LOG(L"Failed to parse text.");
+            return -1;
         }
-
-        return llParsedTextId;
     }
-
-
 }       //  namespace MainLibForPython 
