@@ -178,22 +178,34 @@ ET_ReturnCode CWordForm::eCloneFrom(const shared_ptr<CWordForm> spSource)
     m_spInflection = spSource->m_spInflection;
     m_sWordForm = spSource->m_sWordForm;
     m_sStem = spSource->m_sStem;
+    m_llStemId = spSource->m_llStemId;
+    m_llStemDataId = spSource->m_llStemDataId;
+    m_llIrregularFormId = spSource->m_llIrregularFormId;
+    m_sEnding = spSource->m_sEnding;
+    m_llEndingDataId = spSource->m_llEndingDataId;
     m_llLexemeId = spSource->m_llLexemeId;
+    m_llInflectionId = spSource->m_llInflectionId;
     m_mapStress = spSource->m_mapStress;
     m_ePos = spSource->m_ePos;
     m_eCase = spSource->m_eCase;
     m_eNumber = spSource->m_eNumber;
     m_eSubparadigm = spSource->m_eSubparadigm;
     m_eGender = spSource->m_eGender;
-    //    pClone->m_eTense = pSource->m_eTense;
     m_ePerson = spSource->m_ePerson;
     m_eAnimacy = spSource->m_eAnimacy;
     m_eReflexivity = spSource->m_eReflexivity;
-    //    pClone->m_eVoice = pSource->m_eVoice;
-    //    pClone->m_eSpecialForm = pSource->m_eSpecialForm;
-    //    pClone->m_eAspect = pSource->m_eAspect;
+    m_eAspect = spSource->m_eAspect;
     m_eStatus = spSource->m_eStatus;
+    m_bIrregular = spSource->m_bIrregular;
+    m_bIsDifficult = spSource->m_bIsDifficult;
+    m_eStressType = spSource->m_eStressType;
 
+    // Irregular forms only:
+    m_sLeadComment = spSource->m_sLeadComment;
+    m_sTrailingComment = spSource->m_sLeadComment;
+//    m_bIsVariant = spSource->m_bIsVariant;        -- probably should be assigned each time
+    m_bIsEdited = spSource->m_bIsEdited;
+ 
     return H_NO_ERROR;
 }
 

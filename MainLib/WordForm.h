@@ -4,14 +4,12 @@
 #include "Enums.h"
 #include "EString.h"
 
-//#include "IWordForm.h"
 #include "SqliteWrapper.h"
 #include "Lexeme.h"
 #include "Inflection.h"
 #include "GramHasher.h"
 
 using namespace std;
-//using namespace std::tr1;
 
 namespace Hlib
 {
@@ -48,7 +46,6 @@ namespace Hlib
             return m_spInflection;
         }
 
-//        void SetLexeme(shared_ptr<CLexeme>);
         void SetInflection(shared_ptr<CInflection>);
 
         CEString sWordForm()
@@ -342,7 +339,6 @@ namespace Hlib
         void Copy(const CWordForm&);
 
     private:
-//        shared_ptr<CLexeme> m_spLexeme;
         shared_ptr<CInflection> m_spInflection;
         unsigned long long m_ullDbInsertHandle;
         long long m_llDbKey;
@@ -421,7 +417,6 @@ namespace Hlib
         }
 
     private:
-//        shared_ptr<CLexeme> m_spLexeme;
         shared_ptr<CInflection> m_spInflection;
         long long m_llLexemeId;
         long long m_llInflectionId;
