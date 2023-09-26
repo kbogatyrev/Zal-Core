@@ -461,7 +461,7 @@ ET_ReturnCode CParser::eFormLookup(const CEString& sWord)
     ET_ReturnCode rc = m_spEndingsTree->eGetFirstMatch(iEndingLength);
     while (H_NO_ERROR == rc || H_FALSE == rc)
     {
-        if (iEndingLength >= 0)
+        if (iEndingLength > 0)
         {
             try
             {
