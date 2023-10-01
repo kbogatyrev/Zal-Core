@@ -1,6 +1,7 @@
 #define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
 #define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
 
+
 #include <ctime>
 #include <cassert>
 #include <algorithm>
@@ -263,14 +264,13 @@ ET_ReturnCode CDictionary::eGetLexemeById(long long llId, shared_ptr<CLexeme>& s
     }
     m_spDb->Finalize(uiQueryHandle);
 
-    uiQueryHandle = 0;
     for (auto spLexeme : m_vecLexemes)
     {
         auto sInflectionQuery = sQueryBaseInflection + 
                                 L" FROM inflection WHERE descriptor_id = " + 
                                 CEString::sToString(spLexeme->llLexemeId());
-        uint64_t uiQueryHandle = 0;
-        rc = eQueryDb(sInflectionQuery, uiQueryHandle);
+        uint64_t uiInflQueryHandle = 0;
+        rc = eQueryDb(sInflectionQuery, uiInflQueryHandle);
         if (H_NO_ERROR != rc)
         {
             return rc;
@@ -278,8 +278,9 @@ ET_ReturnCode CDictionary::eGetLexemeById(long long llId, shared_ptr<CLexeme>& s
         while (H_NO_ERROR == rc)
         {
             auto bSpryazhSm = false;        // TODO -- are we handling spryazh sm??
-            rc = eReadInflectionData(spLexeme, uiQueryHandle, bSpryazhSm);
+            rc = eReadInflectionData(spLexeme, uiInflQueryHandle, bSpryazhSm);
         }
+        m_spDb->Finalize(uiInflQueryHandle);
 
         if (spLexeme->nInflections() < 1)   // Add dummy inflection instance if none was retrieved
         {
@@ -322,6 +323,7 @@ ET_ReturnCode CDictionary::eGetSecondPart(long long llId, shared_ptr<CLexeme>& s
         ERROR_LOG(L"More than one row returned for a single lexeme ID or DB error.");
         return H_ERROR_UNEXPECTED;
     }
+    m_spDb->Finalize(uiQueryHandle);
 
     auto sInflectionQuery = sQueryBaseInflection +
         L" FROM inflection WHERE descriptor_id = " +
@@ -337,6 +339,7 @@ ET_ReturnCode CDictionary::eGetSecondPart(long long llId, shared_ptr<CLexeme>& s
         auto bSpryazhSm = false;        // TODO -- are we handling spryazh sm??
         rc = eReadInflectionData(spLexeme, uiInflQueryHandle, bSpryazhSm);
     }
+    m_spDb->Finalize(uiInflQueryHandle);
 
     return rc;
 
@@ -808,6 +811,8 @@ ET_ReturnCode CDictionary::ePopulateStemsTable()
         }
     }       //  for (int iRow = 0; bMoreData; ++iRow)
 
+    m_spDb->Finalize(uiQueryHandle);
+
     m_spDb->CommitTransaction();
     std::wcout << "done." << endl << endl;
     return (H_NO_MORE == rc) ? H_NO_ERROR : rc;
@@ -940,6 +945,7 @@ ET_ReturnCode CDictionary::ePopulateWordFormDataTables()
 //            std::wcout << "Row " << right << setw(6) << iRow << ", " << fixed << setprecision(3) << dDuration << " seconds" << endl;
         }
     }       //   for (int iRow = 0; bMoreData; ++iRow)
+    m_spDb->Finalize(uiQueryHandle);
 
     std::wcout << "done." << endl << endl;
 
@@ -979,6 +985,8 @@ ET_ReturnCode CDictionary::ePopulateHashToDescriptorTable(PROGRESS_CALLBACK_CLR 
         {
             return rc;
         }
+        m_spDb->Finalize(uiCountQueryHandle);
+
     }
     catch (CException& ex)
     {
@@ -1187,6 +1195,7 @@ ET_ReturnCode CDictionary::ePopulateHashToDescriptorTable(PROGRESS_CALLBACK_CLR 
 
         }
     }       //  for ...
+    m_spDb->Finalize(uiQueryHandle);
 
     return H_NO_ERROR;
 
@@ -1226,6 +1235,7 @@ ET_ReturnCode CDictionary::eCountLexemes(int64_t& iLexemes)
         {
             return rc;
         }
+        m_spDb->Finalize(uiQueryHandle);
 
     }
     catch (CException& ex)
