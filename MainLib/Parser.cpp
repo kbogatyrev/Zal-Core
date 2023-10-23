@@ -24,9 +24,9 @@ ET_ReturnCode CParser::eParseWord(const CEString& sWord)
 {
 //    clock_t startTime = clock();
 
-    m_spDictionary->Clear();    // clear lexemes
+//    m_spDictionary->Clear();    // clear lexemes
 
-    m_vecWordForms.clear();
+//    m_vecWordForms.clear();
 
     if (!m_spDictionary)
     {
@@ -69,9 +69,17 @@ ET_ReturnCode CParser::eParseWord(const CEString& sWord)
 
     eRemoveFalsePositives();
 
+    // Inflections for given lexeme (why not one to many?)
+    map<long long, CInflection*> mapKnownInflections;
+    //      ^-- Lexeme ID to inflection(s)
+
     for (auto& spWf : m_vecWordForms)
     {
-        m_spDictionary->Clear();
+        if (mapKnownInflections.count(spWf->llLexemeId()) > 0)
+        {
+            spWf->SetInflection(mapKnownInflections[spWf->llLexemeId()]);
+            continue;
+        }
         shared_ptr<CLexeme> spLexeme;
         m_spDictionary->eGetLexemeById(spWf->llLexemeId(), spLexeme);
         if (nullptr == spLexeme)
@@ -96,11 +104,15 @@ ET_ReturnCode CParser::eParseWord(const CEString& sWord)
         }
         else
         {
-            spInflection = make_shared<CInflection>(spLexeme);
+            spInflection = make_shared<CInflection>(spLexeme.get());
             spLexeme->AddInflection(spInflection);    // use dummy inflection
         }
-        spWf->SetInflection(spInflection);
+
+        spWf->SetInflection(spInflection.get());
+        mapKnownInflections[spWf->llLexemeId()] = spInflection.get();
     }
+
+//    clock_t totalTime = clock() - startTime;
 
     return m_vecWordForms.empty() ? H_FALSE : H_NO_ERROR;
 

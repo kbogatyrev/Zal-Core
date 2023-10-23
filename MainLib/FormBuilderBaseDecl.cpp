@@ -12,7 +12,7 @@ ET_ReturnCode CFormBuilderDecl::eFleetingVowelCheck (ET_Number eNumber,         
                                                      CEString& sEnding,               // in/out
                                                      CEString& sStem)                 // out
 {
-	assert(m_spLexeme);   // we assume base class ctor took care of this
+	assert(m_pLexeme);   // we assume base class ctor took care of this
 
     ET_ReturnCode rc = H_NO_ERROR;
 
@@ -30,11 +30,11 @@ ET_ReturnCode CFormBuilderDecl::eFleetingVowelCheck (ET_Number eNumber,         
 
     m_bFleetingVowelPresent = true;
 
-    if (POS_NOUN == m_spLexeme->ePartOfSpeech())
+    if (POS_NOUN == m_pLexeme->ePartOfSpeech())
     {
-        if (GENDER_M == eGender || (GENDER_F == eGender && 8 == m_spInflection->iType()))
+        if (GENDER_M == eGender || (GENDER_F == eGender && 8 == m_pInflection->iType()))
         {
-            if (L"мн." != m_spLexeme->sMainSymbol() && !m_spLexeme->bIsPluralOf())
+            if (L"мн." != m_pLexeme->sMainSymbol() && !m_pLexeme->bIsPluralOf())
             {
                 rc = eFleetingVowelRemove (eGender, eSubparadigm, sEnding, sStem);
                 return rc;
@@ -42,16 +42,16 @@ ET_ReturnCode CFormBuilderDecl::eFleetingVowelCheck (ET_Number eNumber,         
         }
     }
 
-    if (m_spLexeme->ePartOfSpeech() == POS_PRONOUN_ADJ || m_spLexeme->ePartOfSpeech() == POS_NUM_ADJ || 
-        ((m_spLexeme->ePartOfSpeech() == POS_ADJ || m_spLexeme->ePartOfSpeech() == POS_NOUN) && L"мс" == m_spLexeme->sInflectionType()))
+    if (m_pLexeme->ePartOfSpeech() == POS_PRONOUN_ADJ || m_pLexeme->ePartOfSpeech() == POS_NUM_ADJ || 
+        ((m_pLexeme->ePartOfSpeech() == POS_ADJ || m_pLexeme->ePartOfSpeech() == POS_NOUN) && L"мс" == m_pLexeme->sInflectionType()))
     {
         rc = eFleetingVowelRemove (eGender, eSubparadigm, sEnding, sStem);
         return rc;
     }
 
-    if (2 == m_spInflection->iType() && AT_A == m_spInflection->eAccentType1())
+    if (2 == m_pInflection->iType() && AT_A == m_pInflection->eAccentType1())
     {
-        if (POS_NOUN == m_spLexeme->ePartOfSpeech() && 
+        if (POS_NOUN == m_pLexeme->ePartOfSpeech() && 
             GENDER_F == eGender && 
             NUM_PL == eNumber && 
             CASE_GEN == eCase)
@@ -63,7 +63,7 @@ ET_ReturnCode CFormBuilderDecl::eFleetingVowelCheck (ET_Number eNumber,         
 //                ERROR_LOG (sMsg);
 //                throw CException (H_ERROR_UNEXPECTED, sMsg);
 //            }
-            if (m_spLexeme->sSourceForm().bEndsWith (L"ня"))
+            if (m_pLexeme->sSourceForm().bEndsWith (L"ня"))
             {
                 if (L"ь" == sEnding)
                 {
@@ -71,7 +71,7 @@ ET_ReturnCode CFormBuilderDecl::eFleetingVowelCheck (ET_Number eNumber,         
                 }
             }
         }
-        if (POS_ADJ == m_spLexeme->ePartOfSpeech() &&
+        if (POS_ADJ == m_pLexeme->ePartOfSpeech() &&
             SUBPARADIGM_SHORT_ADJ == eSubparadigm &&
             NUM_SG == eNumber &&
             GENDER_M == eGender)
@@ -87,7 +87,7 @@ ET_ReturnCode CFormBuilderDecl::eFleetingVowelCheck (ET_Number eNumber,         
         }
     }
 
-    if (SUBPARADIGM_SHORT_ADJ == eSubparadigm && m_spLexeme->bNoLongForms())
+    if (SUBPARADIGM_SHORT_ADJ == eSubparadigm && m_pLexeme->bNoLongForms())
     {
         rc = eFleetingVowelRemove (eGender, eSubparadigm, sEnding, sStem);
         return rc;
@@ -103,20 +103,20 @@ ET_ReturnCode CFormBuilderDecl::eFleetingVowelCheck (ET_Number eNumber,         
         return rc;
     }
 
-    if (POS_NOUN == m_spLexeme->ePartOfSpeech())
+    if (POS_NOUN == m_pLexeme->ePartOfSpeech())
     {
-        if ((GENDER_F == eGender && 8 != m_spInflection->iType()) || GENDER_N == eGender)
+        if ((GENDER_F == eGender && 8 != m_pInflection->iType()) || GENDER_N == eGender)
         {
-            if (GENDER_F == eGender && 2 == m_spInflection->iType())
+            if (GENDER_F == eGender && 2 == m_pInflection->iType())
             {
                 if (STRESS_LOCATION_ENDING == eStressType || L"ей" == sEnding)
                 {
                     return H_NO_ERROR;        // пятерня (why are those listed with "*"); сходня
                 }
             }
-            if (eGender == GENDER_N && m_spInflection->bHasCommonDeviation(2))
+            if (eGender == GENDER_N && m_pInflection->bHasCommonDeviation(2))
             {
-                if (!m_spInflection->bDeviationOptional(2))
+                if (!m_pInflection->bDeviationOptional(2))
                 {
                     return H_NO_ERROR;
                 }
@@ -129,7 +129,7 @@ ET_ReturnCode CFormBuilderDecl::eFleetingVowelCheck (ET_Number eNumber,         
             return rc;
         }
 
-        if (L"мн." == m_spLexeme->sMainSymbol() || m_spLexeme->bIsPluralOf())
+        if (L"мн." == m_pLexeme->sMainSymbol() || m_pLexeme->bIsPluralOf())
         {
             if (0 == sEnding.uiLength() || L"й" == sEnding || L"ь" == sEnding || L"ью" == sEnding)
             {
@@ -138,7 +138,7 @@ ET_ReturnCode CFormBuilderDecl::eFleetingVowelCheck (ET_Number eNumber,         
             }
         }
     }
-    if ((SUBPARADIGM_SHORT_ADJ == eSubparadigm && !m_spLexeme->bNoLongForms()) || 
+    if ((SUBPARADIGM_SHORT_ADJ == eSubparadigm && !m_pLexeme->bNoLongForms()) || 
         SUBPARADIGM_PART_PRES_PASS_SHORT == m_eSubparadigm ||
         SUBPARADIGM_PART_PAST_PASS_SHORT == m_eSubparadigm)
     {
@@ -159,11 +159,11 @@ ET_ReturnCode CFormBuilderDecl::eFleetingVowelAdd (ET_Number eNumber,           
                                                    ET_Subparadigm eSubparadigm,         // in
                                                    CEString& sStem)                     // out
 {
-	assert(m_spLexeme);   // we assume base class ctor took care of this
+	assert(m_pLexeme);   // we assume base class ctor took care of this
 
     ET_ReturnCode rc = H_NO_ERROR;
 
-    const CEString& sInflection = m_spLexeme->sInflectionType();
+    const CEString& sInflection = m_pLexeme->sInflectionType();
 //    int iType = m_pInflection->iType();
     CEString sGrStem;
     if (SUBPARADIGM_PART_PRES_PASS_SHORT == eSubparadigm ||
@@ -173,7 +173,7 @@ ET_ReturnCode CFormBuilderDecl::eFleetingVowelAdd (ET_Number eNumber,           
     }
     else
     {
-        sGrStem = m_spLexeme->sGraphicStem();
+        sGrStem = m_pLexeme->sGraphicStem();
     }
 
     m_bFleetingVowelPresent = false;
@@ -182,7 +182,7 @@ ET_ReturnCode CFormBuilderDecl::eFleetingVowelAdd (ET_Number eNumber,           
     // adjectives (non-pronominal paradigm) short form m;
     // nouns with main symbol "mn."
 
-    if (POS_NOUN == m_spLexeme->ePartOfSpeech())
+    if (POS_NOUN == m_pLexeme->ePartOfSpeech())
     {
         if (NUM_PL != eNumber)
         {
@@ -249,7 +249,7 @@ ET_ReturnCode CFormBuilderDecl::eFleetingVowelAdd (ET_Number eNumber,           
 
     m_bFleetingVowelPresent = true;
 
-    if (((GENDER_F == eGender) || (GENDER_N == eGender)) && (6 == m_spInflection->iType()))
+    if (((GENDER_F == eGender) || (GENDER_N == eGender)) && (6 == m_pInflection->iType()))
     {
         if (STRESS_LOCATION_ENDING == eStressType)
         {
@@ -301,7 +301,7 @@ ET_ReturnCode CFormBuilderDecl::eFleetingVowelAdd (ET_Number eNumber,           
         L'г' == sGrStem[uiLastConsonant] ||
         L'х' == sGrStem[uiLastConsonant])
     {
-        if (3 != m_spInflection->iType())
+        if (3 != m_pInflection->iType())
         {
 			assert(0);
             ERROR_LOG (L"Unexpected type.");
@@ -347,7 +347,7 @@ ET_ReturnCode CFormBuilderDecl::eFleetingVowelRemove (ET_Gender eGender,        
                                                       const CEString& sEnding,         // in
                                                       CEString& sStem)                 // out
 {
-	assert(m_spLexeme);   // we assume base class ctor took care of this
+	assert(m_pLexeme);   // we assume base class ctor took care of this
 
 //    int iType = m_pInflection->iType();
 //    CEString& sGrStem = m_pLexeme->m_sGraphicStem;
@@ -391,7 +391,7 @@ ET_ReturnCode CFormBuilderDecl::eFleetingVowelRemove (ET_Gender eGender,        
 
     if (L"ью" == sEnding)
     {
-        if (GENDER_F != eGender || 8 != m_spInflection->iType())
+        if (GENDER_F != eGender || 8 != m_pInflection->iType())
         {
 			assert(0);
             ERROR_LOG (L"Unexpected type for ending 'ью'.");
@@ -414,7 +414,7 @@ ET_ReturnCode CFormBuilderDecl::eFleetingVowelRemove (ET_Gender eGender,        
         return H_NO_ERROR;
     }
 
-    unsigned int uiLastVowel = m_spLexeme->sGraphicStem().uiFindLastOf (CEString::g_szRusVowels);
+    unsigned int uiLastVowel = m_pLexeme->sGraphicStem().uiFindLastOf (CEString::g_szRusVowels);
 
     if (ecNotFound == uiLastVowel)
     {
@@ -424,37 +424,37 @@ ET_ReturnCode CFormBuilderDecl::eFleetingVowelRemove (ET_Gender eGender,        
         return H_ERROR_UNEXPECTED;
     }
 
-    if (m_spLexeme->sGraphicStem()[uiLastVowel] == L'о')   // сон, любовь
+    if (m_pLexeme->sGraphicStem()[uiLastVowel] == L'о')   // сон, любовь
     {
         m_bFleetingVowelPresent = false;
         sStem.sErase (uiLastVowel, 1);
         return H_NO_ERROR;
     }
 
-    if ((m_spLexeme->sGraphicStem()[uiLastVowel] == L'и') ||
-        (m_spLexeme->sGraphicStem()[uiLastVowel] == L'е' && 
-            (POS_PRONOUN_ADJ == m_spLexeme->ePartOfSpeech() ||  // чей, волчий
-                (POS_NOUN == m_spLexeme->ePartOfSpeech() && SUBPARADIGM_PRONOUN_ADJ == eSubparadigm))))              // ничья
+    if ((m_pLexeme->sGraphicStem()[uiLastVowel] == L'и') ||
+        (m_pLexeme->sGraphicStem()[uiLastVowel] == L'е' && 
+            (POS_PRONOUN_ADJ == m_pLexeme->ePartOfSpeech() ||  // чей, волчий
+                (POS_NOUN == m_pLexeme->ePartOfSpeech() && SUBPARADIGM_PRONOUN_ADJ == eSubparadigm))))              // ничья
     {
-        if (L"мс-п" != m_spLexeme->sInflectionType() && 
-            !((m_spLexeme->ePartOfSpeech() == POS_ADJ || m_spLexeme->ePartOfSpeech() == POS_NUM_ADJ || m_spLexeme->ePartOfSpeech() == POS_NOUN) && 
-                ((L"мс" == m_spLexeme->sInflectionType()) ||
-                (1 != m_spInflection->iType() && 2 != m_spInflection->iType() && 6 != m_spInflection->iType()))))
+        if (L"мс-п" != m_pLexeme->sInflectionType() && 
+            !((m_pLexeme->ePartOfSpeech() == POS_ADJ || m_pLexeme->ePartOfSpeech() == POS_NUM_ADJ || m_pLexeme->ePartOfSpeech() == POS_NOUN) && 
+                ((L"мс" == m_pLexeme->sInflectionType()) ||
+                (1 != m_pInflection->iType() && 2 != m_pInflection->iType() && 6 != m_pInflection->iType()))))
         {
 //			assert(0);
             CEString sMsg(L"Unexpected inflection type: ");
-            sMsg += m_spLexeme->sSourceForm();
+            sMsg += m_pLexeme->sSourceForm();
             ERROR_LOG (sMsg);
             return H_ERROR_UNEXPECTED;
         }
 
         m_bFleetingVowelPresent = false;
 
-        if (1 == m_spInflection->iType())        // один
+        if (1 == m_pInflection->iType())        // один
         {
             sStem.sErase (uiLastVowel, 1);
         }
-        else if (2 == m_spInflection->iType())   // весь
+        else if (2 == m_pInflection->iType())   // весь
         {
             sStem.sErase (uiLastVowel, 1);
             // Palatalize the ending
@@ -467,19 +467,19 @@ ET_ReturnCode CFormBuilderDecl::eFleetingVowelRemove (ET_Gender eGender,        
                 //sEnding = L"я";
             }
         }
-        else if (6 == m_spInflection->iType())   // чей, волчий
+        else if (6 == m_pInflection->iType())   // чей, волчий
         {
             sStem[uiLastVowel] = L'ь';
         }
         return H_NO_ERROR;
     }
 
-    if ((m_spLexeme->sGraphicStem()[uiLastVowel] == L'е') || (m_spLexeme->sGraphicStem()[uiLastVowel] == L'ё'))
+    if ((m_pLexeme->sGraphicStem()[uiLastVowel] == L'е') || (m_pLexeme->sGraphicStem()[uiLastVowel] == L'ё'))
     {
         if (uiLastVowel > 0)
         {
             //if (ecNotFound != CEString (szVowels).uiFind (sGrStem[uiLastVowel-1]))
-            if (CEString::bIn (m_spLexeme->sGraphicStem()[uiLastVowel-1], CEString::g_szRusVowels))
+            if (CEString::bIn (m_pLexeme->sGraphicStem()[uiLastVowel-1], CEString::g_szRusVowels))
             {
                 sStem[uiLastVowel] = L'й';   // боец, паек
                 return H_NO_ERROR;
@@ -487,22 +487,22 @@ ET_ReturnCode CFormBuilderDecl::eFleetingVowelRemove (ET_Gender eGender,        
         }
         if (GENDER_M == eGender)
         {
-            if (6 == m_spInflection->iType())                    // улей
+            if (6 == m_pInflection->iType())                    // улей
             {
-                sStem = m_spLexeme->sGraphicStem();
+                sStem = m_pLexeme->sGraphicStem();
                 sStem[uiLastVowel] = L'ь';
                 return H_NO_ERROR;
             }
-            if (3 == m_spInflection->iType())
+            if (3 == m_pInflection->iType())
             {
                 if ((uiLastVowel > 0) && 
-                    (!CEString::bIn (m_spLexeme->sGraphicStem()[uiLastVowel-1], L"шжчщц")))
+                    (!CEString::bIn (m_pLexeme->sGraphicStem()[uiLastVowel-1], L"шжчщц")))
                 {
                     sStem[uiLastVowel] = L'ь';   // зверек
                     return H_NO_ERROR;
                 }
             }
-            if ((uiLastVowel > 0) && (L'л' == m_spLexeme->sGraphicStem()[uiLastVowel-1]))
+            if ((uiLastVowel > 0) && (L'л' == m_pLexeme->sGraphicStem()[uiLastVowel-1]))
             {
                 sStem[uiLastVowel] = L'ь';       // лед, палец
                 return H_NO_ERROR;
@@ -510,9 +510,9 @@ ET_ReturnCode CFormBuilderDecl::eFleetingVowelRemove (ET_Gender eGender,        
         }
         
         // Special case == #11; 
-        if (m_spLexeme->bNoLongForms())
+        if (m_pLexeme->bNoLongForms())
         {
-            if (m_spLexeme->sGraphicStem()[uiLastVowel] == L'е' && 
+            if (m_pLexeme->sGraphicStem()[uiLastVowel] == L'е' && 
                 SUBPARADIGM_SHORT_ADJ == eSubparadigm && 
                 GENDER_M != eGender)
             {
@@ -529,7 +529,7 @@ ET_ReturnCode CFormBuilderDecl::eFleetingVowelRemove (ET_Gender eGender,        
 
 //	assert(0);
     CEString sMsg(L"Function logic error, lexeme = ");
-    sMsg += m_spLexeme->sSourceForm();
+    sMsg += m_pLexeme->sSourceForm();
     ERROR_LOG (sMsg);
     return H_ERROR_UNEXPECTED;
 
@@ -540,7 +540,7 @@ ET_ReturnCode CFormBuilderDecl::eGetStemStressPositions (const CEString& sStem,
                                                          ET_Number eNumber,
                                                          vector<int>& vecPositions)
 {
-    assert(m_spLexeme);   // we assume base class ctor took care of this
+    assert(m_pLexeme);   // we assume base class ctor took care of this
 
     // vved_prav. p. 34
 
@@ -549,20 +549,20 @@ ET_ReturnCode CFormBuilderDecl::eGetStemStressPositions (const CEString& sStem,
     int iSyllablesInStem = sStem.uiNSyllables();
 
     int iPos = -1;
-    rc = m_spLexeme->eGetFirstStemStressPos(iPos);
-    while (AT_D != m_spInflection->eAccentType1() && H_NO_ERROR == rc && iPos < iSyllablesInStem)
+    rc = m_pLexeme->eGetFirstStemStressPos(iPos);
+    while (AT_D != m_pInflection->eAccentType1() && H_NO_ERROR == rc && iPos < iSyllablesInStem)
     {
 		assert(iPos >= 0);
         vecPositions.push_back (iPos);
-        rc = m_spLexeme->eGetNextStemStressPos(iPos);
+        rc = m_pLexeme->eGetNextStemStressPos(iPos);
     }
 
-    if (m_spInflection->iType() == 0)
+    if (m_pInflection->iType() == 0)
     {
         return H_NO_ERROR;
     }
 
-    if (AT_D != m_spInflection->eAccentType1() && 
+    if (AT_D != m_pInflection->eAccentType1() && 
         !m_bIrregularSourceForm && 
         (H_NO_ERROR == rc || H_NO_MORE == rc) && 
         (iPos < iSyllablesInStem))
@@ -578,7 +578,7 @@ ET_ReturnCode CFormBuilderDecl::eGetStemStressPositions (const CEString& sStem,
     {
 //        assert(0);
         CEString sMsg(L"uiGetNumOfSyllables() failed, lexeme = ");
-        sMsg += m_spLexeme->sSourceForm();
+        sMsg += m_pLexeme->sSourceForm();
         ERROR_LOG (sMsg);
         return H_ERROR_GENERAL;
     }
@@ -598,15 +598,15 @@ ET_ReturnCode CFormBuilderDecl::eGetStemStressPositions (const CEString& sStem,
     ET_AccentType eAccentType = (SUBPARADIGM_SHORT_ADJ == eSubParadigm ||
                                  SUBPARADIGM_PART_PRES_PASS_SHORT == eSubParadigm ||
                                  SUBPARADIGM_PART_PAST_PASS_SHORT == eSubParadigm)
-                                    ? m_spInflection->eAccentType2()
-                                    : m_spInflection->eAccentType1();
+                                    ? m_pInflection->eAccentType2()
+                                    : m_pInflection->eAccentType1();
     switch (eAccentType)
     {
         case AT_A:
         case AT_A1:
         case AT_B:
         {
-            if (AT_A == eAccentType && SUBPARADIGM_NOUN == eSubParadigm && 1 == m_spInflection->iStemAugment())  // армянин, stem = 'армян'
+            if (AT_A == eAccentType && SUBPARADIGM_NOUN == eSubParadigm && 1 == m_pInflection->iStemAugment())  // армянин, stem = 'армян'
             {
                 if (NUM_PL == eNumber)
                 {
@@ -643,7 +643,7 @@ ET_ReturnCode CFormBuilderDecl::eGetStemStressPositions (const CEString& sStem,
         case AT_C:
         case AT_C1:
         {
-            if (AT_C == eAccentType && 1 == m_spInflection->iStemAugment())
+            if (AT_C == eAccentType && 1 == m_pInflection->iStemAugment())
             {
                 if (NUM_PL == eNumber)
                 {
@@ -734,7 +734,7 @@ ET_ReturnCode CFormBuilderDecl::eHandleYoAlternation (ET_StressLocation eStressT
                                                       CEString& sStem,
                                                       const CEString& sEnding)
 {
-	assert(m_spLexeme && m_spInflection);   // we assume base class ctor took care of this
+	assert(m_pLexeme && m_pInflection);   // we assume base class ctor took care of this
 
     if (!m_bYoAlternation)
     {
@@ -753,17 +753,17 @@ ET_ReturnCode CFormBuilderDecl::eHandleYoAlternation (ET_StressLocation eStressT
 //        : m_pLexeme->m_sGraphicStem;
 
     CEString sGraphicStem;
-    if (POS_VERB == m_spLexeme->ePartOfSpeech()) 
+    if (POS_VERB == m_pLexeme->ePartOfSpeech()) 
     {
         sGraphicStem = sStem; // for participles, graphic stem is participial stem
     }
-    else if (m_spInflection->iStemAugment() > 0)
+    else if (m_pInflection->iStemAugment() > 0)
     {
         sGraphicStem = sStem;
     }
     else
     {
-        sGraphicStem = m_spLexeme->sGraphicStem();
+        sGraphicStem = m_pLexeme->sGraphicStem();
     }
 
     int iYoOffset = sGraphicStem.uiFind (L"ё");
@@ -799,9 +799,9 @@ ET_ReturnCode CFormBuilderDecl::eHandleYoAlternation (ET_StressLocation eStressT
 //                }
 //            }
 
-            if (POS_NOUN == m_spLexeme->ePartOfSpeech() && 
-                GENDER_N == m_spLexeme->eInflectionTypeToGender() &&
-                3 == m_spInflection->iStemAugment() &&
+            if (POS_NOUN == m_pLexeme->ePartOfSpeech() && 
+                GENDER_N == m_pLexeme->eInflectionTypeToGender() &&
+                3 == m_pInflection->iStemAugment() &&
                 0 == iStressedSyll)
             {
                 return H_NO_ERROR;

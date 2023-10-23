@@ -16,24 +16,24 @@ CEString CFormBuilderNouns::sGramHash (ET_Gender eoGender, ET_Animacy eAnimacy, 
 
 ET_ReturnCode CFormBuilderNouns::eHandleStemAugment (CEString& sStem, ET_Number eNumber, ET_Case eCase)
 {
-    assert(m_spLexeme);   // we assume base class ctor took care of this
+    assert(m_pLexeme);   // we assume base class ctor took care of this
 
-    if (m_spInflection->iStemAugment() < 1)
+    if (m_pInflection->iStemAugment() < 1)
     {
         return H_NO_ERROR;
     }
 
-    if (1 == m_spInflection->iType())
+    if (1 == m_pInflection->iType())
     {
         sStem.sErase (sStem.uiLength()-2, 2);  // римлянин, южанин, армянин
     }
-    if (3 == m_spInflection->iType())
+    if (3 == m_pInflection->iType())
     {
-        const CEString& sGs = m_spLexeme->sGraphicStem();
+        const CEString& sGs = m_pLexeme->sGraphicStem();
         if (NUM_SG == eNumber)
         {
             if ((CASE_NOM == eCase) || 
-                (ANIM_NO == m_spLexeme->eInflectionTypeToAnimacy() && CASE_ACC == eCase))
+                (ANIM_NO == m_pLexeme->eInflectionTypeToAnimacy() && CASE_ACC == eCase))
             {
                 return H_NO_ERROR;
             }
@@ -61,7 +61,7 @@ ET_ReturnCode CFormBuilderNouns::eHandleStemAugment (CEString& sStem, ET_Number 
             {
                 sStem.sErase (sStem.uiLength()-6, 6);
                 if ((CASE_GEN == eCase) ||                        
-                    (CASE_ACC == eCase && ANIM_YES == m_spLexeme->eInflectionTypeToAnimacy()))
+                    (CASE_ACC == eCase && ANIM_YES == m_pLexeme->eInflectionTypeToAnimacy()))
                                                      // they all should be animate?
                 {
                     sStem += L"аток";
@@ -76,7 +76,7 @@ ET_ReturnCode CFormBuilderNouns::eHandleStemAugment (CEString& sStem, ET_Number 
             {
                 sStem.sErase (sStem.uiLength()-6, 6);
                 if ((CASE_GEN == eCase) ||                        
-                    (CASE_ACC == eCase && ANIM_YES == m_spLexeme->eInflectionTypeToAnimacy()))
+                    (CASE_ACC == eCase && ANIM_YES == m_pLexeme->eInflectionTypeToAnimacy()))
                                                      // they all should be animate?
                 {
                     sStem += L"яток";
@@ -88,13 +88,13 @@ ET_ReturnCode CFormBuilderNouns::eHandleStemAugment (CEString& sStem, ET_Number 
                 return H_NO_ERROR;
             }
         }
-    }       //  if (3 == m_spLexeme->i_Type)
-    if (8 == m_spInflection->iType())
+    }       //  if (3 == m_pLexeme->i_Type)
+    if (8 == m_pInflection->iType())
     {
         if (NUM_SG == eNumber)
         {
             if ((CASE_NOM == eCase) || 
-                (ANIM_NO == m_spLexeme->eInflectionTypeToAnimacy() && CASE_ACC == eCase))
+                (ANIM_NO == m_pLexeme->eInflectionTypeToAnimacy() && CASE_ACC == eCase))
             {
                 return H_NO_ERROR;
             }
@@ -115,7 +115,7 @@ ET_ReturnCode CFormBuilderNouns::eHandleStemAugment (CEString& sStem, ET_Number 
 
 ET_ReturnCode CFormBuilderNouns::eGetStressType (ET_Number eNumber, ET_Case eCase, ET_StressLocation& eStressType)
 {
-    assert(m_spLexeme);   // we assume base class ctor took care of this
+    assert(m_pLexeme);   // we assume base class ctor took care of this
 
     if (NUM_UNDEFINED == eNumber)
     {
@@ -137,7 +137,7 @@ ET_ReturnCode CFormBuilderNouns::eGetStressType (ET_Number eNumber, ET_Case eCas
         eCase = CASE_DAT;
     }
 
-    switch (m_spInflection->eAccentType1())
+    switch (m_pInflection->eAccentType1())
     {
         case AT_A:
         {
@@ -187,7 +187,7 @@ ET_ReturnCode CFormBuilderNouns::eGetStressType (ET_Number eNumber, ET_Case eCas
         }
         case AT_D1:
         {
-            if (GENDER_F != m_spLexeme->eInflectionTypeToGender())
+            if (GENDER_F != m_pLexeme->eInflectionTypeToGender())
             {
                 assert(0);
                 CEString sMsg (L"Non-feminine noun with D1 stress.");
@@ -218,7 +218,7 @@ ET_ReturnCode CFormBuilderNouns::eGetStressType (ET_Number eNumber, ET_Case eCas
             {
                 eStressType = STRESS_LOCATION_STEM;
             }
-            else if (CASE_ACC == eCase && ANIM_NO == m_spLexeme->eInflectionTypeToAnimacy())
+            else if (CASE_ACC == eCase && ANIM_NO == m_pLexeme->eInflectionTypeToAnimacy())
             {
                 eStressType = STRESS_LOCATION_STEM;
             }
@@ -239,7 +239,7 @@ ET_ReturnCode CFormBuilderNouns::eGetStressType (ET_Number eNumber, ET_Case eCas
             {
                 eStressType = STRESS_LOCATION_STEM;
             }
-            else if (CASE_ACC == eCase && ANIM_NO == m_spLexeme->eInflectionTypeToAnimacy())
+            else if (CASE_ACC == eCase && ANIM_NO == m_pLexeme->eInflectionTypeToAnimacy())
             {
                 eStressType = STRESS_LOCATION_STEM;
             }
@@ -251,7 +251,7 @@ ET_ReturnCode CFormBuilderNouns::eGetStressType (ET_Number eNumber, ET_Case eCas
         }
         case AT_F1:
         {
-            if (GENDER_F != m_spLexeme->eInflectionTypeToGender())
+            if (GENDER_F != m_pLexeme->eInflectionTypeToGender())
             {
                 assert(0);
                 CEString sMsg (L"Non-feminine noun with F1 stress.");
@@ -274,14 +274,14 @@ ET_ReturnCode CFormBuilderNouns::eGetStressType (ET_Number eNumber, ET_Case eCas
         }
         case AT_F2:
         {
-            if (GENDER_F != m_spLexeme->eInflectionTypeToGender() || 8 != m_spInflection->iType())
+            if (GENDER_F != m_pLexeme->eInflectionTypeToGender() || 8 != m_pInflection->iType())
             {
                 assert(0);   // assume f -i stems only?
                 CEString sMsg (L"Non-feminine/type 8 noun with F2 stress.");
                 ERROR_LOG (sMsg);
                 throw CException (H_EXCEPTION, sMsg);
             }
-            if (ANIM_YES == m_spLexeme->eInflectionTypeToAnimacy())
+            if (ANIM_YES == m_pLexeme->eInflectionTypeToAnimacy())
             {
                 assert(0);                   // inanimate only?
                 CEString sMsg (L"Animate noun with F2 stress.");
@@ -304,11 +304,11 @@ ET_ReturnCode CFormBuilderNouns::eGetStressType (ET_Number eNumber, ET_Case eCas
         }
         case AT_UNDEFINED:
         {
-            if (m_spInflection->iType() != 0)
+            if (m_pInflection->iType() != 0)
             {
 //                assert(0);
                 CEString sMsg(L"Illegal accent type; lexeme = ");
-                ERROR_LOG(sMsg + m_spLexeme->sSourceForm());
+                ERROR_LOG(sMsg + m_pLexeme->sSourceForm());
                 return H_ERROR_GENERAL;
             }
             break;
@@ -328,31 +328,31 @@ ET_ReturnCode CFormBuilderNouns::eGetStressType (ET_Number eNumber, ET_Case eCas
 
 ET_ReturnCode CFormBuilderNouns::eHandleAccEnding (ET_Number eNumber, ET_Case& eCase, ET_Case& eAltCase)
 {
-    assert(m_spLexeme);   // we assume base class ctor took care of this
+    assert(m_pLexeme);   // we assume base class ctor took care of this
 
     eAltCase = ET_Case::CASE_UNDEFINED;
 
     if (NUM_SG == eNumber)
     {
-        if (GENDER_M == m_spLexeme->eInflectionTypeToGender())
+        if (GENDER_M == m_pLexeme->eInflectionTypeToGender())
         {
-            ANIM_YES == m_spLexeme->eInflectionTypeToAnimacy()
+            ANIM_YES == m_pLexeme->eInflectionTypeToAnimacy()
                 ? eCase = CASE_GEN
                 : eCase = CASE_NOM;
 
-            if ((L"мо" == m_spLexeme->sMainSymbol() && L"м" == m_spLexeme->sAltMainSymbol()) ||
-                (L"м" == m_spLexeme->sMainSymbol() && L"мо" == m_spLexeme->sAltMainSymbol()))
+            if ((L"мо" == m_pLexeme->sMainSymbol() && L"м" == m_pLexeme->sAltMainSymbol()) ||
+                (L"м" == m_pLexeme->sMainSymbol() && L"мо" == m_pLexeme->sAltMainSymbol()))
             { 
                 bool bAltMainSymbol(true);
-                ANIM_YES == m_spLexeme->eInflectionTypeToAnimacy(bAltMainSymbol)
+                ANIM_YES == m_pLexeme->eInflectionTypeToAnimacy(bAltMainSymbol)
                     ? eAltCase = CASE_GEN
                     : eAltCase = CASE_NOM;
             }
 
         }
-        if (GENDER_N == m_spLexeme->eInflectionTypeToGender())
+        if (GENDER_N == m_pLexeme->eInflectionTypeToGender())
         {
-            auto stProperties = m_spLexeme->stGetProperties();
+            auto stProperties = m_pLexeme->stGetProperties();
             if (L"со" == stProperties.sInflectionType)
             {
                 eCase = CASE_GEN;
@@ -365,19 +365,19 @@ ET_ReturnCode CFormBuilderNouns::eHandleAccEnding (ET_Number eNumber, ET_Case& e
     }
     if (NUM_PL == eNumber)
     {
-        ANIM_YES == m_spLexeme->eInflectionTypeToAnimacy()
+        ANIM_YES == m_pLexeme->eInflectionTypeToAnimacy()
             ? eCase = CASE_GEN
             : eCase = CASE_NOM;
 
-        if ((L"мо" == m_spLexeme->sMainSymbol() && L"м" == m_spLexeme->sAltMainSymbol()) ||
-            (L"м" == m_spLexeme->sMainSymbol() && L"мо" == m_spLexeme->sAltMainSymbol()) ||
-            (L"жо" == m_spLexeme->sMainSymbol() && L"ж" == m_spLexeme->sAltMainSymbol()) ||
-            (L"ж" == m_spLexeme->sMainSymbol() && L"жо" == m_spLexeme->sAltMainSymbol()) ||
-            (L"со" == m_spLexeme->sMainSymbol() && L"с" == m_spLexeme->sAltMainSymbol()) ||
-            (L"с" == m_spLexeme->sMainSymbol() && L"со" == m_spLexeme->sAltMainSymbol()))
+        if ((L"мо" == m_pLexeme->sMainSymbol() && L"м" == m_pLexeme->sAltMainSymbol()) ||
+            (L"м" == m_pLexeme->sMainSymbol() && L"мо" == m_pLexeme->sAltMainSymbol()) ||
+            (L"жо" == m_pLexeme->sMainSymbol() && L"ж" == m_pLexeme->sAltMainSymbol()) ||
+            (L"ж" == m_pLexeme->sMainSymbol() && L"жо" == m_pLexeme->sAltMainSymbol()) ||
+            (L"со" == m_pLexeme->sMainSymbol() && L"с" == m_pLexeme->sAltMainSymbol()) ||
+            (L"с" == m_pLexeme->sMainSymbol() && L"со" == m_pLexeme->sAltMainSymbol()))
         {
             bool bAltMainSymbol(true);
-            ANIM_YES == m_spLexeme->eInflectionTypeToAnimacy(bAltMainSymbol)
+            ANIM_YES == m_pLexeme->eInflectionTypeToAnimacy(bAltMainSymbol)
                 ? eAltCase = CASE_GEN
                 : eAltCase = CASE_NOM;
         }
@@ -393,7 +393,7 @@ ET_ReturnCode CFormBuilderNouns::eGetStressPositions (const CEString& sStem,
                                                       ET_StressLocation eStressType,
                                                       vector<int>& vecStressPos)
 {
-    assert(m_spLexeme);   // we assume base class ctor took care of this
+    assert(m_pLexeme);   // we assume base class ctor took care of this
 
     ET_ReturnCode rc = H_NO_ERROR;
 
@@ -438,7 +438,7 @@ ET_ReturnCode CFormBuilderNouns::eCreateFormTemplate (ET_Number eNumber,
                                                       const CEString& sStem,
                                                       shared_ptr<CWordForm>& spWordForm)
 {
-    spWordForm = make_shared<CWordForm>(m_spInflection);
+    spWordForm = make_shared<CWordForm>(m_pInflection);
     if (nullptr == spWordForm)
     {
         assert(0);
@@ -446,21 +446,21 @@ ET_ReturnCode CFormBuilderNouns::eCreateFormTemplate (ET_Number eNumber,
         return H_ERROR_POINTER;
     }
 
-//    spWordForm-> m_spLexeme = m_spLexeme;
-    spWordForm->SetInflection(m_spInflection);
-    spWordForm->SetInflectionId(m_spInflection->llInflectionId());
+//    spWordForm-> m_pLexeme = m_pLexeme;
+    spWordForm->SetInflection(m_pInflection);
+    spWordForm->SetInflectionId(m_pInflection->llInflectionId());
     spWordForm->SetPos(POS_NOUN);
     spWordForm->SetSubparadigm(SUBPARADIGM_NOUN);
     spWordForm->SetCase(eCase);
     spWordForm->SetStem(sStem);
     spWordForm->SetNumber(eNumber);
-    spWordForm->SetGender(m_spInflection->spLexeme()->eInflectionTypeToGender());
-    spWordForm->SetAnimacy(m_spInflection->spLexeme()->eInflectionTypeToAnimacy());
-    if (NUM_PL == eNumber && m_spLexeme->bAssumedForms())
+    spWordForm->SetGender(m_pInflection->spLexeme()->eInflectionTypeToGender());
+    spWordForm->SetAnimacy(m_pInflection->spLexeme()->eInflectionTypeToAnimacy());
+    if (NUM_PL == eNumber && m_pLexeme->bAssumedForms())
     {
         spWordForm->SetStatus(STATUS_ASSUMED);
     }
-//    spWordForm->m_llLexemeId = m_spLexeme->llLexemeId();
+//    spWordForm->m_llLexemeId = m_pLexeme->llLexemeId();
     //rc = eAssignSecondaryStress (pWordForm);
     //if (rc != H_NO_ERROR)
     //{
@@ -478,16 +478,16 @@ ET_ReturnCode CFormBuilderNouns::eCheckIrregularForms (ET_Gender eoGender,
                                                        ET_Number eNumber, 
                                                        bool& bHandled)
 {
-    assert(m_spLexeme);   // we assume base class ctor took care of this
+    assert(m_pLexeme);   // we assume base class ctor took care of this
 
     ET_ReturnCode rc = H_NO_ERROR;
 
-    if (!m_spLexeme->bHasIrregularForms())
+    if (!m_pLexeme->bHasIrregularForms())
     {
         return H_FALSE;
     }
 
-//    if (m_spLexeme->iInflectedParts() == 2 && m_spLexeme->bIsSecondPart())
+//    if (m_pLexeme->iInflectedParts() == 2 && m_pLexeme->bIsSecondPart())
 //    {
 //        return H_NO_ERROR;     // both parts are kept together, no need to repeat
 //    }
@@ -496,8 +496,8 @@ ET_ReturnCode CFormBuilderNouns::eCheckIrregularForms (ET_Gender eoGender,
 
     CEString sHash = sGramHash (eoGender, eAnimacy, eEndingsCase, eNumber);
 
-    map<shared_ptr<CWordForm>, bool> mapIrreg;
-    rc = m_spInflection->eGetIrregularForms(sHash, mapIrreg);
+    map<CWordForm*, bool> mapIrreg;
+    rc = m_pInflection->eGetIrregularForms(sHash, mapIrreg);
     if (rc != H_NO_ERROR)
     {
         return rc;
@@ -519,7 +519,7 @@ ET_ReturnCode CFormBuilderNouns::eCheckIrregularForms (ET_Gender eoGender,
         shared_ptr<CWordForm> spWordForm = make_shared<CWordForm>();
         spWordForm->Copy(*it->first);
         spWordForm->SetCase(eCase);   // ending case may differ from actual case, e.g. A.Sg.
-        m_spInflection->AddWordForm(spWordForm);
+        m_pInflection->AddWordForm(spWordForm);
     }
 
     return H_NO_ERROR;
@@ -528,11 +528,11 @@ ET_ReturnCode CFormBuilderNouns::eCheckIrregularForms (ET_Gender eoGender,
 
 ET_ReturnCode CFormBuilderNouns::eBuild()
 {
-    assert(m_spLexeme);   // we assume base class ctor took care of this
+    assert(m_pLexeme);   // we assume base class ctor took care of this
 
     ET_ReturnCode rc = H_NO_ERROR;
 
-    m_spEndings = make_shared<CNounEndings>(m_spLexeme, m_spInflection);
+    m_spEndings = make_shared<CNounEndings>(m_pLexeme, m_pInflection);
     if (nullptr == m_spEndings)
     {
         return H_ERROR_POINTER;
@@ -543,19 +543,19 @@ ET_ReturnCode CFormBuilderNouns::eBuild()
         return rc;
     }
 
-    ET_Animacy eAnimacy = m_spLexeme->eInflectionTypeToAnimacy();
-    ET_Gender eoGender = m_spLexeme->eInflectionTypeToGender();
+    ET_Animacy eAnimacy = m_pLexeme->eInflectionTypeToAnimacy();
+    ET_Gender eoGender = m_pLexeme->eInflectionTypeToGender();
 
     CHasher gramIterator;
     gramIterator.Initialize(eoGender, eAnimacy);
     do
     {
-        if ((L"мн." == m_spLexeme->sMainSymbol() || m_spLexeme->bIsPluralOf()) && gramIterator.m_eNumber == NUM_SG)
+        if ((L"мн." == m_pLexeme->sMainSymbol() || m_pLexeme->bIsPluralOf()) && gramIterator.m_eNumber == NUM_SG)
         {
             continue;
         }
 
-        if (m_spLexeme->bIsPluralOf() && gramIterator.m_eNumber == NUM_SG)
+        if (m_pLexeme->bIsPluralOf() && gramIterator.m_eNumber == NUM_SG)
         {
             continue;
         }
@@ -566,17 +566,17 @@ ET_ReturnCode CFormBuilderNouns::eBuild()
             continue;
         }
 
-        if (CASE_PART == gramIterator.m_eCase && !m_spLexeme->bSecondGenitive())
+        if (CASE_PART == gramIterator.m_eCase && !m_pLexeme->bSecondGenitive())
         {
             continue;
         }
 
-        if (CASE_LOC == gramIterator.m_eCase && !m_spLexeme->bSecondPrepositional())
+        if (CASE_LOC == gramIterator.m_eCase && !m_pLexeme->bSecondPrepositional())
         {
             continue;
         }
 
-        if (m_spLexeme->bHasMissingForms() && H_TRUE != m_spInflection->eFormExists(gramIterator.sGramHash()))
+        if (m_pLexeme->bHasMissingForms() && H_TRUE != m_pInflection->eFormExists(gramIterator.sGramHash()))
         {
             continue;
         }
@@ -601,21 +601,21 @@ ET_ReturnCode CFormBuilderNouns::eBuild()
         auto sEndingHash = sGramHash(gramIterator.m_eGender, gramIterator.m_eAnimacy, eEndingCase, gramIterator.m_eNumber);
         if (sEndingHash != sFormHash)
         {
-            if (m_spLexeme->bHasMissingForms() && H_TRUE != m_spInflection->eFormExists(sEndingHash))
+            if (m_pLexeme->bHasMissingForms() && H_TRUE != m_pInflection->eFormExists(sEndingHash))
             {
-                m_spInflection->eSetFormExists(sFormHash, false);
+                m_pInflection->eSetFormExists(sFormHash, false);
                 continue;
             }
 
-            if (m_spLexeme->bHasDifficultForms() && H_TRUE == m_spInflection->eIsFormDifficult(sEndingHash))
+            if (m_pLexeme->bHasDifficultForms() && H_TRUE == m_pInflection->eIsFormDifficult(sEndingHash))
             {
-                m_spInflection->eSetFormDifficult(sFormHash, true);
+                m_pInflection->eSetFormDifficult(sFormHash, true);
                 //            continue;
             }
         }
 
-        CEString sStem(m_spLexeme->sGraphicStem());
-        if (m_spLexeme->bHasIrregularForms())
+        CEString sStem(m_pLexeme->sGraphicStem());
+        if (m_pLexeme->bHasIrregularForms())
         {
             bool bSkipRegular = false;
             rc = eCheckIrregularForms (gramIterator.m_eGender, 
@@ -639,7 +639,7 @@ ET_ReturnCode CFormBuilderNouns::eBuild()
             }
         }
 
-        if (m_spInflection->iStemAugment() > 0)
+        if (m_pInflection->iStemAugment() > 0)
         {
             rc = eHandleStemAugment(sStem, gramIterator.m_eNumber, gramIterator.m_eCase);
             if (rc != H_NO_ERROR)
@@ -670,7 +670,7 @@ ET_ReturnCode CFormBuilderNouns::eBuild()
             int64_t iNumEndings = m_spEndings->iCount();
             if (iNumEndings < 1)
             {
-                if (m_spInflection->iType() == 0)
+                if (m_pInflection->iType() == 0)
                 {
                     vector<int> vecStress;
                     rc = eGetStressPositions(sStem, L"", gramIterator.m_eNumber, eStress, vecStress);
@@ -690,7 +690,7 @@ ET_ReturnCode CFormBuilderNouns::eBuild()
 
                     eStress = ET_StressLocation::STRESS_LOCATION_STEM;
                     int64_t llEndingKey = -1;
-//                    sStem = m_spLexeme->sSourceForm();
+//                    sStem = m_pLexeme->sSourceForm();
                     CEString sEnding;
                     CreateWordForm(vecStress, eStress, sStem, sEnding, llEndingKey, spWordForm);
                 }
@@ -715,7 +715,7 @@ ET_ReturnCode CFormBuilderNouns::eBuild()
                     return rc;
                 }
 
-                if (8 == m_spInflection->iType() && GENDER_N != m_spLexeme->eInflectionTypeToGender())
+                if (8 == m_pInflection->iType() && GENDER_N != m_pLexeme->eInflectionTypeToGender())
                 {
                     if (sStem.bEndsWithOneOf(L"шжчщц"))
                     {
@@ -765,11 +765,11 @@ ET_ReturnCode CFormBuilderNouns::eBuild()
                     continue;
                 }
 
-                if (m_spInflection->iType() == 0)
+                if (m_pInflection->iType() == 0)
                 {
                     eStress = ET_StressLocation::STRESS_LOCATION_STEM;
                     llEndingKey = 0;
-                    sStem = m_spLexeme->sSourceForm();
+                    sStem = m_pLexeme->sSourceForm();
                     sEnding = L"";
                 }
 
@@ -815,11 +815,11 @@ void CFormBuilderNouns::CreateWordForm(vector<int>& vecStressPositions,
 
     for (; itStressPos != vecStressPositions.end(); ++itStressPos)
     {
-        if (itStressPos != vecStressPositions.begin() && m_spInflection->bIsMultistressedCompound())
+        if (itStressPos != vecStressPositions.begin() && m_pInflection->bIsMultistressedCompound())
         {
             auto spwfVariant = make_shared<CWordForm>();
 //            CloneWordForm(spWordForm, spwfVariant);
-            spwfVariant->eCloneFrom(spWordForm);
+            spwfVariant->eCloneFrom(spWordForm.get());
             spwfVariant->ClearStress();
             spWordForm = spwfVariant;
         }
@@ -827,10 +827,10 @@ void CFormBuilderNouns::CreateWordForm(vector<int>& vecStressPositions,
         spWordForm->SetStressPos(*itStressPos, STRESS_PRIMARY);
 //        spWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;  // primary
 
-        if (m_spInflection->iType() == 0)
+        if (m_pInflection->iType() == 0)
         {
-//            pWordForm->m_sWordForm = m_spLexeme->sSourceForm();
-            spWordForm->SetWordForm(m_spLexeme->sGraphicStem());
+//            pWordForm->m_sWordForm = m_pLexeme->sSourceForm();
+            spWordForm->SetWordForm(m_pLexeme->sGraphicStem());
         }
         else
         {
@@ -846,6 +846,6 @@ void CFormBuilderNouns::CreateWordForm(vector<int>& vecStressPositions,
         spWordForm->SetEnding(sEnding);
         spWordForm->SetEndingDataId(llEndingKey);
 
-        m_spInflection->AddWordForm(spWordForm);
+        m_pInflection->AddWordForm(spWordForm);
     }
 }       //  CreateWordForm()

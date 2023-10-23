@@ -10,18 +10,18 @@ using namespace Hlib;
 
 ET_ReturnCode CFormBuilderComparative::eCreateFormTemplate (const CEString& sStem, shared_ptr<CWordForm>& spWordForm)
 {
-    spWordForm = make_shared<CWordForm>(m_spInflection);
+    spWordForm = make_shared<CWordForm>(m_pInflection);
     if (nullptr == spWordForm)
     {
         return H_ERROR_POINTER;
     }
 
-    spWordForm->SetInflection(m_spInflection);
+    spWordForm->SetInflection(m_pInflection);
     spWordForm->SetPos(POS_ADJ);
     spWordForm->SetSubparadigm(SUBPARADIGM_COMPARATIVE);
     spWordForm->SetStem(sStem);
 //    spWordForm->m_llLexemeId = m_spLexeme->llLexemeId();
-    spWordForm->SetInflectionId(m_spInflection->llInflectionId());
+    spWordForm->SetInflectionId(m_pInflection->llInflectionId());
 
     return H_NO_ERROR;
 
@@ -36,13 +36,13 @@ ET_ReturnCode CFormBuilderComparative::eHandleStressAndAdd(shared_ptr<CWordForm>
 {
     ET_ReturnCode rc = H_NO_ERROR;
 
-    assert(m_spLexeme);   // we assume base class ctor took care of this
+    assert(m_pLexeme);   // we assume base class ctor took care of this
 
     CEString sGramHash = spWordForm->sGramHash();
 
     try
     {
-        if (1 == vecStress.size() || m_spInflection->bIsMultistressedCompound())
+        if (1 == vecStress.size() || m_pInflection->bIsMultistressedCompound())
         {
             vector<int>::iterator itStressPos = vecStress.begin();
             for (; itStressPos != vecStress.end(); ++itStressPos)
@@ -61,7 +61,7 @@ ET_ReturnCode CFormBuilderComparative::eHandleStressAndAdd(shared_ptr<CWordForm>
             spWordForm->SetEndingDataId(llEndingKey);
             spWordForm->SetWordForm(sStem + sEnding);
 
-            m_spInflection->AddWordForm(spWordForm);
+            m_pInflection->AddWordForm(spWordForm);
         }
         else
         {
@@ -71,7 +71,7 @@ ET_ReturnCode CFormBuilderComparative::eHandleStressAndAdd(shared_ptr<CWordForm>
                 if (itStressPos != vecStress.begin())
                 {
                     auto spWfVariant = make_shared<CWordForm>();
-                    spWfVariant->eCloneFrom(spWordForm);
+                    spWfVariant->eCloneFrom(spWordForm.get());
 //                    CloneWordForm (spWordForm, spWfVariant);
                     spWordForm = spWfVariant;
                 }
@@ -88,7 +88,7 @@ ET_ReturnCode CFormBuilderComparative::eHandleStressAndAdd(shared_ptr<CWordForm>
                 spWordForm->SetEndingDataId(llEndingKey);
                 spWordForm->SetWordForm(sStem + sEnding);
 
-                m_spInflection->AddWordForm(spWordForm);
+                m_pInflection->AddWordForm(spWordForm);
             }
         }
     }
@@ -108,9 +108,9 @@ ET_ReturnCode CFormBuilderComparative::eBuild()
 {
     ET_ReturnCode rc = H_NO_ERROR;
 
-    assert(m_spLexeme);   // we assume base class ctor took care of this
+    assert(m_pLexeme);   // we assume base class ctor took care of this
 
-    if (m_spLexeme->bHasMissingForms() && m_spInflection->eFormExists(L"AdjComp"))
+    if (m_pLexeme->bHasMissingForms() && m_pInflection->eFormExists(L"AdjComp"))
     {
         return H_NO_ERROR;
     }
@@ -119,10 +119,10 @@ ET_ReturnCode CFormBuilderComparative::eBuild()
 
     try
     {
-        CEString sStem(m_spLexeme->sGraphicStem());
+        CEString sStem(m_pLexeme->sGraphicStem());
         CGramHasher hash(SUBPARADIGM_COMPARATIVE, NUM_UNDEFINED, GENDER_UNDEFINED, ANIM_UNDEFINED, CASE_UNDEFINED);
-        map<shared_ptr<CWordForm>, bool> mapIrreg;
-        rc = m_spInflection->eGetIrregularForms(hash.sGramHash(), mapIrreg);
+        map<CWordForm*, bool> mapIrreg;
+        rc = m_pInflection->eGetIrregularForms(hash.sGramHash(), mapIrreg);
         if (rc != H_NO_ERROR)
         {
             return rc;
@@ -143,7 +143,7 @@ ET_ReturnCode CFormBuilderComparative::eBuild()
             auto spSource = it->first;
             shared_ptr<CWordForm> spWordForm = make_shared<CWordForm>();
             spWordForm->Copy(*spSource);
-            m_spInflection->AddWordForm(spWordForm);
+            m_pInflection->AddWordForm(spWordForm);
         }
 
         if (bNoRegularForms)
@@ -154,13 +154,13 @@ ET_ReturnCode CFormBuilderComparative::eBuild()
         bool bVelarStemAuslaut = false;
 
         // Regular forms
-        m_spEndings = make_shared<CComparativeEndings>(m_spLexeme, m_spInflection);
+        m_spEndings = make_shared<CComparativeEndings>(m_pLexeme, m_pInflection);
         if (nullptr == m_spEndings)
         {
             return H_ERROR_POINTER;
         }
 
-        CEString sGraphicStem = m_spLexeme->sGraphicStem();
+        CEString sGraphicStem = m_pLexeme->sGraphicStem();
 
         if (sGraphicStem.bEndsWithOneOf (L"кгх"))
         {
@@ -224,7 +224,7 @@ ET_ReturnCode CFormBuilderComparative::eBuild()
                 ERROR_LOG (L"Warning: can't find stressed vowel in comparative.");
             }
 
-            m_spInflection->AddWordForm (spWordForm);
+            m_pInflection->AddWordForm (spWordForm);
         }
         else
         {
@@ -233,23 +233,23 @@ ET_ReturnCode CFormBuilderComparative::eBuild()
             vector<int> vecStress;
             ET_StressLocation eStressLocation = STRESS_LOCATION_UNDEFINED;
 
-            if (m_spInflection->bHasCommonDeviation(2))
+            if (m_pInflection->bHasCommonDeviation(2))
             {
                 assert(sStem.bEndsWith(L"нн"));
 
                 eStressLocation = STRESS_LOCATION_STEM;
 
                 int iPos = -1;
-                rc = m_spLexeme->eGetFirstStemStressPos(iPos);
+                rc = m_pLexeme->eGetFirstStemStressPos(iPos);
                 auto nSyllablesInStem = sStem.uiNSyllables();;
                 while (H_NO_ERROR == rc && iPos < nSyllablesInStem)
                 {
                     assert(iPos >= 0);
                     vecStress.push_back(iPos);
-                    rc = m_spLexeme->eGetNextStemStressPos(iPos);
+                    rc = m_pLexeme->eGetNextStemStressPos(iPos);
                 }
             }
-            else if ((AT_A == m_spInflection->eAccentType1()) && (AT_UNDEFINED == m_spInflection->eAccentType2()))
+            else if ((AT_A == m_pInflection->eAccentType1()) && (AT_UNDEFINED == m_pInflection->eAccentType2()))
             {
                 // &&&& Never has fleeting vowel???
                 eStressLocation = STRESS_LOCATION_STEM;

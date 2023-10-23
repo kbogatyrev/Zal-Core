@@ -16,8 +16,8 @@ namespace Hlib
     class CFormBuilderNonFinite : public CFormBuilderConj
     {
     public:
-        CFormBuilderNonFinite (shared_ptr<CLexeme> spLexeme, shared_ptr<CInflection> spInflection) : 
-            CFormBuilderConj (spLexeme, spInflection, SUBPARADIGM_UNDEFINED)
+        CFormBuilderNonFinite (CLexeme* pLexeme, CInflection* pInflection) : 
+            CFormBuilderConj (pLexeme, pInflection, SUBPARADIGM_UNDEFINED)
         {}
 
     public:
@@ -32,7 +32,7 @@ namespace Hlib
         ET_ReturnCode eBuildPastAdverbial();
         ET_ReturnCode eBuildPastPassiveParticiple();
 
-        ET_ReturnCode eBuildPresPassPartFromSourceForm(shared_ptr<CWordForm>);
+        ET_ReturnCode eBuildPresPassPartFromSourceForm(CWordForm*);
 
         ET_ReturnCode eGetParticipleStressPos (ET_Subparadigm eSubparadigm, vector<int>& vecPositions);
 

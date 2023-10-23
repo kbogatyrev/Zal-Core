@@ -284,7 +284,7 @@ ET_ReturnCode CDictionary::eGetLexemeById(long long llId, shared_ptr<CLexeme>& s
 
         if (spLexeme->nInflections() < 1)   // Add dummy inflection instance if none was retrieved
         {
-            spLexeme->AddInflection(make_shared<CInflection>(spLexeme));
+            spLexeme->AddInflection(make_shared<CInflection>(spLexeme.get()));
         }
     }
 
@@ -510,7 +510,7 @@ ET_ReturnCode CDictionary::eGetLexemesByInitialForm(const CEString& sSource)
 
         if (spLexeme->nInflections() < 1)   // Add dummy inflection instance if none was retrieved
         {
-            spLexeme->AddInflection(make_shared<CInflection>(spLexeme));
+            spLexeme->AddInflection(make_shared<CInflection>(spLexeme.get()));
         }
     }
 
@@ -1546,7 +1546,7 @@ ET_ReturnCode CDictionary::eReadInflectionData(shared_ptr<CLexeme>spLexeme, uint
     {
         if (m_spDb->bGetRow(uiQueryHandle))
         {
-            auto spInflection = make_shared<CInflection>(spLexeme);
+            auto spInflection = make_shared<CInflection>(spLexeme.get());
 
             auto& stProperties = spInflection->stGetPropertiesForWriteAccess();
 
@@ -1657,7 +1657,7 @@ ET_ReturnCode CDictionary::eGetP2Data(int64_t llLexemeId, StLexemeProperties& st
 //static CEString sHomonyms(L"INSERT headword_id, homonym_number, is_variant");
 //static CEString sStressInsertQuery(L"INSERT headword_id, stress_position, is_primary, is_variant");
 
-ET_ReturnCode CDictionary::eDeleteLexeme(shared_ptr<CLexeme> spLexeme)
+ET_ReturnCode CDictionary::eDeleteLexeme(CLexeme* spLexeme)
 {
     const StLexemeProperties& stProperties = spLexeme->stGetProperties();
 
@@ -1776,7 +1776,7 @@ ET_ReturnCode CDictionary::eDeleteLexeme(shared_ptr<CLexeme> spLexeme)
 
 }        //  eDeleteLexeme()
 
-ET_ReturnCode CDictionary::eUpdateHeadword(shared_ptr<CLexeme> spLexeme)
+ET_ReturnCode CDictionary::eUpdateHeadword(CLexeme* spLexeme)
 {
 //    ET_ReturnCode eRet = H_NO_ERROR;
 
@@ -1827,7 +1827,7 @@ ET_ReturnCode CDictionary::eUpdateHeadword(shared_ptr<CLexeme> spLexeme)
 
 }       //  eUpdateHeadword()
 
-ET_ReturnCode CDictionary::eSaveNewHeadword(shared_ptr<CLexeme> spLexeme)
+ET_ReturnCode CDictionary::eSaveNewHeadword(CLexeme * spLexeme)
 {
 //    ET_ReturnCode eRet = H_NO_ERROR;
 
@@ -1955,7 +1955,7 @@ ET_ReturnCode CDictionary::eSaveNewHeadword(shared_ptr<CLexeme> spLexeme)
 
 }       //  eSaveNewHeadword()
 
-ET_ReturnCode CDictionary::eSaveHeadwordStress(shared_ptr<CLexeme> spLexeme)
+ET_ReturnCode CDictionary::eSaveHeadwordStress(CLexeme* spLexeme)
 {
     StLexemeProperties& stProperties = spLexeme->stGetPropertiesForWriteAccess();
     if (stProperties.llHeadwordId < 0)
@@ -2038,7 +2038,7 @@ ET_ReturnCode CDictionary::eSaveHeadwordStress(shared_ptr<CLexeme> spLexeme)
 
 }       //  eSaveHeadwordStress()
 
-ET_ReturnCode CDictionary::eSaveHomonyms(shared_ptr<CLexeme> spLexeme)
+ET_ReturnCode CDictionary::eSaveHomonyms(CLexeme* spLexeme)
 {
 //    ET_ReturnCode eRet = H_NO_ERROR;
 
@@ -2090,7 +2090,7 @@ ET_ReturnCode CDictionary::eSaveHomonyms(shared_ptr<CLexeme> spLexeme)
 
 }       //  eSaveHomonyms()
 
-ET_ReturnCode CDictionary::eSaveAspectPairInfo(shared_ptr<CLexeme> spLexeme)
+ET_ReturnCode CDictionary::eSaveAspectPairInfo(CLexeme* spLexeme)
 {
 //    ET_ReturnCode eRet = H_NO_ERROR;
 
@@ -2131,7 +2131,7 @@ ET_ReturnCode CDictionary::eSaveAspectPairInfo(shared_ptr<CLexeme> spLexeme)
 
 }       //  eSaveAspectPairInfo()
 
-ET_ReturnCode CDictionary::eSaveP2Info(shared_ptr<CLexeme> spLexeme)
+ET_ReturnCode CDictionary::eSaveP2Info(CLexeme* spLexeme)
 {
 //    ET_ReturnCode eRet = H_NO_ERROR;
 
@@ -2169,7 +2169,7 @@ ET_ReturnCode CDictionary::eSaveP2Info(shared_ptr<CLexeme> spLexeme)
     return H_NO_ERROR;
 }
 
-ET_ReturnCode CDictionary::eSaveCommonDeviation(shared_ptr<CInflection> spInflection)
+ET_ReturnCode CDictionary::eSaveCommonDeviation(CInflection* spInflection)
 {
 //    ET_ReturnCode eRet = H_NO_ERROR;
 
@@ -2219,7 +2219,7 @@ ET_ReturnCode CDictionary::eSaveCommonDeviation(shared_ptr<CInflection> spInflec
 
 }       //  eSaveCommonDeviation()
 
-ET_ReturnCode CDictionary::eSaveInflectionInfo(shared_ptr<CInflection> spInflection)
+ET_ReturnCode CDictionary::eSaveInflectionInfo(CInflection* spInflection)
 {
 //    ET_ReturnCode eRet = H_NO_ERROR;
 //                                                                 1                  2                              3                        4                      5
@@ -2284,7 +2284,7 @@ ET_ReturnCode CDictionary::eSaveInflectionInfo(shared_ptr<CInflection> spInflect
 
 }   //  eSaveInflectionInfo()
 
-ET_ReturnCode CDictionary::eUpdateDescriptorInfo(shared_ptr<CLexeme> spLexeme)
+ET_ReturnCode CDictionary::eUpdateDescriptorInfo(CLexeme* spLexeme)
 {
 //    CREATE TABLE descriptor(id INTEGER PRIMARY KEY ASC, word_id INTEGER, graphic_stem TEXT, second_part_id INTEGER, 
 //                            0                              1                  2                   3                      
@@ -2390,7 +2390,7 @@ ET_ReturnCode CDictionary::eUpdateDescriptorInfo(shared_ptr<CLexeme> spLexeme)
 
 }       //  eUpdateDescriptorInfo()
 
-ET_ReturnCode CDictionary::eSaveDescriptorInfo(shared_ptr<CLexeme> spLexeme)
+ET_ReturnCode CDictionary::eSaveDescriptorInfo(CLexeme* spLexeme)
 {
     //    CREATE TABLE descriptor(id INTEGER PRIMARY KEY ASC, word_id INTEGER, graphic_stem TEXT, second_part_id INTEGER, 
     //                            0                              1                  2                   3                      

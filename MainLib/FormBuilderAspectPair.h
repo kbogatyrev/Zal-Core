@@ -23,10 +23,10 @@ namespace Hlib
         typedef map<int, ET_StressType> ET_StressMap;
 
     protected:
-        shared_ptr<CLexeme> m_spLexeme;
-        shared_ptr<CInflection> m_spInflection;
-        shared_ptr<CWordForm> m_sp1stPersonWordForm;
-        shared_ptr<CWordForm> m_spInfWordForm;
+        CLexeme* m_pLexeme;
+        CInflection* m_pInflection;
+        CWordForm* m_p1stPersonWordForm;
+        CWordForm* m_pInfWordForm;
         ET_ExtraData m_eExtraData;
         ET_ExtraData m_eAltExtraData;
         CEString m_sComment;
@@ -40,8 +40,8 @@ namespace Hlib
         bool m_bError;
 
 	public:
-        CFormBuilderAspectPair(shared_ptr<CLexeme> spLexeme, shared_ptr<CInflection> spInflection) : m_spLexeme(spLexeme), 
-                               m_spInflection(spInflection), m_sp1stPersonWordForm(nullptr), m_spInfWordForm(nullptr),
+        CFormBuilderAspectPair(CLexeme* pLexeme, CInflection* pInflection) : m_pLexeme(pLexeme), 
+                               m_pInflection(pInflection), m_p1stPersonWordForm(nullptr), m_pInfWordForm(nullptr),
             m_eExtraData(ET_ExtraData::None), m_bBuilt(false), m_bError(false)
 		{}
 
@@ -55,7 +55,7 @@ namespace Hlib
         ET_ReturnCode eGet1PersonWordForm();
         ET_ReturnCode eGetInfinitiveWordForm();
         ET_ReturnCode eGetInfinitiveStressPos(int&);
-        ET_ReturnCode eGetNsvDerivationType(shared_ptr<CWordForm> spInfinitive, int& iType);
+        ET_ReturnCode eGetNsvDerivationType(CWordForm* pInfinitive, int& iType);
 
 	protected:      // build
 		ET_ReturnCode eSvToNsvTypeI(bool bIsVariant = false);

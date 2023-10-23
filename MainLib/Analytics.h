@@ -30,7 +30,7 @@ namespace Hlib
         long long llLineDbId;
         long long llWordInLineDbId;
         long long llWordToWordFormId;
-        CWordForm WordForm;
+        shared_ptr<CWordForm> spWordForm;
 
         StWordParse()
         {
@@ -120,7 +120,8 @@ namespace Hlib
         CAnalytics(shared_ptr<CSqlite>, shared_ptr<CParser>);
         ~CAnalytics();
 
-        virtual ET_ReturnCode eParseText(const CEString& sTextName, const CEString& sMetadata, const CEString& sText, long long& llParsedTextId, bool bIsProse = false);
+//        virtual ET_ReturnCode eParseText(const CEString& sTextName, const CEString& sMetadata, const CEString& sText, long long& llParsedTextId, bool bIsProse = false);
+        virtual ET_ReturnCode eParseText(const CEString& sTextName, const CEString& sMetadata, const CEString& sText, long long llFirstLineNum, bool bIsProse = false);
 
     private:
         ET_ReturnCode eInit();
@@ -138,7 +139,7 @@ namespace Hlib
         ET_ReturnCode eSaveTactGroup(shared_ptr<StTactGroup>);
         ET_ReturnCode eClearTextData(long long llText);
         ET_WordStressType eGetStressType(CWordForm&);
-        bool bArePhoneticallyIdentical(CWordForm& wf1, CWordForm& wf2);
+        bool bArePhoneticallyIdentical(shared_ptr<CWordForm>, shared_ptr<CWordForm>);
         ET_ReturnCode eAddParsesToTactGroup(int iLineNum, int iWord, shared_ptr<StTactGroup>);
 
     private:

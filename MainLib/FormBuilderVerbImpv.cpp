@@ -6,40 +6,40 @@ using namespace Hlib;
 
 ET_ReturnCode CFormBuilderImperative::eGetStem (CEString& sStem)
 {
-    assert(m_spLexeme);   // we assume base class ctor took care of this
+    assert(m_pLexeme);   // we assume base class ctor took care of this
 
     try
     {
         CEString sHash;
-        if (4 == m_spInflection->iType() || 5 == m_spInflection->iType())
+        if (4 == m_pInflection->iType() || 5 == m_pInflection->iType())
         {
             CGramHasher hasher (POS_VERB, SUBPARADIGM_PRESENT_TENSE, CASE_UNDEFINED, NUM_SG, GENDER_UNDEFINED, 
-                                PERSON_3, ANIM_UNDEFINED, m_spLexeme->eAspect(), m_spLexeme->eIsReflexive());
+                                PERSON_3, ANIM_UNDEFINED, m_pLexeme->eAspect(), m_pLexeme->eIsReflexive());
             sHash = hasher.sGramHash();
         }
         else
         {
             CGramHasher hasher (POS_VERB, SUBPARADIGM_PRESENT_TENSE, CASE_UNDEFINED, NUM_SG, GENDER_UNDEFINED, 
-                                PERSON_1, ANIM_UNDEFINED, m_spLexeme->eAspect(), m_spLexeme->eIsReflexive());
+                                PERSON_1, ANIM_UNDEFINED, m_pLexeme->eAspect(), m_pLexeme->eIsReflexive());
             sHash = hasher.sGramHash();
         }
 
-        auto spTemplate = make_shared<CWordForm>();
-        ET_ReturnCode rc = m_spInflection->eWordFormFromHash (sHash, 0, spTemplate);
+        CWordForm* pTemplate = nullptr;
+        ET_ReturnCode rc = m_pInflection->eWordFormFromHash (sHash, 0, pTemplate);
         if (rc != H_NO_ERROR)
         {
             return rc;
         }
-        if (nullptr == spTemplate)
+        if (nullptr == pTemplate)
         {
             assert(0);
             ERROR_LOG (L"Failed to obtain form template.");
             return H_ERROR_POINTER;
         }
 
-        sStem = spTemplate->sStem();
+        sStem = pTemplate->sStem();
 
-        if (11 == m_spInflection->iType())
+        if (11 == m_pInflection->iType())
         {
             assert(sStem.bEndsWith(L"ь"));     // stem must end in -ь
             sStem.sErase (sStem.uiLength()-1);
@@ -60,17 +60,17 @@ ET_ReturnCode CFormBuilderImperative::eGetStem (CEString& sStem)
 //
 ET_ReturnCode CFormBuilderImperative::eGetEndingType (const CEString& sStem, int& iEndingType)
 {
-    assert(m_spLexeme);   // we assume base class ctor took care of this
+    assert(m_pLexeme);   // we assume base class ctor took care of this
 
-    ET_AccentType eAccentType1 = m_spInflection->eAccentType1();
-//    ET_AccentType eAccentType2 = m_spLexeme->eAccentType2();
+    ET_AccentType eAccentType1 = m_pInflection->eAccentType1();
+//    ET_AccentType eAccentType2 = m_pLexeme->eAccentType2();
 
-    int iType = m_spInflection->iType();
+    int iType = m_pInflection->iType();
 
     if (11 == iType)
     {
         iEndingType = 1;    // -ей
-        assert(m_spLexeme->s1SgStem().bEndsWith(L"ь"));
+        assert(m_pLexeme->s1SgStem().bEndsWith(L"ь"));
     }
     else if (sStem.bEndsWithOneOf (CEString::g_szRusVowels))
     {
@@ -143,22 +143,22 @@ ET_ReturnCode CFormBuilderImperative::eGetEndingType (const CEString& sStem, int
 
 ET_ReturnCode CFormBuilderImperative::eHandleCommonDeviations(const CEString& sStem, int& iEndingType)
 {
-    assert(m_spLexeme);   // we assume base class ctor took care of this
+    assert(m_pLexeme);   // we assume base class ctor took care of this
 
-    if (!m_spInflection->bHasCommonDeviation(2) && !m_spInflection->bHasCommonDeviation(3))
+    if (!m_pInflection->bHasCommonDeviation(2) && !m_pInflection->bHasCommonDeviation(3))
     {
         return H_FALSE;
     }
 
-    if (m_spInflection->bHasCommonDeviation(2))
+    if (m_pInflection->bHasCommonDeviation(2))
     { 
-        if (!m_spInflection->bDeviationOptional(2))
+        if (!m_pInflection->bDeviationOptional(2))
         {
-            if (!m_spLexeme->sSourceForm().bStartsWith(L"вы"))
+            if (!m_pLexeme->sSourceForm().bStartsWith(L"вы"))
             {
                 assert(0);
                 CEString sMsg(L"Assertion failed for ");
-                sMsg += m_spLexeme->sSourceForm();
+                sMsg += m_pLexeme->sSourceForm();
                 sMsg += L": non-optional common dev.2 implies vy- prefix.";
                 ERROR_LOG(sMsg);
 
@@ -176,9 +176,9 @@ ET_ReturnCode CFormBuilderImperative::eHandleCommonDeviations(const CEString& sS
         }
     }   //   if (bHasCommonDeviation(2))
 
-    if (m_spInflection->bHasCommonDeviation(3))
+    if (m_pInflection->bHasCommonDeviation(3))
     {
-        if (m_spInflection->bDeviationOptional(3))
+        if (m_pInflection->bDeviationOptional(3))
         {
             iEndingType = 9;
         }
@@ -196,12 +196,12 @@ ET_ReturnCode CFormBuilderImperative::eGetStressPositions (const CEString& sStem
                                                            const CEString& sEnding,
                                                            vector<int>& vecStressPositions)
 {
-    assert(m_spLexeme);   // we assume base clas ctor took care of this
+    assert(m_pLexeme);   // we assume base clas ctor took care of this
 
     ET_ReturnCode rc = H_NO_ERROR;
 
     ET_StressLocation eStress = STRESS_LOCATION_UNDEFINED;
-    switch (m_spInflection->eAccentType1())
+    switch (m_pInflection->eAccentType1())
     {
         case AT_A:
         {
@@ -226,7 +226,7 @@ ET_ReturnCode CFormBuilderImperative::eGetStressPositions (const CEString& sStem
     int iStressPos = -1;
     if (STRESS_LOCATION_STEM == eStress)
     {
-        rc = m_spLexeme->eGetStemStressPositions (sStem, vecStressPositions);
+        rc = m_pLexeme->eGetStemStressPositions (sStem, vecStressPositions);
     }
     else if (STRESS_LOCATION_ENDING == eStress)
     {
@@ -252,7 +252,7 @@ ET_ReturnCode CFormBuilderImperative::eCreateFormTemplate (const CEString& sStem
 {
     ET_ReturnCode rc = H_NO_ERROR;
 
-    m_spWordForm = make_shared<CWordForm>(m_spInflection);
+    m_spWordForm = make_shared<CWordForm>(m_pInflection);
     if (NULL == m_spWordForm)
     {
         assert(0);
@@ -260,19 +260,19 @@ ET_ReturnCode CFormBuilderImperative::eCreateFormTemplate (const CEString& sStem
         return H_ERROR_POINTER;
     }
 
-//    m_spWordForm->m_spLexeme = m_spLexeme;
-    m_spWordForm->SetInflection(m_spInflection);
+//    m_spWordForm->m_pLexeme = m_pLexeme;
+    m_spWordForm->SetInflection(m_pInflection);
     m_spWordForm->SetPos(POS_VERB);
     m_spWordForm->SetSubparadigm(SUBPARADIGM_IMPERATIVE);
-    m_spWordForm->SetAspect(m_spLexeme->eAspect());
-    m_spWordForm->SetReflexivity(m_spLexeme->eIsReflexive());
+    m_spWordForm->SetAspect(m_pLexeme->eAspect());
+    m_spWordForm->SetReflexivity(m_pLexeme->eIsReflexive());
     m_spWordForm->SetStem(sStem);
     m_spWordForm->SetEndingDataId(llEndingDataId);
     m_spWordForm->SetWordForm(sStem + sEnding);
 
     m_spWordForm->SetNumber(eNumber);
     m_spWordForm->SetPerson(PERSON_2);
-    m_spWordForm->SetInflectionId(m_spInflection->llInflectionId());
+    m_spWordForm->SetInflectionId(m_pInflection->llInflectionId());
 
 //    rc = eAssignSecondaryStress (m_spWordForm);
 
@@ -282,7 +282,7 @@ ET_ReturnCode CFormBuilderImperative::eCreateFormTemplate (const CEString& sStem
 
 ET_ReturnCode CFormBuilderImperative::eBuild()
 {
-    assert(m_spLexeme);   // we assume base class ctor took care of this
+    assert(m_pLexeme);   // we assume base class ctor took care of this
 
     ET_ReturnCode rc = H_NO_ERROR;
 
@@ -295,7 +295,7 @@ ET_ReturnCode CFormBuilderImperative::eBuild()
 //        }
     }
 
-    if (m_spLexeme->bImpersonal() || m_spLexeme->bIterative())
+    if (m_pLexeme->bImpersonal() || m_pLexeme->bIterative())
     {
         return H_NO_ERROR;
     }
@@ -304,35 +304,35 @@ ET_ReturnCode CFormBuilderImperative::eBuild()
     {
         CEString sStem;
 
-        if (17 == m_spLexeme->iSection())
+        if (17 == m_pLexeme->iSection())
         {
-            assert(14 == m_spInflection->iType());
+            assert(14 == m_pInflection->iType());
             return H_NO_MORE;
         }
 
-        if (13 == m_spInflection->iType())
+        if (13 == m_pInflection->iType())
         {
-            sStem = m_spLexeme->sInfStem();
+            sStem = m_pLexeme->sInfStem();
         }
-        else if (4 == m_spInflection->iType() || 5 == m_spInflection->iType())
+        else if (4 == m_pInflection->iType() || 5 == m_pInflection->iType())
         {
-            sStem = m_spLexeme->s3SgStem();
+            sStem = m_pLexeme->s3SgStem();
         }
         else
         {
-            sStem = m_spLexeme->s1SgStem();
+            sStem = m_pLexeme->s1SgStem();
         }
 
         if (sStem.bIsEmpty())
         {
 //            assert(0);
             CEString sMsg (L"Empty stem for ");
-            sMsg += m_spLexeme->sSourceForm();
+            sMsg += m_pLexeme->sSourceForm();
             ERROR_LOG (sMsg);
             return H_ERROR_GENERAL;
         }
 
-        if (11 == m_spInflection->iType())
+        if (11 == m_pInflection->iType())
         {
             assert(sStem.bEndsWith(L"ь"));
             sStem.sErase (sStem.uiLength()-1);
@@ -350,7 +350,7 @@ ET_ReturnCode CFormBuilderImperative::eBuild()
         {
             assert(0);
             CEString sMsg(L"Failed to determine imperative ending type for ");
-            sMsg += m_spLexeme->sSourceForm();
+            sMsg += m_pLexeme->sSourceForm();
             ERROR_LOG(sMsg);
             return rc;
         }
@@ -366,12 +366,12 @@ ET_ReturnCode CFormBuilderImperative::eBuild()
         {
             assert(0);
             CEString sMsg(L"Unexpected variant ending type for ");
-            sMsg += m_spLexeme->sSourceForm();
+            sMsg += m_pLexeme->sSourceForm();
             ERROR_LOG(sMsg);
             return H_ERROR_UNEXPECTED;
         }
 
-        m_spEndings = make_shared<CImperativeEndings>(m_spLexeme, m_spInflection);
+        m_spEndings = make_shared<CImperativeEndings>(m_pLexeme, m_pInflection);
         if (nullptr == m_spEndings)
         {
             return rc;
@@ -379,12 +379,12 @@ ET_ReturnCode CFormBuilderImperative::eBuild()
 
         for (ET_Number eNumber = NUM_SG; eNumber < NUM_COUNT; ++eNumber)
         {
-            if (m_spLexeme->bHasMissingForms())
+            if (m_pLexeme->bHasMissingForms())
             {
                 CEString sGramHash(L"Impv_");
                 sGramHash += (NUM_SG == eNumber) ? L"Sg" : L"Pl";
                 sGramHash += L"_2";
-                if (H_TRUE != m_spInflection->eFormExists(sGramHash))
+                if (H_TRUE != m_pInflection->eFormExists(sGramHash))
                 {
                     continue;
                 }
@@ -394,7 +394,7 @@ ET_ReturnCode CFormBuilderImperative::eBuild()
             bool bDeviationOptional = false;
             for (int iCommonDeviation = 2; iCommonDeviation <= 3; ++iCommonDeviation)
             {
-                if (m_spInflection->bHasCommonDeviation(iCommonDeviation))
+                if (m_pInflection->bHasCommonDeviation(iCommonDeviation))
                 {
                     rc = static_pointer_cast<CImperativeEndings>(m_spEndings)->eSelect(eNumber, iDeviantEndingType, bDeviationOptional);
                     if (rc < 0)
@@ -405,7 +405,7 @@ ET_ReturnCode CFormBuilderImperative::eBuild()
                     // Add regular ending(s) if deviation is optional
                     if (2 == iCommonDeviation)
                     {
-                        if (m_spInflection->bDeviationOptional(2))
+                        if (m_pInflection->bDeviationOptional(2))
                         {
                             bDeviationOptional = true;
                         }
@@ -434,11 +434,11 @@ ET_ReturnCode CFormBuilderImperative::eBuild()
             int64_t iNumEndings = m_spEndings->iCount();
             if (rc != H_NO_ERROR || iNumEndings < 1)
             {
-                if (m_spInflection->iType() != 0)
+                if (m_pInflection->iType() != 0)
                 {
                     assert(0);
                     CEString sMsg(L"Failed to get imperative endings for ");
-                    sMsg += m_spLexeme->sSourceForm();
+                    sMsg += m_pLexeme->sSourceForm();
                     ERROR_LOG(sMsg);
                 }
                 continue;
@@ -471,7 +471,7 @@ ET_ReturnCode CFormBuilderImperative::eBuild()
                     return rc;
                 }
 
-                if (1 == vecStress.size() || m_spInflection->bIsMultistressedCompound())
+                if (1 == vecStress.size() || m_pInflection->bIsMultistressedCompound())
                 {
                     vector<int>::iterator itStressPos = vecStress.begin();
                     for (; itStressPos != vecStress.end(); ++itStressPos)
@@ -480,7 +480,7 @@ ET_ReturnCode CFormBuilderImperative::eBuild()
                         m_spWordForm->SetStressPos(*itStressPos, STRESS_PRIMARY);
                     }
 
-                    m_spInflection->AddWordForm(m_spWordForm);
+                    m_pInflection->AddWordForm(m_spWordForm);
                 }
                 else
                 {
@@ -491,12 +491,12 @@ ET_ReturnCode CFormBuilderImperative::eBuild()
                         {
                             auto spWfVariant = make_shared<CWordForm>();
 //                            CloneWordForm(m_spWordForm, spWfVariant);
-                            spWfVariant->eCloneFrom(m_spWordForm);
+                            spWfVariant->eCloneFrom(m_spWordForm.get());
                             m_spWordForm = spWfVariant;
                         }
 //                        m_spWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;
                         m_spWordForm->SetStressPos(*itStressPos, STRESS_PRIMARY);
-                        m_spInflection->AddWordForm(m_spWordForm);
+                        m_pInflection->AddWordForm(m_spWordForm);
                     
                     }   //  for (; itStressPos != vecSourceStressPos.end(); ...)
                 }    // else
@@ -520,7 +520,7 @@ ET_ReturnCode CFormBuilderImperative::eBuild()
 //
 ET_ReturnCode CFormBuilderImperative::eBuildIrregularForms()
 {
-    assert(m_spLexeme);   // we assume base class ctor took care of this
+    assert(m_pLexeme);   // we assume base class ctor took care of this
 
     ET_ReturnCode rc = H_NO_ERROR;
 
@@ -529,9 +529,9 @@ ET_ReturnCode CFormBuilderImperative::eBuildIrregularForms()
                              GENDER_UNDEFINED, 
                              PERSON_2, 
                              ANIM_UNDEFINED, 
-                             m_spLexeme->eAspect(),
+                             m_pLexeme->eAspect(),
                              CASE_UNDEFINED, 
-                             m_spLexeme->eIsReflexive());
+                             m_pLexeme->eIsReflexive());
 
     CGramHasher pl2ImpvHash (sg2ImpvHash);
     pl2ImpvHash.m_eNumber = NUM_PL;
@@ -539,8 +539,8 @@ ET_ReturnCode CFormBuilderImperative::eBuildIrregularForms()
     if (bHasIrregularImperative())
     {
         // Just add the plural form
-        map<shared_ptr<CWordForm>, bool> mapSg2Impv;
-        rc = m_spInflection->eGetIrregularForms(sg2ImpvHash.sGramHash(), mapSg2Impv);
+        map<CWordForm*, bool> mapSg2Impv;
+        rc = m_pInflection->eGetIrregularForms(sg2ImpvHash.sGramHash(), mapSg2Impv);
         if (rc != H_NO_ERROR)
         {
             return rc;
@@ -549,25 +549,26 @@ ET_ReturnCode CFormBuilderImperative::eBuildIrregularForms()
         auto it = mapSg2Impv.begin();
         for (; it != mapSg2Impv.end(); ++it)
         {
-            auto spSgWf = it->first;
-            if (nullptr == spSgWf)
+            auto pSgWf = it->first;
+            if (nullptr == pSgWf)
             {
                 assert(0);
                 CEString sMsg (L"Irregular form ptr invalid.");
-                sMsg += m_spLexeme->sSourceForm();
+                sMsg += m_pLexeme->sSourceForm();
                 ERROR_LOG (sMsg);
                 return H_ERROR_POINTER;
             }
 
-            spSgWf->SetInflectionId(m_spInflection->llInflectionId());
-            m_spInflection->AddWordForm(spSgWf);
+            auto spSgWf = make_shared<CWordForm>(m_pInflection);
+            spSgWf->Copy(*spSgWf);
+            m_pInflection->AddWordForm(spSgWf);
 
-            auto spPlWf = make_shared<CWordForm>(m_spInflection);
+            auto spPlWf = make_shared<CWordForm>(m_pInflection);
             spPlWf->Copy(*spSgWf);
             spPlWf->SetNumber(NUM_PL);
 
             auto sWordForm = spPlWf->sWordForm();
-            if (REFL_YES == m_spLexeme->eIsReflexive())
+            if (REFL_YES == m_pLexeme->eIsReflexive())
             {
                 sWordForm.sRemoveCharsFromEnd(2);
             }
@@ -576,7 +577,7 @@ ET_ReturnCode CFormBuilderImperative::eBuildIrregularForms()
                 sWordForm += L"те";
             }
             spPlWf->SetWordForm(sWordForm);
-            m_spInflection->AddWordForm(spPlWf);
+            m_pInflection->AddWordForm(spPlWf);
         }
         
         return H_NO_ERROR;
@@ -590,21 +591,21 @@ ET_ReturnCode CFormBuilderImperative::eBuildIrregularForms()
     {
         assert(0);
         CEString sMsg (L"No irregular present.");
-        sMsg += m_spLexeme->sSourceForm();
+        sMsg += m_pLexeme->sSourceForm();
         ERROR_LOG (sMsg);
         return H_ERROR_UNEXPECTED;
     }
 
-    if (m_spLexeme->bHasMissingForms())
+    if (m_pLexeme->bHasMissingForms())
     {
         CEString sGramHash(L"Impv_*_*");
-        if (H_TRUE != m_spInflection->eFormExists(sGramHash))
+        if (H_TRUE != m_pInflection->eFormExists(sGramHash))
         {
             return H_NO_ERROR;
         }
     }
 
-    m_spEndings = make_shared<CImperativeEndings>(m_spLexeme, m_spInflection);
+    m_spEndings = make_shared<CImperativeEndings>(m_pLexeme, m_pInflection);
     if (nullptr == m_spEndings)
     {
         return rc;
@@ -615,10 +616,10 @@ ET_ReturnCode CFormBuilderImperative::eBuildIrregularForms()
     // the rules for conjugation tables and abbreviated entries (p.88-89)
     //
     CGramHasher pl3Hash (SUBPARADIGM_PRESENT_TENSE, NUM_PL, GENDER_UNDEFINED, PERSON_3, ANIM_UNDEFINED, 
-                         m_spLexeme->eAspect(), CASE_UNDEFINED, m_spLexeme->eIsReflexive());
+                         m_pLexeme->eAspect(), CASE_UNDEFINED, m_pLexeme->eIsReflexive());
 
-    map<shared_ptr<CWordForm>, bool> mapPl3;
-    rc = m_spInflection->eGetIrregularForms(pl3Hash.sGramHash(), mapPl3);
+    map<CWordForm*, bool> mapPl3;
+    rc = m_pInflection->eGetIrregularForms(pl3Hash.sGramHash(), mapPl3);
     if (rc != H_NO_ERROR)
     {
         return rc;
@@ -631,7 +632,7 @@ ET_ReturnCode CFormBuilderImperative::eBuildIrregularForms()
         {
             CEString s3PlStem((*itPl3).first->sWordForm());
             s3PlStem.SetVowels(CEString::g_szRusVowels);
-            if (REFL_NO == m_spLexeme->eIsReflexive())
+            if (REFL_NO == m_pLexeme->eIsReflexive())
             {
                 if (!s3PlStem.bEndsWith(L"ют") && !s3PlStem.bEndsWith(L"ут") && !s3PlStem.bEndsWith(L"ят") &&
                     !s3PlStem.bEndsWith(L"ат"))
@@ -640,12 +641,12 @@ ET_ReturnCode CFormBuilderImperative::eBuildIrregularForms()
                     CEString sMsg(L"Unexpected 3 Pl ending: ");
                     sMsg += s3PlStem;
                     sMsg += L"; lexeme = ";
-                    sMsg += m_spLexeme->sSourceForm();
+                    sMsg += m_pLexeme->sSourceForm();
                     ERROR_LOG(sMsg);
                     return H_ERROR_UNEXPECTED;
                 }
             }
-            else if (REFL_YES == m_spLexeme->eIsReflexive())
+            else if (REFL_YES == m_pLexeme->eIsReflexive())
             {
                 if (!s3PlStem.bEndsWith(L"ются") && !s3PlStem.bEndsWith(L"утся") &&
                     !s3PlStem.bEndsWith(L"ятся") && !s3PlStem.bEndsWith(L"атся"))
@@ -663,25 +664,25 @@ ET_ReturnCode CFormBuilderImperative::eBuildIrregularForms()
                 CEString sMsg(L"Unexpected eo_Reflexive value for: ");
                 sMsg += s3PlStem;
                 sMsg += L"; lexeme = ";
-                sMsg += m_spLexeme->sSourceForm();
+                sMsg += m_pLexeme->sSourceForm();
                 ERROR_LOG(sMsg);
                 return H_ERROR_UNEXPECTED;
             }
 
             auto gramHash = (ET_Number::NUM_SG == eNumber) ? sg2ImpvHash : pl2ImpvHash;
-            auto spWf = make_shared<CWordForm>(gramHash.sGramHash(), m_spInflection);
+            auto spWf = make_shared<CWordForm>(gramHash.sGramHash(), m_pInflection);
             if (nullptr == spWf)
             {
                 assert(0);
                 CEString sMsg(L"Unable to instantiate CWordForm for ");
-                sMsg += m_spLexeme->sSourceForm();
+                sMsg += m_pLexeme->sSourceForm();
                 ERROR_LOG(sMsg);
                 return H_ERROR_UNEXPECTED;
             }
 
-            spWf->SetInflectionId(m_spInflection->llInflectionId());
+            spWf->SetInflectionId(m_pInflection->llInflectionId());
 
-            int iCharsToErase = REFL_YES == m_spLexeme->eIsReflexive() ? 4 : 2;
+            int iCharsToErase = REFL_YES == m_pLexeme->eIsReflexive() ? 4 : 2;
             s3PlStem.sErase(s3PlStem.uiLength() - iCharsToErase);
             spWf->SetStem(s3PlStem);
 
@@ -693,7 +694,7 @@ ET_ReturnCode CFormBuilderImperative::eBuildIrregularForms()
                 {
                     assert(0);
                     CEString sMsg(L"No imperative ending for ");
-                    sMsg += m_spLexeme->sSourceForm();
+                    sMsg += m_pLexeme->sSourceForm();
                     ERROR_LOG(sMsg);
                     continue;
                 }
@@ -709,7 +710,7 @@ ET_ReturnCode CFormBuilderImperative::eBuildIrregularForms()
                 {
                     assert(0);
                     CEString sMsg(L"No imperative ending for ");
-                    sMsg += m_spLexeme->sSourceForm();
+                    sMsg += m_pLexeme->sSourceForm();
                     ERROR_LOG(sMsg);
                     continue;
                 }
@@ -729,7 +730,7 @@ ET_ReturnCode CFormBuilderImperative::eBuildIrregularForms()
             spWf->SetWordForm(spWf->sStem() + sEnding);
             spWf->AssignStress(spWf->mapGetStressPositions());
 
-            m_spInflection->AddWordForm(spWf);
+            m_pInflection->AddWordForm(spWf);
         }
     }
 

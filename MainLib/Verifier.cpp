@@ -262,21 +262,17 @@ ET_ReturnCode CVerifier::eCheckParadigm (shared_ptr<CInflection>& spInflection, 
         bool bFormMatch = false;
         for (auto nGeneratedForm = 0; nGeneratedForm < nForms; ++nGeneratedForm)
         {
-            shared_ptr<CWordForm> spGeneratedForm;
-            hr = spInflection->eWordFormFromHash(itHash->first, nGeneratedForm, spGeneratedForm);
+            CWordForm* pGeneratedForm;
+            hr = spInflection->eWordFormFromHash(itHash->first, nGeneratedForm, pGeneratedForm);
             if (hr != H_NO_ERROR)
             {
                 bCheckedOut = false;
                 return hr;
             }
 
-            auto koko = spGeneratedForm->sWordForm() + L" : " + spStoredForm->sWordForm();
-            auto kiki = wstring(koko);
-            log1 << wstring(koko).c_str() << L"\n" << flush;
-
-            if (spGeneratedForm->sWordForm() == spStoredForm->sWordForm())
+            if (pGeneratedForm->sWordForm() == spStoredForm->sWordForm())
             {
-                if (spStoredForm->mapGetStressPositions() == spGeneratedForm->mapGetStressPositions())
+                if (spStoredForm->mapGetStressPositions() == pGeneratedForm->mapGetStressPositions())
                 {
                     bFormMatch = true;
                     break;
@@ -286,7 +282,7 @@ ET_ReturnCode CVerifier::eCheckParadigm (shared_ptr<CInflection>& spInflection, 
                     CEString sMsg(L"Stress mismatch, lexeme hash = ");
                     sMsg += sLexemeHash;
                     sMsg += L", gram hash = ";
-                    sMsg += spGeneratedForm->sGramHash();
+                    sMsg += pGeneratedForm->sGramHash();
                     ERROR_LOG(sMsg);
                 }
             }
@@ -295,7 +291,7 @@ ET_ReturnCode CVerifier::eCheckParadigm (shared_ptr<CInflection>& spInflection, 
                 CEString sMsg(L"Word form mismatch, lexeme hash = ");
                 sMsg +=sLexemeHash;
                 sMsg += L", gram hash = ";
-                sMsg += spGeneratedForm->sGramHash();
+                sMsg += pGeneratedForm->sGramHash();
                 ERROR_LOG(sMsg);
             }
         }       //  for auto nGeneratedForm = 0...

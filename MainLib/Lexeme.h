@@ -810,7 +810,7 @@ namespace Hlib
         void SetSecondPart(shared_ptr<CLexeme>);
 
         // Support for manual editing
-        ET_ReturnCode eUpdateDescriptorInfo(shared_ptr<CLexeme>);
+        ET_ReturnCode eUpdateDescriptorInfo(CLexeme*);
         ET_ReturnCode eExtractStressSymbols();
         ET_ReturnCode eInitializeFromProperties();
 
@@ -829,7 +829,7 @@ namespace Hlib
         map<CEString, CEString> m_mapStandardAlternations;
         multimap<int, int> m_mmEndingsHash;
 
-        shared_ptr<CDictionary> m_spDictionary;
+        CDictionary* m_spDictionary;
         shared_ptr<CLexeme> m_spSecondPart;
 
         vector<int>::iterator m_itCurrentStressPos;

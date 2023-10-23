@@ -14,8 +14,8 @@ namespace Hlib
     class CFormBuilderPersonal : public CFormBuilderConj
     {
     public:
-        CFormBuilderPersonal (shared_ptr<CLexeme> spLexeme, shared_ptr<CInflection> spInflection) : 
-            CFormBuilderConj (spLexeme, spInflection, SUBPARADIGM_PRESENT_TENSE)
+        CFormBuilderPersonal (CLexeme* pLexeme, CInflection* pInflection) : 
+            CFormBuilderConj (pLexeme, pInflection, SUBPARADIGM_PRESENT_TENSE)
         {}
 
     public:

@@ -19,7 +19,7 @@ namespace Hlib
 class CFormBuilder
 {
 public:
-    CFormBuilder (shared_ptr<CLexeme> spLexeme, shared_ptr<CInflection> spInflection, ET_Subparadigm eSubparadigm);
+    CFormBuilder (CLexeme* pLexeme, CInflection* pInflection, ET_Subparadigm eSubparadigm);
 
     virtual ~CFormBuilder()
     {
@@ -42,8 +42,8 @@ protected:
 //    void CloneWordForm (const shared_ptr<CWordForm> spSource, shared_ptr<CWordForm>& spClone);
 
 protected:
-    shared_ptr<CLexeme> m_spLexeme;
-    shared_ptr<CInflection> m_spInflection;
+    CLexeme* m_pLexeme;
+    CInflection* m_pInflection;
     ET_Subparadigm m_eSubparadigm;
     shared_ptr<CEndings> m_spEndings;
     ET_Status m_eStatus;

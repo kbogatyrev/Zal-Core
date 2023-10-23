@@ -15,8 +15,8 @@ namespace Hlib
 class CFormBuilderConj : public CFormBuilder
 {
 public:
-    CFormBuilderConj (shared_ptr<CLexeme> spLexeme, shared_ptr<CInflection> spInflection, ET_Subparadigm eSubparadigm) : 
-        CFormBuilder (spLexeme, spInflection, eSubparadigm)
+    CFormBuilderConj (CLexeme* pLexeme, CInflection* pInflection, ET_Subparadigm eSubparadigm) : 
+        CFormBuilder (pLexeme, pInflection, eSubparadigm)
     {
         const wchar_t* arrPreverbs[] = { L"в", L"над", L"об", L"от", L"под", L"пред", L"с" };
         for (int i_ap = 0; i_ap < (int)(sizeof(arrPreverbs) / sizeof(wchar_t*)); ++i_ap)
@@ -37,14 +37,14 @@ protected:
     ET_ReturnCode eGetEndingStressPosition (const CEString& sLemma, const CEString& sEnding, int& iPosition);
     ET_ReturnCode eBuildPastTenseStem (CEString& sLemma);
     ET_ReturnCode eFleetingVowelCheck (CEString& sVerbForm);
-    ET_ReturnCode eHandleYoAlternation (int iStressPos, ET_Subparadigm eSubParadigm, shared_ptr<CWordForm> spWordForm);
+    ET_ReturnCode eHandleYoAlternation (int iStressPos, ET_Subparadigm eSubParadigm, CWordForm* spWordForm);
     ET_ReturnCode eGetAlternatingPreverb(const CEString& sVerbForm, CEString& sPreverb, bool& bVoicing);
     ET_ReturnCode eGetPastTenseStressTypes (ET_AccentType eAccentType, ET_Number eNumber, ET_Gender eGender, vector<ET_StressLocation>& vecStress);
     bool bHasIrregularPresent();
     bool bHasIrregularPast();
     bool bHasIrregularImperative();
 
-    ET_ReturnCode eGetIrregularForms(CEString sHash, vector<shared_ptr<CWordForm>>&); // get irregular form; fill stress pos for monosyll
+    ET_ReturnCode eGetIrregularForms(CEString sHash, vector<CWordForm*>&); // get irregular form; fill stress pos for monosyll
 
 protected:
     vector<CEString> m_vecAlternatingPreverbs, m_vecAlternatingPreverbsWithVoicing;

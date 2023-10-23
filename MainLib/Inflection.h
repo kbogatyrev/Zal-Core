@@ -25,14 +25,14 @@ namespace Hlib
     class CInflection : public enable_shared_from_this<CInflection>
     {
     public:
-        CInflection(shared_ptr<CLexeme>);
+        CInflection(CLexeme*);
         CInflection() = delete;
         CInflection(const CInflection&);
         ~CInflection();
 
-        shared_ptr<CLexeme> spGetLexeme()
+        CLexeme* spGetLexeme()
         {
-            return m_spLexeme;
+            return m_pLexeme;
         }
 
         void SetLexeme(shared_ptr<CLexeme> spLexeme)
@@ -41,23 +41,23 @@ namespace Hlib
             {
                 throw CException(H_EXCEPTION, L"Lexeme pointer is NULL.");
             }
-            m_spLexeme = spLexeme;
+            m_pLexeme = spLexeme.get();
         }
 
         long long llDescriptorId()
         {
-            return m_spLexeme->llLexemeId();
+            return m_pLexeme->llLexemeId();
         }
 
-        ET_ReturnCode eGetLexeme(shared_ptr<CLexeme>& spLexeme)
+        ET_ReturnCode eGetLexeme(CLexeme*& spLexeme)
         {
-            spLexeme = m_spLexeme;
+            spLexeme = m_pLexeme;
             return H_NO_ERROR;
         }
 
-        shared_ptr<CLexeme> spLexeme()
+        CLexeme* spLexeme()
         {
-            return m_spLexeme;
+            return m_pLexeme;
         }
 
         int nWordForms()
@@ -259,12 +259,12 @@ namespace Hlib
         //        ET_ReturnCode eGetFirstIrregularForm(shared_ptr<CWordForm>&, bool& bIsOptional);
         //        ET_ReturnCode eGetNextIrregularForm(shared_ptr<CWordForm>&, bool& bIsOptional);
 
-        ET_ReturnCode eGetIrregularForms(CEString sHash, map<shared_ptr<CWordForm>, bool>& mapResult);
+        ET_ReturnCode eGetIrregularForms(CEString sHash, map<CWordForm*, bool>& mapResult);
 //        ET_ReturnCode eGetIrregularForms(CEString sHash, map<shared_ptr<CWordForm>, bool>& mapResult);
         void AssignPrimaryStress(shared_ptr<CWordForm>);
         void AssignSecondaryStress(shared_ptr<CWordForm> spWordForm);
 
-        ET_ReturnCode eWordFormFromHash(CEString sHash, int iAt, shared_ptr<CWordForm>& spWf);
+        ET_ReturnCode eWordFormFromHash(CEString sHash, int iAt, CWordForm*& spWf);
         ET_ReturnCode eCreateWordForm(shared_ptr<CWordForm>&);
         ET_ReturnCode eRemoveWordForm(CEString sHash, int iAt);
         ET_ReturnCode eRemoveIrregularForms(CEString sHash);
@@ -324,7 +324,7 @@ namespace Hlib
         ET_ReturnCode eLoadDifficultForms();
 
     private:
-        shared_ptr<CLexeme> m_spLexeme;
+        CLexeme* m_pLexeme;
         StInflectionProperties m_stProperties;
 
         // Aspect pairs

@@ -11,18 +11,18 @@ ET_ReturnCode CFormBuilderPast::eGetStressPositions (const CEString& sStem,
                                                      ET_Gender eGender, 
                                                      vector<int>& vecStressPositions)
 {
-    assert(m_spLexeme);   // we assume base class ctor took care of this
+    assert(m_pLexeme);   // we assume base class ctor took care of this
 
     ET_ReturnCode rc = H_NO_ERROR;
 
     ET_AccentType eAccentType = AT_UNDEFINED;
-    if (AT_UNDEFINED == m_spInflection->eAccentType2())
+    if (AT_UNDEFINED == m_pInflection->eAccentType2())
     {
         eAccentType = AT_A;
     }
     else
     {
-        eAccentType = m_spInflection->eAccentType2();
+        eAccentType = m_pInflection->eAccentType2();
     }
 
     vector<ET_StressLocation> vecStressType;
@@ -37,7 +37,7 @@ ET_ReturnCode CFormBuilderPast::eGetStressPositions (const CEString& sStem,
     {
         if (STRESS_LOCATION_STEM == *itStressType)
         {
-            rc = m_spLexeme->eGetStemStressPositions (const_cast<CEString&>(sStem), vecStressPositions);
+            rc = m_pLexeme->eGetStemStressPositions (const_cast<CEString&>(sStem), vecStressPositions);
                                         // only to set vowels, no changes to the string
             if (rc != H_NO_ERROR)
             {
@@ -49,7 +49,7 @@ ET_ReturnCode CFormBuilderPast::eGetStressPositions (const CEString& sStem,
         {
             if (AT_C2 == eAccentType && GENDER_M == eGender && NUM_SG == eNumber)
             {
-                if (REFL_NO == m_spLexeme->eIsReflexive())
+                if (REFL_NO == m_pLexeme->eIsReflexive())
                 {
                     assert(0);
                     ERROR_LOG (L"Unexpected part of speech value.");
@@ -84,7 +84,7 @@ ET_ReturnCode CFormBuilderPast::eCreateFormTemplate (const CEString& sStem,
                                                      int64_t llEndingKey,
                                                      shared_ptr<CWordForm>& spWordForm)
 {
-    spWordForm = make_shared<CWordForm>(m_spInflection);
+    spWordForm = make_shared<CWordForm>(m_pInflection);
     if (nullptr == spWordForm)
     {
         assert(0);
@@ -92,20 +92,20 @@ ET_ReturnCode CFormBuilderPast::eCreateFormTemplate (const CEString& sStem,
         return H_ERROR_POINTER;
     }
 
-//    spWordForm->m_spLexeme = m_spLexeme;
-    spWordForm->SetInflection(m_spInflection);
+//    spWordForm->m_pLexeme = m_pLexeme;
+    spWordForm->SetInflection(m_pInflection);
     spWordForm->SetPos(POS_VERB);
     spWordForm->SetSubparadigm(SUBPARADIGM_PAST_TENSE);
-    spWordForm->SetAspect(m_spLexeme->eAspect());
-    spWordForm->SetReflexivity(m_spLexeme->eIsReflexive());
+    spWordForm->SetAspect(m_pLexeme->eAspect());
+    spWordForm->SetReflexivity(m_pLexeme->eIsReflexive());
     spWordForm->SetStem(sStem);
     spWordForm->SetEnding(sEnding);
     spWordForm->SetWordForm(sStem + sEnding);
     spWordForm->SetGender(eGender);
     spWordForm->SetNumber(eNumber);
     spWordForm->SetEndingDataId(llEndingKey);
-//    spWordForm->m_llLexemeId = m_spLexeme->llLexemeId();
-    spWordForm->SetInflectionId(m_spLexeme->llLexemeId());
+//    spWordForm->m_llLexemeId = m_pLexeme->llLexemeId();
+    spWordForm->SetInflectionId(m_pLexeme->llLexemeId());
 
 //    rc = eAssignSecondaryStress (spWordForm);
 
@@ -113,49 +113,49 @@ ET_ReturnCode CFormBuilderPast::eCreateFormTemplate (const CEString& sStem,
 
 }   //  eCreateFormTemplate (...)
 
-ET_ReturnCode CFormBuilderPast::eAssemble(shared_ptr<CWordForm> spWordForm, 
+ET_ReturnCode CFormBuilderPast::eAssemble(CWordForm* pWordForm, 
                                           int iStressPos, 
                                           const CEString& sStem,
                                           CEString& sEnding)
 {
-    assert(m_spLexeme);   // we assume base class ctor took care of this
+    assert(m_pLexeme);   // we assume base class ctor took care of this
 
     ET_ReturnCode rc = H_NO_ERROR;
 
     try
     {
-        spWordForm->SetStressPos(iStressPos, STRESS_PRIMARY);
-        rc = eHandleYoAlternation (iStressPos, SUBPARADIGM_PAST_TENSE, spWordForm);
+        pWordForm->SetStressPos(iStressPos, STRESS_PRIMARY);
+        rc = eHandleYoAlternation (iStressPos, SUBPARADIGM_PAST_TENSE, pWordForm);
         if (rc != H_NO_ERROR)
         {
             return rc;
         }
 //        spWordForm->SetStem(sStem);
 
-        spWordForm->SetWordForm(spWordForm->sStem() + sEnding);
+        pWordForm->SetWordForm(pWordForm->sStem() + sEnding);
 //        spWordForm->SetWordForm(sStem + sEnding);
-        if (m_spInflection->bHasCommonDeviation(1) && !(NUM_SG == spWordForm->eNumber() && GENDER_F == spWordForm->eGender()))
+        if (m_pInflection->bHasCommonDeviation(1) && !(NUM_SG == pWordForm->eNumber() && GENDER_F == pWordForm->eGender()))
         {
-            rc = eRetractStressToPreverb (spWordForm, m_spInflection->bDeviationOptional(1));
+            rc = eRetractStressToPreverb (pWordForm, m_pInflection->bDeviationOptional(1));
             if (rc != H_NO_ERROR)
             {
                 return rc;
             }
         }
 
-        if (m_spInflection->bHasCommonDeviation(5) && 3 == m_spInflection->iType() && 1 == m_spInflection->iStemAugment() &&
-            NUM_SG == spWordForm->eNumber() && GENDER_M == spWordForm->eGender())
+        if (m_pInflection->bHasCommonDeviation(5) && 3 == m_pInflection->iType() && 1 == m_pInflection->iStemAugment() &&
+            NUM_SG == pWordForm->eNumber() && GENDER_M == pWordForm->eGender())
         {
-            if (m_spInflection->bDeviationOptional(5))
+            if (m_pInflection->bDeviationOptional(5))
             {
                 auto spVariant = make_shared<CWordForm>();
 //                CloneWordForm (spWordForm, spVariant);
-                spVariant->eCloneFrom(spWordForm);
-                m_spInflection->AddWordForm(spVariant);    // store both versions
-                spWordForm = spVariant;
+                spVariant->eCloneFrom(pWordForm);
+                m_pInflection->AddWordForm(spVariant);    // store both versions
+                pWordForm = spVariant.get();
             }
 
-            spWordForm->SetWordForm(sStem + L"нул");
+            pWordForm->SetWordForm(sStem + L"нул");
         }
     }
     catch (CException& ex)
@@ -172,7 +172,7 @@ ET_ReturnCode CFormBuilderPast::eAssemble(shared_ptr<CWordForm> spWordForm,
 
 ET_ReturnCode CFormBuilderPast::eBuild()
 {
-    assert(m_spLexeme);   // we assume base class ctor took care of this
+    assert(m_pLexeme);   // we assume base class ctor took care of this
 
     ET_ReturnCode rc = H_NO_ERROR;
 
@@ -201,16 +201,16 @@ ET_ReturnCode CFormBuilderPast::eBuild()
         }
 
 //        ET_AccentType eAt = AT_UNDEFINED;
-//        if (AT_UNDEFINED == m_spLexeme->eAccentType2())
+//        if (AT_UNDEFINED == m_pLexeme->eAccentType2())
 //        {
 //            eAt = AT_A;
 //        }
 //        else
 //        {
-//            eAt = m_spLexeme->eAccentType2();
+//            eAt = m_pLexeme->eAccentType2();
 //        }
 
-        m_spEndings = make_shared<CPastTenseEndings>(m_spLexeme, m_spInflection);
+        m_spEndings = make_shared<CPastTenseEndings>(m_pLexeme, m_pInflection);
         if (nullptr == m_spEndings)
         {
             return rc;
@@ -237,25 +237,25 @@ ET_ReturnCode CFormBuilderPast::eBuild()
                     eGender,
                     PERSON_UNDEFINED,
                     ANIM_UNDEFINED,
-                    m_spLexeme->eAspect(),
+                    m_pLexeme->eAspect(),
                     CASE_UNDEFINED,
-                    m_spLexeme->eIsReflexive());
+                    m_pLexeme->eIsReflexive());
 
-//                if (m_spLexeme->bHasMissingForms() || m_spLexeme->bImpersonal())
-                if (m_spLexeme->bImpersonal())
+//                if (m_pLexeme->bHasMissingForms() || m_pLexeme->bImpersonal())
+                if (m_pLexeme->bImpersonal())
                     {
-                    if (m_spInflection->eFormExists(hasher.sGramHash()) != H_TRUE)
+                    if (m_pInflection->eFormExists(hasher.sGramHash()) != H_TRUE)
                     {
                         continue;
                     }
                 }
 
-                if (m_spLexeme->bHasMissingForms())
+                if (m_pLexeme->bHasMissingForms())
                 {
                     auto sHash = hasher.sGramHash();
-                    if (m_spInflection->eFormExists(sHash) != H_TRUE)
+                    if (m_pInflection->eFormExists(sHash) != H_TRUE)
                     {
-                        m_spInflection->SetHypotheticalForm(sHash);
+                        m_pInflection->SetHypotheticalForm(sHash);
                     }
                 }
 
@@ -300,24 +300,24 @@ ET_ReturnCode CFormBuilderPast::eBuild()
                     return rc;
                 }
                 
-                if (m_spInflection->bNoRegularForms(spWordForm->sGramHash()))
+                if (m_pInflection->bNoRegularForms(spWordForm->sGramHash()))
                 {
                     continue;
                 }
 
-                if (1 == vecStress.size() || m_spInflection->bIsMultistressedCompound())
+                if (1 == vecStress.size() || m_pInflection->bIsMultistressedCompound())
                 {
                     vector<int>::iterator itStressPos = vecStress.begin();
                     for (; (H_NO_ERROR == rc) && (itStressPos != vecStress.end()); ++itStressPos)
                     {
-                        rc = eAssemble(spWordForm, *itStressPos, sStem, sEnding);
+                        rc = eAssemble(spWordForm.get(), *itStressPos, sStem, sEnding);
                     }
                     if (rc != H_NO_ERROR && rc != H_NO_MORE)
                     {
                         return rc;
                     }
 
-                    m_spInflection->AddWordForm(spWordForm);
+                    m_pInflection->AddWordForm(spWordForm);
                 }
                 else
                 {
@@ -329,17 +329,17 @@ ET_ReturnCode CFormBuilderPast::eBuild()
                             auto spWfVariant = make_shared<CWordForm>();
 //                            CloneWordForm (spWordForm, spWfVariant);
 //                            spWfVariant->m_mapStress.clear();
-                            spWfVariant->eCloneFrom(spWordForm);
+                            spWfVariant->eCloneFrom(spWordForm.get());
                             spWfVariant->ClearStress();
                             spWordForm = spWfVariant;
                         }
-                        rc = eAssemble(spWordForm, *itStressPos, sStem, sEnding);
+                        rc = eAssemble(spWordForm.get(), *itStressPos, sStem, sEnding);
                         if (rc != H_NO_ERROR)
                         {
                             return rc;
                         }
 
-                        m_spInflection->AddWordForm(spWordForm);
+                        m_pInflection->AddWordForm(spWordForm);
                     }
                 }
             }   //  for (ET_Gender eGender = ... )
@@ -360,7 +360,7 @@ ET_ReturnCode CFormBuilderPast::eBuild()
 ET_ReturnCode CFormBuilderPast::eBuildIrregular ([[maybe_unused]]bool& bIsVariant)
 {
     // TODO: do we need to handle variants?
-    assert(m_spLexeme);   // we assume base class ctor took care of this
+    assert(m_pLexeme);   // we assume base class ctor took care of this
 
     ET_ReturnCode rc = H_NO_ERROR;
 
@@ -390,13 +390,13 @@ ET_ReturnCode CFormBuilderPast::eBuildIrregular ([[maybe_unused]]bool& bIsVarian
                     return H_ERROR_POINTER;
                 }
                 
-//                if (m_spLexeme->bNoRegularForms(pStub->iGramHash()))
+//                if (m_pLexeme->bNoRegularForms(pStub->iGramHash()))
 //                {
 //                    continue;
 //                }
 
-                map<shared_ptr<CWordForm>, bool> mapForm2IsOptional;
-                rc = m_spInflection->eGetIrregularForms(spStub->sGramHash(), mapForm2IsOptional);
+                map<CWordForm*, bool> mapForm2IsOptional;
+                rc = m_pInflection->eGetIrregularForms(spStub->sGramHash(), mapForm2IsOptional);
                 if (rc != H_NO_ERROR)
                 {
                     continue;
@@ -405,16 +405,17 @@ ET_ReturnCode CFormBuilderPast::eBuildIrregular ([[maybe_unused]]bool& bIsVarian
                 auto it = mapForm2IsOptional.begin();
                 for (; it != mapForm2IsOptional.end(); ++it)
                 {
-                    shared_ptr<CWordForm> spSgWf = it->first;
-                    if (nullptr == spSgWf)
+                    if (nullptr == it->first)
                     {
                         assert(0);
                         CEString sMsg(L"Irregular form ptr invalid.");
-                        sMsg += m_spLexeme->sSourceForm();
+                        sMsg += m_pLexeme->sSourceForm();
                         ERROR_LOG(sMsg);
                         return H_ERROR_POINTER;
                     }
-                    m_spInflection->AddWordForm(spSgWf);
+                    shared_ptr<CWordForm> spSgWf = make_shared<CWordForm>(m_pInflection); 
+                    spSgWf->eCloneFrom(it->first);
+                    m_pInflection->AddWordForm(spSgWf);
                 }
 
             }   //  for (ET_Gender eGender ...
@@ -433,7 +434,7 @@ ET_ReturnCode CFormBuilderPast::eBuildIrregular ([[maybe_unused]]bool& bIsVarian
 
 }   //  eBuildIrregular (...)
 
-ET_ReturnCode CFormBuilderPast::eRetractStressToPreverb (shared_ptr<CWordForm> spWordForm, bool bIsOptional)
+ET_ReturnCode CFormBuilderPast::eRetractStressToPreverb (CWordForm* pWordForm, bool bIsOptional)
 {
     try
     {
@@ -441,12 +442,12 @@ ET_ReturnCode CFormBuilderPast::eRetractStressToPreverb (shared_ptr<CWordForm> s
         {
             auto spClone = make_shared<CWordForm>();
 //            CloneWordForm (spWordForm, spClone);
-            spClone->eCloneFrom(spWordForm);
-            m_spInflection->AddWordForm (spClone);    // store both versions
-            spWordForm = spClone;
+            spClone->eCloneFrom(pWordForm);
+            m_pInflection->AddWordForm (spClone);    // store both versions
+            pWordForm = spClone.get();
         }
 
-        if (nullptr == spWordForm)
+        if (nullptr == pWordForm)
         {
             assert(0);
             ERROR_LOG(L"Word form ptr is NULL");
@@ -455,7 +456,7 @@ ET_ReturnCode CFormBuilderPast::eRetractStressToPreverb (shared_ptr<CWordForm> s
 
         map<int, ET_StressType> mapCorrectedStress;
 //        ET_StressType eType = ET_StressType::STRESS_TYPE_UNDEFINED;
-        auto& mapStressSylls = spWordForm->mapGetStressPositions();
+        auto& mapStressSylls = pWordForm->mapGetStressPositions();
 //        auto rcStress = spWordForm->eGetFirstStressSyll(iPos, eType);
         auto itStressSyll = mapStressSylls.begin();
         for (; itStressSyll != mapStressSylls.end(); ++itStressSyll)
@@ -473,7 +474,7 @@ ET_ReturnCode CFormBuilderPast::eRetractStressToPreverb (shared_ptr<CWordForm> s
             }
 
             auto iStressPos = -1;
-            if (spWordForm->sWordForm().bStartsWith(L"пере"))
+            if (pWordForm->sWordForm().bStartsWith(L"пере"))
             {
                 if ((*itStressSyll).first < 2)
                 {
@@ -490,27 +491,27 @@ ET_ReturnCode CFormBuilderPast::eRetractStressToPreverb (shared_ptr<CWordForm> s
             mapCorrectedStress[iStressPos] = STRESS_PRIMARY;
 
             // Remove yo at old stress pos
-            if (iStressPos < 0 || iStressPos >(int)spWordForm->sStem().uiLength())
+            if (iStressPos < 0 || iStressPos >(int)pWordForm->sStem().uiLength())
             {
                 assert(0);
                 ERROR_LOG(L"Unexpected stress position in cd-1 verb.");
                 return H_ERROR_UNEXPECTED;
             }
 
-            int iAt = spWordForm->sStem().uiGetVowelPos((*itStressSyll).first);
-            if (iAt < 0 || iAt >(int)spWordForm->sStem().uiLength())
+            int iAt = pWordForm->sStem().uiGetVowelPos((*itStressSyll).first);
+            if (iAt < 0 || iAt >(int)pWordForm->sStem().uiLength())
             {
                 assert(0);
                 ERROR_LOG(L"Unexpected stress position in cd-1 verb.");
                 return H_ERROR_UNEXPECTED;
             }
-            if (L'ё' == spWordForm->sWordForm()[iAt])
+            if (L'ё' == pWordForm->sWordForm()[iAt])
             {
-                spWordForm->sStem()[iAt] = spWordForm->sWordForm()[iAt] = L'е';
+                pWordForm->sStem()[iAt] = pWordForm->sWordForm()[iAt] = L'е';
             }
 
         }
-        spWordForm->AssignStress(mapCorrectedStress);
+        pWordForm->AssignStress(mapCorrectedStress);
     }
     catch (CException& ex)
     {

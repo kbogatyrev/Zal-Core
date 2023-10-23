@@ -39,20 +39,20 @@ ET_ReturnCode Singleton::eGetDictionary(shared_ptr<CDictionary>& spDictionary)
     return H_NO_ERROR;
 }
 
-int64_t Singleton::iAddLexeme(shared_ptr<CLexeme> spLexeme)
+int64_t Singleton::iAddLexeme(CLexeme* pLexeme)
 {
-    if (nullptr == spLexeme)
+    if (nullptr == pLexeme)
     {
         ERROR_LOG(L"Lexeme pointer is NULL.");
         return -1;
     }
-    auto iHandle = (int64_t)spLexeme.get();
-    m_mapLexemes[iHandle] = spLexeme;
+    auto iHandle = (int64_t)pLexeme;
+    m_mapLexemes[iHandle] = pLexeme;
 
     return iHandle;
 }
 
-ET_ReturnCode Singleton::eGetLexeme(int64_t iHandle, shared_ptr<CLexeme>& spLexeme)
+ET_ReturnCode Singleton::eGetLexeme(int64_t iHandle, CLexeme*& pLexeme)
 {
     auto itLexeme = m_mapLexemes.find(iHandle);
     if (m_mapLexemes.end() == itLexeme)
@@ -60,7 +60,7 @@ ET_ReturnCode Singleton::eGetLexeme(int64_t iHandle, shared_ptr<CLexeme>& spLexe
         ERROR_LOG(L"Unable to retrieve lexeme pointer.");
         return H_ERROR_UNEXPECTED;
     }
-    spLexeme = itLexeme->second;
+    pLexeme = itLexeme->second;
 
     return H_NO_ERROR;
 }
@@ -85,20 +85,20 @@ ET_ReturnCode Singleton::RemoveLexeme(int64_t iHandle)
     return H_NO_ERROR;
 }
 
-int64_t Singleton::iAddInflection(shared_ptr<CInflection> spInflection)
+int64_t Singleton::iAddInflection(CInflection* pInflection)
 {
-    if (nullptr == spInflection)
+    if (nullptr == pInflection)
     {
         ERROR_LOG(L"Inflection pointer is NULL.");
         return -1;
     }
-    auto iHandle = (int64_t)spInflection.get();
-    m_mapInflections[iHandle] = spInflection;
+    auto iHandle = (int64_t)pInflection;
+    m_mapInflections[iHandle] = pInflection;
 
     return iHandle;
 }
 
-ET_ReturnCode Singleton::eGetInflection(int64_t iHandle, shared_ptr<CInflection>& spInflection)
+ET_ReturnCode Singleton::eGetInflection(int64_t iHandle, CInflection*& spInflection)
 {
     auto itInfection = m_mapInflections.find(iHandle);
     if (m_mapInflections.end() == itInfection)
@@ -131,20 +131,20 @@ ET_ReturnCode Singleton::RemoveInflection(int64_t iHandle)
     return H_NO_ERROR;
 }
 
-int64_t Singleton::iAddWordForm(shared_ptr<CWordForm> spWordForm)
+int64_t Singleton::iAddWordForm(CWordForm* pWordForm)
 {
-    if (nullptr == spWordForm)
+    if (nullptr == pWordForm)
     {
         ERROR_LOG(L"Word form pointer is NULL.");
         return -1;
     }
-    auto iHandle = (int64_t)spWordForm.get();
-    m_mapWordForms[iHandle] = spWordForm;
+    auto iHandle = (int64_t)pWordForm;
+    m_mapWordForms[iHandle] = pWordForm;
 
     return iHandle;
 }
 
-ET_ReturnCode Singleton::eGetWordForm(int64_t iHandle, shared_ptr<CWordForm>& spWordForm)
+ET_ReturnCode Singleton::eGetWordForm(int64_t iHandle, CWordForm*& pWordForm)
 {
     auto itWordForm = m_mapWordForms.find(iHandle);
     if (m_mapWordForms.end() == itWordForm)
@@ -152,7 +152,7 @@ ET_ReturnCode Singleton::eGetWordForm(int64_t iHandle, shared_ptr<CWordForm>& sp
         ERROR_LOG(L"Unable to retrieve word form pointer.");
         return H_ERROR_UNEXPECTED;
     }
-    spWordForm = itWordForm->second;
+    pWordForm = itWordForm->second;
 
     return H_NO_ERROR;
 }

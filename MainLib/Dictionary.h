@@ -89,17 +89,17 @@ public:
     ET_ReturnCode eImportTestData(CEString& sPath, PROGRESS_CALLBACK_CLR);
 #endif
 
-    ET_ReturnCode eDeleteLexeme(shared_ptr<CLexeme>);
-    ET_ReturnCode eUpdateHeadword(shared_ptr<CLexeme>);
-    ET_ReturnCode eSaveNewHeadword(shared_ptr<CLexeme>);
-    ET_ReturnCode eSaveHeadwordStress(shared_ptr<CLexeme>);
-    ET_ReturnCode eSaveHomonyms(shared_ptr<CLexeme>);
-    ET_ReturnCode eSaveAspectPairInfo(shared_ptr<CLexeme>);
-    ET_ReturnCode eSaveP2Info(shared_ptr<CLexeme>);
-    ET_ReturnCode eUpdateDescriptorInfo(shared_ptr<CLexeme>);
-    ET_ReturnCode eSaveDescriptorInfo(shared_ptr<CLexeme>);
-    ET_ReturnCode eSaveCommonDeviation(shared_ptr<CInflection>);
-    ET_ReturnCode eSaveInflectionInfo(shared_ptr<CInflection>);
+    ET_ReturnCode eDeleteLexeme(CLexeme*);
+    ET_ReturnCode eUpdateHeadword(CLexeme*);
+    ET_ReturnCode eSaveNewHeadword(CLexeme*);
+    ET_ReturnCode eSaveHeadwordStress(CLexeme*);
+    ET_ReturnCode eSaveHomonyms(CLexeme*);
+    ET_ReturnCode eSaveAspectPairInfo(CLexeme*);
+    ET_ReturnCode eSaveP2Info(CLexeme*);
+    ET_ReturnCode eUpdateDescriptorInfo(CLexeme*);
+    ET_ReturnCode eSaveDescriptorInfo(CLexeme*);
+    ET_ReturnCode eSaveCommonDeviation(CInflection*);
+    ET_ReturnCode eSaveInflectionInfo(CInflection*);
 //    ET_ReturnCode eSaveMissingFormHashes(shared_ptr<CLexeme> pLexeme);
 //    ET_ReturnCode eSaveLexeme(shared_ptr<CLexeme> pLexeme);
 

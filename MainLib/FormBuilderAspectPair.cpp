@@ -7,7 +7,7 @@ using namespace Hlib;
 
 ET_ReturnCode CFormBuilderAspectPair::eBuild()
 {
-    StLexemeProperties stLexProperties = m_spLexeme->stGetProperties();
+    StLexemeProperties stLexProperties = m_pLexeme->stGetProperties();
     if (!stLexProperties.bHasAspectPair)
     {
         return H_FALSE;
@@ -20,7 +20,7 @@ ET_ReturnCode CFormBuilderAspectPair::eBuild()
 
     ET_ReturnCode eRet = H_NO_ERROR;
 
-    m_sSource = m_spLexeme->sSourceForm();
+    m_sSource = m_pLexeme->sSourceForm();
     if (m_sSource.bEndsWith(L"ся") || m_sSource.bEndsWith(L"сь"))
     {
         m_sReflexiveSuffix = m_sSource.sSubstr(m_sSource.uiLength()-3);
@@ -53,7 +53,7 @@ ET_ReturnCode CFormBuilderAspectPair::eBuild()
         if (ET_ExtraData::WholeWord == eExtraData)
         {
 //            auto& stLexProperties = m_pLexeme->stGetProperties();
-//            auto& stInflProperties = m_spInflection->stGetProperties();
+//            auto& stInflProperties = m_pInflection->stGetProperties();
             sData = bIsVariant ? stLexProperties.sAltAspectPairData : stLexProperties.sAspectPairData;
             CEString& sAspectPair = bIsVariant ? m_sAltAspectPairSource : m_sAspectPairSource;
 
@@ -305,17 +305,17 @@ ET_ReturnCode CFormBuilderAspectPair::eGetAltAspectPair(CEString& sAltPair, int&
 ET_ReturnCode CFormBuilderAspectPair::eGet1PersonWordForm()
 {
     CGramHasher hasher1Sg(POS_VERB, SUBPARADIGM_PRESENT_TENSE, CASE_UNDEFINED, NUM_SG,
-        GENDER_UNDEFINED, PERSON_1, ANIM_UNDEFINED, m_spLexeme->eAspect(),
-        m_spLexeme->eIsReflexive());
+        GENDER_UNDEFINED, PERSON_1, ANIM_UNDEFINED, m_pLexeme->eAspect(),
+        m_pLexeme->eIsReflexive());
 
-    m_sp1stPersonWordForm = nullptr;
-    ET_ReturnCode eRet = m_spInflection->eWordFormFromHash(hasher1Sg.sGramHash(), 0, m_sp1stPersonWordForm);
+    m_p1stPersonWordForm = nullptr;
+    ET_ReturnCode eRet = m_pInflection->eWordFormFromHash(hasher1Sg.sGramHash(), 0, m_p1stPersonWordForm);
     if (eRet != H_NO_ERROR)
     {
         return eRet;
     }
 
-    if (nullptr == m_sp1stPersonWordForm)
+    if (nullptr == m_p1stPersonWordForm)
     {
         return H_ERROR_POINTER;
     }
@@ -327,18 +327,18 @@ ET_ReturnCode CFormBuilderAspectPair::eGet1PersonWordForm()
 ET_ReturnCode CFormBuilderAspectPair::eGetInfinitiveWordForm()
 {
     CGramHasher hasherInf(POS_VERB, SUBPARADIGM_INFINITIVE, CASE_UNDEFINED, NUM_UNDEFINED,
-        GENDER_UNDEFINED, PERSON_UNDEFINED, ANIM_UNDEFINED, m_spLexeme->eAspect(),
-        m_spLexeme->eIsReflexive());
+        GENDER_UNDEFINED, PERSON_UNDEFINED, ANIM_UNDEFINED, m_pLexeme->eAspect(),
+        m_pLexeme->eIsReflexive());
 
-    ET_ReturnCode eRet = m_spInflection->eWordFormFromHash(hasherInf.sGramHash(), 0, m_spInfWordForm);
+    ET_ReturnCode eRet = m_pInflection->eWordFormFromHash(hasherInf.sGramHash(), 0, m_pInfWordForm);
 
     if (eRet != H_NO_ERROR)
     {
-        m_spInfWordForm = nullptr;
+        m_pInfWordForm = nullptr;
         return eRet;
     }
 
-    if (nullptr == m_spInfWordForm)
+    if (nullptr == m_pInfWordForm)
     {
         return H_ERROR_POINTER;
     }
@@ -352,7 +352,7 @@ ET_ReturnCode CFormBuilderAspectPair::eGetInfinitiveStressPos(int& iStressPos)
     ET_ReturnCode eRet = H_NO_ERROR;
     iStressPos = -1;
 
-    if (nullptr == m_spInfWordForm)
+    if (nullptr == m_pInfWordForm)
     {
         eRet = eGetInfinitiveWordForm();
         if (eRet != H_NO_ERROR)
@@ -363,7 +363,7 @@ ET_ReturnCode CFormBuilderAspectPair::eGetInfinitiveStressPos(int& iStressPos)
 
 //    int iInfStressPos = -1;
     ET_StressType eType;
-    eRet = m_spInfWordForm->eGetFirstStressPos(iStressPos, eType);
+    eRet = m_pInfWordForm->eGetFirstStressPos(iStressPos, eType);
     if (eRet != H_NO_ERROR)
     {
         return eRet;
@@ -371,14 +371,14 @@ ET_ReturnCode CFormBuilderAspectPair::eGetInfinitiveStressPos(int& iStressPos)
 
     while (eType != ET_StressType::STRESS_PRIMARY && H_NO_ERROR == eRet)
     {
-        eRet = m_spInfWordForm->eGetNextStressPos(iStressPos, eType);
+        eRet = m_pInfWordForm->eGetNextStressPos(iStressPos, eType);
     }
 
     return eRet;
 
 }       //  eGetInfinitiveStressPos()
 
-ET_ReturnCode CFormBuilderAspectPair::eGetNsvDerivationType(shared_ptr<CWordForm> spInfinitive, int& iType)
+ET_ReturnCode CFormBuilderAspectPair::eGetNsvDerivationType(CWordForm* spInfinitive, int& iType)
 {
     iType = 0;
 
@@ -525,12 +525,12 @@ ET_ReturnCode CFormBuilderAspectPair::eBuildTypeIc(CEString& sOutput)
         return eRet;
     }
     
-    if (nullptr == m_sp1stPersonWordForm)
+    if (nullptr == m_p1stPersonWordForm)
     {
         return H_ERROR_POINTER;
     }
 
-    CEString sEnding(m_sp1stPersonWordForm->sEnding());
+    CEString sEnding(m_p1stPersonWordForm->sEnding());
     if (sEnding.bEndsWith(L"сь"))
     {
         sEnding.sRemoveCharsFromEnd(2);
@@ -538,18 +538,18 @@ ET_ReturnCode CFormBuilderAspectPair::eBuildTypeIc(CEString& sOutput)
 
     if (sEnding.bEndsWith(L"у"))
     {
-        if (m_sp1stPersonWordForm->sStem().bEndsWithOneOf(CEString(CEString::g_szRusHushers) + CEString(L"кгх")))
+        if (m_p1stPersonWordForm->sStem().bEndsWithOneOf(CEString(CEString::g_szRusHushers) + CEString(L"кгх")))
         {
-            sOutput = m_sp1stPersonWordForm->sStem() + L"ивать";
+            sOutput = m_p1stPersonWordForm->sStem() + L"ивать";
         }
         else
         {
-            sOutput = m_sp1stPersonWordForm->sStem() + L"ывать";
+            sOutput = m_p1stPersonWordForm->sStem() + L"ывать";
         }
     }
     else if (sEnding.bEndsWith(L"ю"))
     {
-        sOutput = m_sp1stPersonWordForm->sStem() + L"ивать";
+        sOutput = m_p1stPersonWordForm->sStem() + L"ивать";
     }
 
     return H_NO_ERROR;
@@ -574,8 +574,8 @@ ET_ReturnCode CFormBuilderAspectPair::eFindStressPositionI(bool bIsVariant)
     try
     {
         int& iStressPos = bIsVariant ? m_iAltStressPos : m_iStressPos;
-        int iStressedSyllable = m_spInfWordForm->sWordForm().uiGetSyllableFromVowelPos(iSourceStressPos);
-        if (m_spInfWordForm->sWordForm().bStartsWith(L"вы") ||
+        int iStressedSyllable = m_pInfWordForm->sWordForm().uiGetSyllableFromVowelPos(iSourceStressPos);
+        if (m_pInfWordForm->sWordForm().bStartsWith(L"вы") ||
             m_sSource.uiNSyllables()-1 == iStressedSyllable)
         {
             CEString& sAspectPair = bIsVariant ? m_sAltAspectPairSource : m_sAspectPairSource;
@@ -584,11 +584,11 @@ ET_ReturnCode CFormBuilderAspectPair::eFindStressPositionI(bool bIsVariant)
             iStressPos = sAspectPair.uiGetVowelPos(sAspectPair.uiNSyllables() - 3);
             if (L'е' == sAspectPair[iStressPos])
             {
-                if (m_spLexeme->bHasYoAlternation())
+                if (m_pLexeme->bHasYoAlternation())
                 {
                     sAspectPair[iStressPos] = L'ё';
                 }
-                else if (m_spLexeme->bHasOAlternation())
+                else if (m_pLexeme->bHasOAlternation())
                 {
                     sAspectPair[iStressPos] = L'о';
                 }
@@ -661,7 +661,7 @@ ET_ReturnCode CFormBuilderAspectPair::eExtractStressMark(bool bIsVariant)
 
 ET_ReturnCode CFormBuilderAspectPair::eApplyNsvVowelModification(bool bIsVariant)
 {
-    StLexemeProperties stProperties = m_spLexeme->stGetProperties();
+    StLexemeProperties stProperties = m_pLexeme->stGetProperties();
     if (!stProperties.bHasAspectPair)
     {
         return H_ERROR_UNEXPECTED;
@@ -716,7 +716,7 @@ ET_ReturnCode CFormBuilderAspectPair::eApplyNsvVowelModification(bool bIsVariant
 
 ET_ReturnCode CFormBuilderAspectPair::eApplySvVowelModification(bool bIsVariant)
 {    
-    StLexemeProperties stProperties = m_spLexeme->stGetProperties();
+    StLexemeProperties stProperties = m_pLexeme->stGetProperties();
     if (!stProperties.bHasAspectPair)
     {
         return H_ERROR_UNEXPECTED;
@@ -816,7 +816,7 @@ ET_ReturnCode CFormBuilderAspectPair::eApplySvVowelModification(bool bIsVariant)
 
 ET_ReturnCode CFormBuilderAspectPair::eApplySvSuffix(bool bIsVariant)
 {
-    StLexemeProperties stProperties = m_spLexeme->stGetProperties();
+    StLexemeProperties stProperties = m_pLexeme->stGetProperties();
     if (!stProperties.bHasAspectPair)
     {
         return H_ERROR_UNEXPECTED;
@@ -922,7 +922,7 @@ ET_ReturnCode CFormBuilderAspectPair::eSvToNsvTypeII(bool bIsVariant)
     ET_ExtraData eExtraData = bIsVariant ? m_eAltExtraData : m_eExtraData;
     if (ET_ExtraData::WholeWord == eExtraData)
     {
-        StLexemeProperties stProperties = m_spLexeme->stGetProperties();
+        StLexemeProperties stProperties = m_pLexeme->stGetProperties();
         CEString sData = bIsVariant ? stProperties.sAltAspectPairData : stProperties.sAspectPairData;
         if (!stProperties.bHasAspectPair || sData.bIsEmpty())
         {
@@ -951,12 +951,12 @@ ET_ReturnCode CFormBuilderAspectPair::eSvToNsvTypeII(bool bIsVariant)
             return eRet;
         }
 
-        if (nullptr == m_sp1stPersonWordForm)
+        if (nullptr == m_p1stPersonWordForm)
         {
             return H_ERROR_POINTER;
         }
 
-        CEString sEnding(m_sp1stPersonWordForm->sEnding());
+        CEString sEnding(m_p1stPersonWordForm->sEnding());
         if (sEnding.bEndsWith(L"сь"))
         {
             sEnding.sRemoveCharsFromEnd(2);
@@ -964,12 +964,12 @@ ET_ReturnCode CFormBuilderAspectPair::eSvToNsvTypeII(bool bIsVariant)
 
         if (sEnding.bEndsWith(L"у"))
         {
-            sOutput = m_sp1stPersonWordForm->sStem() + L"ать";
+            sOutput = m_p1stPersonWordForm->sStem() + L"ать";
         }
         else
         {
             assert(sEnding == L"ю");
-            sOutput = m_sp1stPersonWordForm->sStem() + L"ять";
+            sOutput = m_p1stPersonWordForm->sStem() + L"ять";
         }
     }
 
@@ -986,7 +986,7 @@ ET_ReturnCode CFormBuilderAspectPair::eSvToNsvTypeIII(bool bIsVariant)
     ET_ExtraData eExtraData = bIsVariant ? m_eAltExtraData : m_eExtraData;
     if (ET_ExtraData::WholeWord == eExtraData)        
     {
-        StLexemeProperties stProperties = m_spLexeme->stGetProperties();
+        StLexemeProperties stProperties = m_pLexeme->stGetProperties();
         CEString sData = bIsVariant ? stProperties.sAltAspectPairData : stProperties.sAspectPairData;
         if (!stProperties.bHasAspectPair || sData.bIsEmpty())
         {
@@ -1022,7 +1022,7 @@ ET_ReturnCode CFormBuilderAspectPair::eNsvToSvTypes1_5_6(bool bIsVariant)
     CEString& sAspectPair = bIsVariant ? m_sAltAspectPairSource : m_sAspectPairSource;
     int& iStressPos = bIsVariant ? m_iAltStressPos : m_iStressPos;
 
-    if (nullptr == m_spInfWordForm)
+    if (nullptr == m_pInfWordForm)
     {
         eRet = eGetInfinitiveWordForm();
         if (eRet != H_NO_ERROR)
@@ -1046,7 +1046,7 @@ ET_ReturnCode CFormBuilderAspectPair::eNsvToSvTypes1_5_6(bool bIsVariant)
     int iStressedSyllable = -1;
     try
     {
-        iStressedSyllable = m_spInfWordForm->sWordForm().uiGetSyllableFromVowelPos(iInfStressPos);
+        iStressedSyllable = m_pInfWordForm->sWordForm().uiGetSyllableFromVowelPos(iInfStressPos);
     }
     catch (CException& ex)
     {
@@ -1054,14 +1054,14 @@ ET_ReturnCode CFormBuilderAspectPair::eNsvToSvTypes1_5_6(bool bIsVariant)
         return H_ERROR_UNEXPECTED;
     }
 
-    CEString sInfinitive = m_spInfWordForm->sWordForm();
+    CEString sInfinitive = m_pInfWordForm->sWordForm();
     if (sInfinitive.bEndsWith(L"ся"))
     {
         sInfinitive.sRemoveCharsFromEnd(2);
     }
 
     int iDerivationType = 0;
-    eRet = eGetNsvDerivationType(m_spInfWordForm, iDerivationType);
+    eRet = eGetNsvDerivationType(m_pInfWordForm, iDerivationType);
     if (eRet != H_NO_ERROR || iDerivationType < -3 || iDerivationType > -1)
     {
         return H_ERROR_UNEXPECTED;
@@ -1096,7 +1096,7 @@ ET_ReturnCode CFormBuilderAspectPair::eNsvToSvTypes1_5_6(bool bIsVariant)
 
     if (-2 == iDerivationType)
     {
-        int iStressedSyllable = m_spInfWordForm->sWordForm().uiGetSyllableFromVowelPos(iInfStressPos);
+        int iStressedSyllable = m_pInfWordForm->sWordForm().uiGetSyllableFromVowelPos(iInfStressPos);
         assert(iStressedSyllable > 0);
         if (sInfinitive.uiNSyllables()-1 == iStressedSyllable) // end-stressed?
         {
@@ -1108,9 +1108,9 @@ ET_ReturnCode CFormBuilderAspectPair::eNsvToSvTypes1_5_6(bool bIsVariant)
 
     if (sInfinitive.bEndsWith(L"вать"))
     {
-        int iStressedSyllable = m_spInfWordForm->sWordForm().uiGetSyllableFromVowelPos(iInfStressPos);
+        int iStressedSyllable = m_pInfWordForm->sWordForm().uiGetSyllableFromVowelPos(iInfStressPos);
         assert(iStressedSyllable > 0);
-        if (m_spInfWordForm->sWordForm().uiNSyllables()-1 == iStressedSyllable) // end-stressed?
+        if (m_pInfWordForm->sWordForm().uiNSyllables()-1 == iStressedSyllable) // end-stressed?
         {
             sAspectPair = sInfinitive.sRemoveCharsFromEnd(4) + L"ть";
             iStressPos = sAspectPair.uiGetVowelPos(iStressedSyllable-1);
@@ -1128,7 +1128,7 @@ ET_ReturnCode CFormBuilderAspectPair::eNsvToSvTypes2(bool bIsVariant)
     CEString& sAspectPair = bIsVariant ? m_sAltAspectPairSource : m_sAspectPairSource;
     int& iStressPos = bIsVariant ? m_iAltStressPos : m_iStressPos;
 
-    if (nullptr == m_spInfWordForm)
+    if (nullptr == m_pInfWordForm)
     {
         eRet = eGetInfinitiveWordForm();
         if (eRet != H_NO_ERROR)
@@ -1150,7 +1150,7 @@ ET_ReturnCode CFormBuilderAspectPair::eNsvToSvTypes2(bool bIsVariant)
     }
 
     int iDerivationType = 0;
-    eRet = eGetNsvDerivationType(m_spInfWordForm, iDerivationType);
+    eRet = eGetNsvDerivationType(m_pInfWordForm, iDerivationType);
     if (eRet != H_NO_ERROR || iDerivationType < -3 || iDerivationType > -1)
     {
         return H_ERROR_UNEXPECTED;
@@ -1158,7 +1158,7 @@ ET_ReturnCode CFormBuilderAspectPair::eNsvToSvTypes2(bool bIsVariant)
 
     if (-1 == iDerivationType)      //  unstressed -yvat'/-ivat'
     {
-        CEString sInfinitive = m_spInfWordForm->sWordForm();
+        CEString sInfinitive = m_pInfWordForm->sWordForm();
         if (sInfinitive.bEndsWith(L"ся"))
         {
             sInfinitive.sRemoveCharsFromEnd(2);
@@ -1166,11 +1166,11 @@ ET_ReturnCode CFormBuilderAspectPair::eNsvToSvTypes2(bool bIsVariant)
 
         if (sInfinitive.bEndsWith(L"овывать") && !sInfinitive.bEndsWith(L"цовывать"))
         {
-            int iStressedSyllable = m_spInfWordForm->sWordForm().uiGetSyllableFromVowelPos(iInfStressPos);
+            int iStressedSyllable = m_pInfWordForm->sWordForm().uiGetSyllableFromVowelPos(iInfStressPos);
 //            assert(iStressedSyllable > 0);
-            if (m_spInfWordForm->sWordForm().uiNSyllables() - 3 == iStressedSyllable) // -ovyvat'
+            if (m_pInfWordForm->sWordForm().uiNSyllables() - 3 == iStressedSyllable) // -ovyvat'
             {
-                sAspectPair = m_spInfWordForm->sWordForm().sRemoveCharsFromEnd(7);
+                sAspectPair = m_pInfWordForm->sWordForm().sRemoveCharsFromEnd(7);
                 sAspectPair += L"овать";
                 iStressPos = sAspectPair.uiGetVowelPos(sAspectPair.uiNSyllables()-1);
                 return H_NO_ERROR;
@@ -1179,11 +1179,11 @@ ET_ReturnCode CFormBuilderAspectPair::eNsvToSvTypes2(bool bIsVariant)
 
         if (sInfinitive.bEndsWith(L"цовывать"))
         {
-            int iStressedSyllable = m_spInfWordForm->sWordForm().uiGetSyllableFromVowelPos(iInfStressPos);
+            int iStressedSyllable = m_pInfWordForm->sWordForm().uiGetSyllableFromVowelPos(iInfStressPos);
             assert(iStressedSyllable > 0);
-            if (m_spInfWordForm->sWordForm().uiNSyllables() - 3 == iStressedSyllable)
+            if (m_pInfWordForm->sWordForm().uiNSyllables() - 3 == iStressedSyllable)
             {
-                sAspectPair = m_spInfWordForm->sWordForm().sRemoveCharsFromEnd(8);
+                sAspectPair = m_pInfWordForm->sWordForm().sRemoveCharsFromEnd(8);
                 sAspectPair += L"цевать";
                 iStressPos = sAspectPair.uiGetVowelPos(sAspectPair.uiNSyllables()-1);
                 return H_NO_ERROR;
@@ -1192,7 +1192,7 @@ ET_ReturnCode CFormBuilderAspectPair::eNsvToSvTypes2(bool bIsVariant)
 
         if (sInfinitive.bEndsWith(L"ёвывать"))
         {
-            sAspectPair = m_spInfWordForm->sWordForm().sRemoveCharsFromEnd(7);
+            sAspectPair = m_pInfWordForm->sWordForm().sRemoveCharsFromEnd(7);
             sAspectPair += L"евать";
             iStressPos = sAspectPair.uiGetVowelPos(sAspectPair.uiNSyllables()-1);
             return H_NO_ERROR;
@@ -1209,7 +1209,7 @@ ET_ReturnCode CFormBuilderAspectPair::eNsvToSvTypes3(bool bIsVariant)
     CEString& sAspectPair = bIsVariant ? m_sAltAspectPairSource : m_sAspectPairSource;
     int& iStressPos = bIsVariant ? m_iAltStressPos : m_iStressPos;
 
-    if (nullptr == m_spInfWordForm)
+    if (nullptr == m_pInfWordForm)
     {
         eRet = eGetInfinitiveWordForm();
         if (eRet != H_NO_ERROR)
@@ -1231,7 +1231,7 @@ ET_ReturnCode CFormBuilderAspectPair::eNsvToSvTypes3(bool bIsVariant)
     }
 
     int iDerivationType = 0;
-    eRet = eGetNsvDerivationType(m_spInfWordForm, iDerivationType);
+    eRet = eGetNsvDerivationType(m_pInfWordForm, iDerivationType);
     if (eRet != H_NO_ERROR || iDerivationType < -3 || iDerivationType > -1)
     {
         return H_ERROR_UNEXPECTED;
@@ -1239,7 +1239,7 @@ ET_ReturnCode CFormBuilderAspectPair::eNsvToSvTypes3(bool bIsVariant)
 
     if (-1 == iDerivationType)      //  unstressed -yvat'/-ivat'
     {
-        CEString sInfinitive = m_spInfWordForm->sWordForm();
+        CEString sInfinitive = m_pInfWordForm->sWordForm();
         if (sInfinitive.bEndsWith(L"ся"))
         {
             sInfinitive.sRemoveCharsFromEnd(2);
@@ -1249,8 +1249,8 @@ ET_ReturnCode CFormBuilderAspectPair::eNsvToSvTypes3(bool bIsVariant)
         {
             try
             {
-                int iStressedSyllable = m_spInfWordForm->sWordForm().uiGetSyllableFromVowelPos(iInfStressPos);
-                if (iStressedSyllable < m_spInfWordForm->sWordForm().uiNSyllables() - 2)
+                int iStressedSyllable = m_pInfWordForm->sWordForm().uiGetSyllableFromVowelPos(iInfStressPos);
+                if (iStressedSyllable < m_pInfWordForm->sWordForm().uiNSyllables() - 2)
                 {
                     CEString sStem(sInfinitive);
                     sStem.sRemoveCharsFromEnd(5);
@@ -1270,14 +1270,14 @@ ET_ReturnCode CFormBuilderAspectPair::eNsvToSvTypes3(bool bIsVariant)
 
     if (-2 == iDerivationType)
     {
-        CEString sInfinitive = m_spInfWordForm->sWordForm();
-        int iStressedSyllable = m_spInfWordForm->sWordForm().uiGetSyllableFromVowelPos(iInfStressPos);
-        if (m_spInfWordForm->sWordForm().uiNSyllables()-1 == iStressedSyllable) // end-stressed?
+        CEString sInfinitive = m_pInfWordForm->sWordForm();
+        int iStressedSyllable = m_pInfWordForm->sWordForm().uiGetSyllableFromVowelPos(iInfStressPos);
+        if (m_pInfWordForm->sWordForm().uiNSyllables()-1 == iStressedSyllable) // end-stressed?
         {
             CEString sStem(sInfinitive);
             sStem.sRemoveCharsFromEnd(3);
             sAspectPair = sStem + L"нуть";
-            iStressedSyllable = m_spInfWordForm->sWordForm().uiNSyllables()-2;
+            iStressedSyllable = m_pInfWordForm->sWordForm().uiNSyllables()-2;
 //            assert(iStressedSyllable > 0);
             iStressPos = sAspectPair.uiGetVowelPos(iStressedSyllable);
             return H_NO_ERROR;
@@ -1286,11 +1286,11 @@ ET_ReturnCode CFormBuilderAspectPair::eNsvToSvTypes3(bool bIsVariant)
 
     if (-3 == iDerivationType)
     {
-        int iStressedSyllable = m_spInfWordForm->sWordForm().uiGetSyllableFromVowelPos(iInfStressPos);
+        int iStressedSyllable = m_pInfWordForm->sWordForm().uiGetSyllableFromVowelPos(iInfStressPos);
         assert(iStressedSyllable > 0);
-        if (m_spInfWordForm->sWordForm().uiNSyllables() - 1 == iStressedSyllable) // end-stressed?
+        if (m_pInfWordForm->sWordForm().uiNSyllables() - 1 == iStressedSyllable) // end-stressed?
         {
-            sAspectPair = m_spInfWordForm->sWordForm().sRemoveCharsFromEnd(4) + L"ть";
+            sAspectPair = m_pInfWordForm->sWordForm().sRemoveCharsFromEnd(4) + L"ть";
             iStressPos = sAspectPair.uiGetVowelPos(iStressedSyllable - 1);
             return H_NO_ERROR;
         }
@@ -1306,7 +1306,7 @@ ET_ReturnCode CFormBuilderAspectPair::eNsvToSvTypes4(bool bIsVariant)
     CEString& sAspectPair = bIsVariant ? m_sAltAspectPairSource : m_sAspectPairSource;
     int& iStressPos = bIsVariant ? m_iAltStressPos : m_iStressPos;
 
-    if (nullptr == m_spInfWordForm)
+    if (nullptr == m_pInfWordForm)
     {
         eRet = eGetInfinitiveWordForm();
         if (eRet != H_NO_ERROR)
@@ -1328,19 +1328,19 @@ ET_ReturnCode CFormBuilderAspectPair::eNsvToSvTypes4(bool bIsVariant)
     }
 
     int iDerivationType = 0;
-    eRet = eGetNsvDerivationType(m_spInfWordForm, iDerivationType);
+    eRet = eGetNsvDerivationType(m_pInfWordForm, iDerivationType);
     if (eRet != H_NO_ERROR || iDerivationType < -3 || iDerivationType > -1)
     {
         return H_ERROR_UNEXPECTED;
     }
     
-    CEString sInfinitive = m_spInfWordForm->sWordForm();
+    CEString sInfinitive = m_pInfWordForm->sWordForm();
     if (sInfinitive.bEndsWith(L"ся"))
     {
         sInfinitive.sRemoveCharsFromEnd(2);
     }
 
-    int iStressedSyllable = m_spInfWordForm->sWordForm().uiGetSyllableFromVowelPos(iInfStressPos);
+    int iStressedSyllable = m_pInfWordForm->sWordForm().uiGetSyllableFromVowelPos(iInfStressPos);
     assert(iStressedSyllable >= 0);
 
     if (-1 == iDerivationType)
@@ -1357,7 +1357,7 @@ ET_ReturnCode CFormBuilderAspectPair::eNsvToSvTypes4(bool bIsVariant)
         CEString sStem(sInfinitive);
         sStem.sRemoveCharsFromEnd(3);
         sAspectPair = sStem + L"ить";
-        iStressedSyllable = m_spInfWordForm->sWordForm().uiNSyllables()-2;
+        iStressedSyllable = m_pInfWordForm->sWordForm().uiNSyllables()-2;
 //        assert(iStressedSyllable > 0);
         iStressPos = sAspectPair.uiGetVowelPos(iStressedSyllable);
 
@@ -1374,7 +1374,7 @@ ET_ReturnCode CFormBuilderAspectPair::eNsvToSvTypes7(bool bIsVariant)
     CEString& sAspectPair = bIsVariant ? m_sAltAspectPairSource : m_sAspectPairSource;
 //    int iStressPos = bIsVariant ? m_iAltStressPos : m_iStressPos;
 
-    if (nullptr == m_spInfWordForm)
+    if (nullptr == m_pInfWordForm)
     {
         eRet = eGetInfinitiveWordForm();
         if (eRet != H_NO_ERROR)
@@ -1396,14 +1396,14 @@ ET_ReturnCode CFormBuilderAspectPair::eNsvToSvTypes7(bool bIsVariant)
     }
 
     int iDerivationType = 0;
-    eRet = eGetNsvDerivationType(m_spInfWordForm, iDerivationType);
+    eRet = eGetNsvDerivationType(m_pInfWordForm, iDerivationType);
     if (eRet != H_NO_ERROR || iDerivationType < -3 || iDerivationType > -1)
     {
         return H_ERROR_UNEXPECTED;
     }
 
 //    int iStressedSyllable = m_pInfWordForm->sWordForm().uiGetSyllableFromVowelPos(iInfStressPos);
-    CEString&& sInfinitive = m_spInfWordForm->sWordForm();
+    CEString&& sInfinitive = m_pInfWordForm->sWordForm();
     if (sInfinitive.bEndsWith(L"ся"))
     {
         sInfinitive.sRemoveCharsFromEnd(2);
@@ -1461,7 +1461,7 @@ ET_ReturnCode CFormBuilderAspectPair::eNsvToSvTypes8(bool bIsVariant)
     CEString& sAspectPair = bIsVariant ? m_sAltAspectPairSource : m_sAspectPairSource;
     int& iStressPos = bIsVariant ? m_iAltStressPos : m_iStressPos;
 
-    if (nullptr == m_spInfWordForm)
+    if (nullptr == m_pInfWordForm)
     {
         eRet = eGetInfinitiveWordForm();
         if (eRet != H_NO_ERROR)
@@ -1483,14 +1483,14 @@ ET_ReturnCode CFormBuilderAspectPair::eNsvToSvTypes8(bool bIsVariant)
     }
 
     int iDerivationType = 0;
-    eRet = eGetNsvDerivationType(m_spInfWordForm, iDerivationType);
+    eRet = eGetNsvDerivationType(m_pInfWordForm, iDerivationType);
     if (eRet != H_NO_ERROR || iDerivationType < -3 || iDerivationType > -1)
     {
         return H_ERROR_UNEXPECTED;
     }
 
-    int iStressedSyllable = m_spInfWordForm->sWordForm().uiGetSyllableFromVowelPos(iInfStressPos);
-    CEString sInfinitive = m_spInfWordForm->sWordForm();
+    int iStressedSyllable = m_pInfWordForm->sWordForm().uiGetSyllableFromVowelPos(iInfStressPos);
+    CEString sInfinitive = m_pInfWordForm->sWordForm();
     if (sInfinitive.bEndsWith(L"ся"))
     {
         sInfinitive.sRemoveCharsFromEnd(2);
@@ -1530,7 +1530,7 @@ ET_ReturnCode CFormBuilderAspectPair::eNsvToSvTypes9(bool bIsVariant)
     CEString& sAspectPair = bIsVariant ? m_sAltAspectPairSource : m_sAspectPairSource;
     int& iStressPos = bIsVariant ? m_iAltStressPos : m_iStressPos;
 
-    if (nullptr == m_spInfWordForm)
+    if (nullptr == m_pInfWordForm)
     {
         eRet = eGetInfinitiveWordForm();
         if (eRet != H_NO_ERROR)
@@ -1552,14 +1552,14 @@ ET_ReturnCode CFormBuilderAspectPair::eNsvToSvTypes9(bool bIsVariant)
     }
 
     int iDerivationType = 0;
-    eRet = eGetNsvDerivationType(m_spInfWordForm, iDerivationType);
+    eRet = eGetNsvDerivationType(m_pInfWordForm, iDerivationType);
     if (eRet != H_NO_ERROR || iDerivationType < -3 || iDerivationType > -1)
     {
         return H_ERROR_UNEXPECTED;
     }
 
 //    int iStressedSyllable = m_pInfWordForm->sWordForm().uiGetSyllableFromVowelPos(iInfStressPos);
-    CEString sInfinitive = m_spInfWordForm->sWordForm();
+    CEString sInfinitive = m_pInfWordForm->sWordForm();
     if (sInfinitive.bEndsWith(L"ся"))
     {
         sInfinitive.sRemoveCharsFromEnd(2);
@@ -1587,7 +1587,7 @@ ET_ReturnCode CFormBuilderAspectPair::eNsvToSvTypes10(bool bIsVariant)
     CEString& sAspectPair = bIsVariant ? m_sAltAspectPairSource : m_sAspectPairSource;
     int& iStressPos = bIsVariant ? m_iAltStressPos : m_iStressPos;
 
-    if (nullptr == m_spInfWordForm)
+    if (nullptr == m_pInfWordForm)
     {
         eRet = eGetInfinitiveWordForm();
         if (eRet != H_NO_ERROR)
@@ -1609,14 +1609,14 @@ ET_ReturnCode CFormBuilderAspectPair::eNsvToSvTypes10(bool bIsVariant)
     }
 
     int iDerivationType = 0;
-    eRet = eGetNsvDerivationType(m_spInfWordForm, iDerivationType);
+    eRet = eGetNsvDerivationType(m_pInfWordForm, iDerivationType);
     if (eRet != H_NO_ERROR || iDerivationType < -3 || iDerivationType > -1)
     {
         return H_ERROR_UNEXPECTED;
     }
 
 //    int iStressedSyllable = m_pInfWordForm->sWordForm().uiGetSyllableFromVowelPos(iInfStressPos);
-    CEString sInfinitive = m_spInfWordForm->sWordForm();
+    CEString sInfinitive = m_pInfWordForm->sWordForm();
     if (sInfinitive.bEndsWith(L"ся"))
     {
         sInfinitive.sRemoveCharsFromEnd(2);
@@ -1652,7 +1652,7 @@ ET_ReturnCode CFormBuilderAspectPair::eNsvToSvTypes14(bool bIsVariant)
     CEString& sAspectPair = bIsVariant ? m_sAltAspectPairSource : m_sAspectPairSource;
     int& iStressPos = bIsVariant ? m_iAltStressPos : m_iStressPos;
 
-    if (nullptr == m_spInfWordForm)
+    if (nullptr == m_pInfWordForm)
     {
         eRet = eGetInfinitiveWordForm();
         if (eRet != H_NO_ERROR)
@@ -1674,14 +1674,14 @@ ET_ReturnCode CFormBuilderAspectPair::eNsvToSvTypes14(bool bIsVariant)
     }
 
     int iDerivationType = 0;
-    eRet = eGetNsvDerivationType(m_spInfWordForm, iDerivationType);
+    eRet = eGetNsvDerivationType(m_pInfWordForm, iDerivationType);
     if (eRet != H_NO_ERROR || iDerivationType < -3 || iDerivationType > -1)
     {
         return H_ERROR_UNEXPECTED;
     }
 
-    int iStressedSyllable = m_spInfWordForm->sWordForm().uiGetSyllableFromVowelPos(iInfStressPos);
-    CEString sInfinitive = m_spInfWordForm->sWordForm();
+    int iStressedSyllable = m_pInfWordForm->sWordForm().uiGetSyllableFromVowelPos(iInfStressPos);
+    CEString sInfinitive = m_pInfWordForm->sWordForm();
     if (sInfinitive.bEndsWith(L"ся"))
     {
         sInfinitive.sRemoveCharsFromEnd(2);
@@ -1720,7 +1720,7 @@ ET_ReturnCode CFormBuilderAspectPair::eNsvToSvTypes11_12_13_15_16(bool bIsVarian
     CEString& sAspectPair = bIsVariant ? m_sAltAspectPairSource : m_sAspectPairSource;
     int& iStressPos = bIsVariant ? m_iAltStressPos : m_iStressPos;
 
-    if (nullptr == m_spInfWordForm)
+    if (nullptr == m_pInfWordForm)
     {
         eRet = eGetInfinitiveWordForm();
         if (eRet != H_NO_ERROR)
@@ -1742,14 +1742,14 @@ ET_ReturnCode CFormBuilderAspectPair::eNsvToSvTypes11_12_13_15_16(bool bIsVarian
     }
 
     int iDerivationType = 0;
-    eRet = eGetNsvDerivationType(m_spInfWordForm, iDerivationType);
+    eRet = eGetNsvDerivationType(m_pInfWordForm, iDerivationType);
     if (eRet != H_NO_ERROR || iDerivationType < -3 || iDerivationType > -1)
     {
         return H_ERROR_UNEXPECTED;
     }
 
-    int iStressedSyllable = m_spInfWordForm->sWordForm().uiGetSyllableFromVowelPos(iInfStressPos);
-    CEString sInfinitive = m_spInfWordForm->sWordForm();
+    int iStressedSyllable = m_pInfWordForm->sWordForm().uiGetSyllableFromVowelPos(iInfStressPos);
+    CEString sInfinitive = m_pInfWordForm->sWordForm();
     if (sInfinitive.bEndsWith(L"ся"))
     {
         sInfinitive.sRemoveCharsFromEnd(2);

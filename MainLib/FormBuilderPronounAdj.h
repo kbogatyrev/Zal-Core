@@ -15,8 +15,8 @@ namespace Hlib
 class CFormBuilderPronounAdj : public CFormBuilderDecl
 {
 public:
-    CFormBuilderPronounAdj (shared_ptr<CLexeme> spLexeme, shared_ptr<CInflection> spInflection, const CEString& sStem, ET_AccentType eAccentType) :
-        CFormBuilderDecl (spLexeme, spInflection, SUBPARADIGM_ADVERBIAL_PAST), m_sStem(sStem), m_eAccentType (eAccentType)
+    CFormBuilderPronounAdj (CLexeme* pLexeme, CInflection* pInflection, const CEString& sStem, ET_AccentType eAccentType) :
+        CFormBuilderDecl (pLexeme, pInflection, SUBPARADIGM_ADVERBIAL_PAST), m_sStem(sStem), m_eAccentType (eAccentType)
     {}
 
 protected:
@@ -24,7 +24,7 @@ protected:
     ET_ReturnCode eGetStressPositions (CEString& sStem, const CEString& sEnding, ET_StressLocation, vector<int>& vecStressPos);
     ET_ReturnCode eCreateFormTemplate (ET_Gender, ET_Number, ET_Case, ET_Animacy, const CEString& sStem, 
                                        const CEString& sEnding, int64_t llEndingKey, shared_ptr<CWordForm>&);
-    ET_ReturnCode eHandleCommonDeviations (shared_ptr<CWordForm>);
+    ET_ReturnCode eHandleCommonDeviations (CWordForm*);
 
 public:
     ET_ReturnCode eBuild();

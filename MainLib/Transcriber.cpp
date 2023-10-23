@@ -1343,6 +1343,11 @@ ET_ReturnCode CTranscriber::eAddStressMark(shared_ptr<StTactGroup> pstTactGroup)
         return H_ERROR_INVALID_ARG;
     }
 
+    if (0 == pstTactGroup->iNumOfSyllables)
+    {
+        return H_FALSE;
+    }
+
     int iSyll = 0;
     int iStressPos = 0;
     for (auto& chr : pstTactGroup->sTranscription)
@@ -1365,7 +1370,16 @@ ET_ReturnCode CTranscriber::eAddStressMark(shared_ptr<StTactGroup> pstTactGroup)
         return H_ERROR_UNEXPECTED;
     }
 
-    pstTactGroup->sTranscription.sInsert(iStressPos+1, CEString::g_chrCombiningAcuteAccent);
+    try
+    {
+        pstTactGroup->sTranscription.sInsert(iStressPos + 1, CEString::g_chrCombiningAcuteAccent);
+    }
+    catch (CException& ex)
+    {
+        CEString sMsg = L"Transcriber exception: ";
+        sMsg += ex.szGetDescription();
+        ERROR_LOG(sMsg);
+    }
 
     return H_NO_ERROR;
 }

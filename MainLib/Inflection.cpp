@@ -15,14 +15,14 @@
 
 using namespace Hlib;
 
-CInflection::CInflection(shared_ptr<CLexeme> spLexeme)
+CInflection::CInflection(CLexeme* spLexeme)
 {
     if (nullptr == spLexeme)
     {
         throw CException(H_EXCEPTION, L"Lexeme pointer is NULL.");
     }
 
-    m_spLexeme = spLexeme;
+    m_pLexeme = spLexeme;
 }
 
 CInflection::CInflection(const CInflection& source) : enable_shared_from_this(source)
@@ -31,7 +31,7 @@ CInflection::CInflection(const CInflection& source) : enable_shared_from_this(so
     for (; it != source.m_mmWordForms.end(); ++it)
     {
         auto spWfCopy = make_shared<CWordForm>(*(*it).second);
-        spWfCopy->m_spInflection = shared_from_this();
+        spWfCopy->m_spInflection = this;
         pair<CEString, shared_ptr<CWordForm>> pairHW(spWfCopy->sGramHash(), spWfCopy);
         m_mmWordForms.insert(pairHW);
     }
@@ -39,16 +39,16 @@ CInflection::CInflection(const CInflection& source) : enable_shared_from_this(so
 
 CInflection::~CInflection()
 {
-    multimap<CEString, shared_ptr<CWordForm>>::iterator itWf = m_mmWordForms.begin();
-    for (; itWf != m_mmWordForms.end(); ++itWf)
-    {
-//        delete(itWf->second);
-        auto itRange = m_mmWordForms.equal_range(itWf->first);
-        for (auto& itForm = itRange.first; itForm != itRange.second; ++itForm)
-        {
-            itForm->second = nullptr;
-        }
-    }
+    m_mmWordForms.clear();
+//    multimap<CEString, shared_ptr<CWordForm>>::iterator itWf = m_mmWordForms.begin();
+//    for (; itWf != m_mmWordForms.end(); ++itWf)
+//    {
+//        auto itRange = m_mmWordForms.equal_range(itWf->first);
+//        for (auto& itForm = itRange.first; itForm != itRange.second; ++itForm)
+//        {
+//            itForm->second = nullptr;
+//        }
+//    }
 }
 
 bool CInflection::bHasCommonDeviation(int iCd)
@@ -77,7 +77,7 @@ bool CInflection::bDeviationOptional(int iCd)
 
 ET_ReturnCode CInflection::eAddCommonDeviation(int iValue, bool bIsOptional)
 {
-    auto stLexemeProperties = m_spLexeme->stGetProperties();
+    auto stLexemeProperties = m_pLexeme->stGetProperties();
 
     if (iValue < 1)
     {
@@ -129,7 +129,7 @@ ET_ReturnCode CInflection::eMakeGraphicStem(const CEString& sSource, CEString& s
         return H_ERROR_UNEXPECTED;
     }
 
-    auto sInflectionType = m_spLexeme->stGetProperties().sInflectionType;
+    auto sInflectionType = m_pLexeme->stGetProperties().sInflectionType;
 
     if (L"м" == sInflectionType || L"мо" == sInflectionType || L"ж" == sInflectionType
         || L"жо" == sInflectionType || L"мо-жо" == sInflectionType || L"с" == sInflectionType
@@ -158,7 +158,7 @@ ET_ReturnCode CInflection::eMakeGraphicStem(const CEString& sSource, CEString& s
         return H_NO_ERROR;
     }
 
-    if (L"мс" == m_spLexeme->stGetProperties().sMainSymbol)
+    if (L"мс" == m_pLexeme->stGetProperties().sMainSymbol)
     {
         sGraphicStem = sSource;
         return H_NO_ERROR;
@@ -177,9 +177,9 @@ ET_ReturnCode CInflection::eMakeGraphicStem(const CEString& sSource, CEString& s
         return H_NO_ERROR;
     }
 
-    if (L"п" == m_spLexeme->stGetProperties().sInflectionType)
+    if (L"п" == m_pLexeme->stGetProperties().sInflectionType)
     {
-        if (m_spLexeme->stGetProperties().bNoLongForms)
+        if (m_pLexeme->stGetProperties().bNoLongForms)
         {
             sGraphicStem = sSource;
         }
@@ -230,7 +230,7 @@ ET_ReturnCode CInflection::eMakeGraphicStem(const CEString& sSource, CEString& s
             }
             sGraphicStem = sSource;
             sGraphicStem.sRemoveCharsFromEnd(4);
-            m_spLexeme->stGetPropertiesForWriteAccess().eReflexive = REFL_YES;
+            m_pLexeme->stGetPropertiesForWriteAccess().eReflexive = REFL_YES;
         }
         else
         {
@@ -240,7 +240,7 @@ ET_ReturnCode CInflection::eMakeGraphicStem(const CEString& sSource, CEString& s
         return H_NO_ERROR;
     }
 
-    m_spLexeme->stGetPropertiesForWriteAccess().sGraphicStem = sSource;
+    m_pLexeme->stGetPropertiesForWriteAccess().sGraphicStem = sSource;
 
     return H_NO_ERROR;
 
@@ -248,7 +248,7 @@ ET_ReturnCode CInflection::eMakeGraphicStem(const CEString& sSource, CEString& s
 
 ET_ReturnCode CInflection::eGetAspectPair(CEString& sAspectPair, int& iStressPos)
 {
-    if (!m_spLexeme->bHasAspectPair())
+    if (!m_pLexeme->bHasAspectPair())
     {
         return H_ERROR_UNEXPECTED;
     }
@@ -261,7 +261,7 @@ ET_ReturnCode CInflection::eGetAspectPair(CEString& sAspectPair, int& iStressPos
 
 ET_ReturnCode CInflection::eGetAltAspectPair(CEString& sAltAspectPair, int& iStressPos)
 {
-    if (!m_spLexeme->bHasAltAspectPair())
+    if (!m_pLexeme->bHasAltAspectPair())
     {
         return H_ERROR_UNEXPECTED;
     }
@@ -288,8 +288,8 @@ ET_ReturnCode CInflection::eMakeGraphicStem()
     //    else
     {
 
-        eRet = eMakeGraphicStem(const_cast<const CEString&>(m_spLexeme->stGetProperties().sSourceForm), 
-                                const_cast<CEString&>(m_spLexeme->stGetProperties().sGraphicStem));
+        eRet = eMakeGraphicStem(const_cast<const CEString&>(m_pLexeme->stGetProperties().sSourceForm), 
+                                const_cast<CEString&>(m_pLexeme->stGetProperties().sGraphicStem));
     }
     return eRet;
 
@@ -307,7 +307,7 @@ void CInflection::AddWordForm(shared_ptr<CWordForm> spWordForm)
         throw CException(H_ERROR_POINTER, L"Invalid wordform: inflection instance is NULL");
     }
 
-    m_spLexeme->AssignSecondaryStress(spWordForm);
+    m_pLexeme->AssignSecondaryStress(spWordForm);
 
     pair<CEString, shared_ptr<CWordForm>> pairHW(spWordForm->sGramHash(), spWordForm);
     m_mmWordForms.insert(pairHW);
@@ -361,7 +361,7 @@ ET_ReturnCode CInflection::eFormExists(const CEString& sFH)
     auto& sFormHash = const_cast<CEString&> (sFH);
     sFormHash.SetBreakChars(L"_");
 
-    if (m_spLexeme->bHasMissingForms())
+    if (m_pLexeme->bHasMissingForms())
     {
         if (m_vecMissingForms.end() != find(m_vecMissingForms.begin(), m_vecMissingForms.end(), sFH))
         {
@@ -379,7 +379,7 @@ ET_ReturnCode CInflection::eFormExists(const CEString& sFH)
 
     if (L"Noun_Sg_Part" == sFH)
     {
-        if (m_spLexeme->bSecondGenitive())
+        if (m_pLexeme->bSecondGenitive())
         {
             return H_TRUE;
         }
@@ -391,7 +391,7 @@ ET_ReturnCode CInflection::eFormExists(const CEString& sFH)
 
     if (L"Noun_Sg_P2" == sFH)
     {
-        if (m_spLexeme->bSecondPrepositional())
+        if (m_pLexeme->bSecondPrepositional())
         {
             return H_TRUE;
         }
@@ -404,7 +404,7 @@ ET_ReturnCode CInflection::eFormExists(const CEString& sFH)
 
     if (L"Noun_Sg_P2_Prepositions" == sFH)
     {
-        auto& stLexemeProperties = m_spLexeme->stGetProperties();
+        auto& stLexemeProperties = m_pLexeme->stGetProperties();
         if (stLexemeProperties.sP2Preposition.bIsEmpty())
         {
             return H_FALSE;
@@ -415,7 +415,7 @@ ET_ReturnCode CInflection::eFormExists(const CEString& sFH)
         }
     }
 
-    if (L"мн." == m_spLexeme->sMainSymbol() || m_spLexeme->bIsPluralOf())
+    if (L"мн." == m_pLexeme->sMainSymbol() || m_pLexeme->bIsPluralOf())
     {
         if (sFH.bStartsWith(L"Noun_Sg_"))
         {
@@ -423,22 +423,22 @@ ET_ReturnCode CInflection::eFormExists(const CEString& sFH)
         }
     }
 
-    if (L"AdjComp" == sFH && m_spLexeme->bNoComparative())
+    if (L"AdjComp" == sFH && m_pLexeme->bNoComparative())
     {
         return H_FALSE;
     }
 
-    if (sFH.bStartsWith(L"AdjL_") && m_spLexeme->bNoLongForms())
+    if (sFH.bStartsWith(L"AdjL_") && m_pLexeme->bNoLongForms())
     {
         return H_FALSE;
     }
 
-    if (m_spLexeme->bImpersonal() && L"Pres_Sg_3" != sFH && L"Past_N" != sFH && L"Inf" != sFH)
+    if (m_pLexeme->bImpersonal() && L"Pres_Sg_3" != sFH && L"Past_N" != sFH && L"Inf" != sFH)
     {
         return H_FALSE;
     }
 
-    if (m_spLexeme->bIterative())
+    if (m_pLexeme->bIterative())
     {
         if (sFH.bStartsWith(L"Pres") || sFH.bStartsWith(L"PPres") || sFH.bStartsWith(L"VAdv_Pres") ||
             sFH.bStartsWith(L"Impv"))
@@ -447,7 +447,7 @@ ET_ReturnCode CInflection::eFormExists(const CEString& sFH)
         }
     }
 
-    if (POS_VERB == m_spLexeme->ePartOfSpeech() && L"AdjComp" == sFH)
+    if (POS_VERB == m_pLexeme->ePartOfSpeech() && L"AdjComp" == sFH)
     {
         return H_FALSE;
     }
@@ -457,13 +457,13 @@ ET_ReturnCode CInflection::eFormExists(const CEString& sFH)
 
     if (L"AdjS" == sFormHash.sGetField(0) || L"AdjComp" == sFormHash.sGetField(0))
     {
-        if (L"мс-п" == m_spLexeme->sMainSymbol() || L"мс" == m_spLexeme->sInflectionType() ||
-            L"числ.-п" == m_spLexeme->sInflectionType())
+        if (L"мс-п" == m_pLexeme->sMainSymbol() || L"мс" == m_pLexeme->sInflectionType() ||
+            L"числ.-п" == m_pLexeme->sInflectionType())
         {
             return H_FALSE;
         }
 
-        if (m_spLexeme->sSourceForm().bEndsWith(L"ийся"))
+        if (m_pLexeme->sSourceForm().bEndsWith(L"ийся"))
         {
             return H_FALSE;
         }
@@ -489,12 +489,12 @@ ET_ReturnCode CInflection::eFormExists(const CEString& sFH)
     }
 
     if ((sFormHash.bStartsWith(L"PPresA") || L"VAdv_Pres" == sFormHash) && 
-        L"св" == m_spLexeme->stGetProperties().sMainSymbol)
+        L"св" == m_pLexeme->stGetProperties().sMainSymbol)
     {
         return H_FALSE;
     }
 
-    if (L"VAdv_Pres" == sFormHash && 17 == m_spLexeme->iSection()) // $17 -- special case
+    if (L"VAdv_Pres" == sFormHash && 17 == m_pLexeme->iSection()) // $17 -- special case
     {
         return H_TRUE;
     }
@@ -509,22 +509,22 @@ ET_ReturnCode CInflection::eFormExists(const CEString& sFH)
         }
     }
 
-    if (sFormHash.bStartsWith(L"PPresP") && !m_spLexeme->bHasPresPassParticiple())
+    if (sFormHash.bStartsWith(L"PPresP") && !m_pLexeme->bHasPresPassParticiple())
     {
         return H_FALSE;
     }
 
-    if (sFormHash.bStartsWith(L"PPastP") && (!m_spLexeme->bTransitive() || REFL_YES == m_spLexeme->eIsReflexive()))
+    if (sFormHash.bStartsWith(L"PPastP") && (!m_pLexeme->bTransitive() || REFL_YES == m_pLexeme->eIsReflexive()))
     {
         return H_FALSE;
     }
 
-    if (sFormHash.bStartsWith(L"PPastP") && L"нсв" == m_spLexeme->sMainSymbol() && m_spLexeme->bHasAspectPair())
+    if (sFormHash.bStartsWith(L"PPastP") && L"нсв" == m_pLexeme->sMainSymbol() && m_pLexeme->bHasAspectPair())
     {
         return H_FALSE;
     }
 
-    if (!m_spLexeme->stGetProperties().bHasMissingForms)
+    if (!m_pLexeme->stGetProperties().bHasMissingForms)
     {
         return H_TRUE;
     }
@@ -585,7 +585,7 @@ ET_ReturnCode CInflection::eSetFormExists(const CEString& sGramHash, bool bExist
 {
     if (L"AdjComp" == sGramHash)
     {
-        m_spLexeme->stGetPropertiesForWriteAccess().bNoComparative = bExists;
+        m_pLexeme->stGetPropertiesForWriteAccess().bNoComparative = bExists;
         return H_NO_ERROR;
     }
 
@@ -611,7 +611,7 @@ ET_ReturnCode CInflection::eSetFormExists(const CEString& sGramHash, bool bExist
 
 ET_ReturnCode CInflection::eLoadMissingForms()
 {
-    if (!m_spLexeme->stGetProperties().bHasMissingForms)
+    if (!m_pLexeme->stGetProperties().bHasMissingForms)
     {
         return H_FALSE;
     }
@@ -619,7 +619,7 @@ ET_ReturnCode CInflection::eLoadMissingForms()
     m_vecMissingForms.clear();
 
     CEString sQuery(L"SELECT content FROM missing_forms WHERE descriptor_id = ");
-    sQuery += CEString::sToString(m_spLexeme->stGetProperties().llDescriptorId);
+    sQuery += CEString::sToString(m_pLexeme->stGetProperties().llDescriptorId);
     sQuery += L";";
 
     shared_ptr<CSqlite> spDb;
@@ -627,7 +627,7 @@ ET_ReturnCode CInflection::eLoadMissingForms()
     try
     {
 //        spDb = m_pDictionary->pGetDbHandle();
-        spDb = m_spLexeme->spGetDb();
+        spDb = m_pLexeme->spGetDb();
         spDb->PrepareForSelect(sQuery);
         while (spDb->bGetRow())
         {
@@ -636,7 +636,7 @@ ET_ReturnCode CInflection::eLoadMissingForms()
             m_vecMissingForms.push_back(sLabel);
             if (L"AdjL_*_*_*" == sLabel)
             {
-                m_spLexeme->stGetPropertiesForWriteAccess().bNoLongForms = true;
+                m_pLexeme->stGetPropertiesForWriteAccess().bNoLongForms = true;
             }
         }
         spDb->Finalize();
@@ -668,17 +668,17 @@ ET_ReturnCode CInflection::eLoadIrregularForms()
 {
     ET_ReturnCode rc = H_NO_ERROR;
 
-    if (!(m_spLexeme->stGetProperties().bHasIrregularForms || m_spLexeme->stGetProperties().ePartOfSpeech == POS_NUM))
+    if (!(m_pLexeme->stGetProperties().bHasIrregularForms || m_pLexeme->stGetProperties().ePartOfSpeech == POS_NUM))
     {
         return H_FALSE;
     }
 
-    m_spLexeme->stGetPropertiesForWriteAccess().bHasIrregularVariants = false;
+    m_pLexeme->stGetPropertiesForWriteAccess().bHasIrregularVariants = false;
 
     // NB: irregular forms are a property of the lexeme, i.e. descriptor
     CEString sQuery
         (L"SELECT id, gram_hash, wordform, is_alternative, lead_comment, trailing_comment, is_edited FROM irregular_forms WHERE descriptor_id = ");
-    sQuery += CEString::sToString(m_spLexeme->stGetProperties().llDescriptorId);
+    sQuery += CEString::sToString(m_pLexeme->stGetProperties().llDescriptorId);
     sQuery += L";";
 
     shared_ptr<CSqlite> spDb;
@@ -687,7 +687,7 @@ ET_ReturnCode CInflection::eLoadIrregularForms()
 
     try
     {
-        spDb = m_spLexeme->spGetDb();
+        spDb = m_pLexeme->spGetDb();
         uint64_t uiQueryHandle = spDb->uiPrepareForSelect(sQuery);
         while (spDb->bGetRow(uiQueryHandle))
         {
@@ -710,11 +710,11 @@ ET_ReturnCode CInflection::eLoadIrregularForms()
 
             if (bIsVariant)
             {
-                m_spLexeme->SetHasIrregularVariants(true);
+                m_pLexeme->SetHasIrregularVariants(true);
             }
 
-            auto spWf = make_shared<CWordForm>(sHash, shared_from_this());
-            spWf->m_spInflection = shared_from_this();
+            auto spWf = make_shared<CWordForm>(sHash, this);
+            spWf->m_spInflection = this;
             spWf->m_bIrregular = true;
             spWf->m_llDbKey = iId;
             spWf->m_sWordForm = sForm;
@@ -774,10 +774,10 @@ ET_ReturnCode CInflection::eLoadIrregularForms()
         rc = H_EXCEPTION;
     }
 
-    if (m_spLexeme->stGetProperties().bSpryazhSm)
+    if (m_pLexeme->stGetProperties().bSpryazhSm)
     {
-        auto& sPrefix = m_spLexeme->stGetProperties().sSpryazhSmPrefix;
-        auto& iPrefixLength = m_spLexeme->stGetProperties().iSpryazhSmRefPrefixLength;
+        auto& sPrefix = m_pLexeme->stGetProperties().sSpryazhSmPrefix;
+        auto& iPrefixLength = m_pLexeme->stGetProperties().iSpryazhSmRefPrefixLength;
 
         for (auto& pairIf : m_mmapIrregularForms)
         {
@@ -802,7 +802,7 @@ ET_ReturnCode CInflection::eLoadIrregularForms()
 
 ET_ReturnCode CInflection::eLoadDifficultForms()
 {
-    if (!m_spLexeme->stGetProperties().bHasDifficultForms)
+    if (!m_pLexeme->stGetProperties().bHasDifficultForms)
     {
         return H_FALSE;
     }
@@ -810,14 +810,14 @@ ET_ReturnCode CInflection::eLoadDifficultForms()
     m_vecDifficultForms.clear();
 
     CEString sQuery(L"SELECT content FROM difficult_forms WHERE descriptor_id = ");
-    sQuery += CEString::sToString(m_spLexeme->stGetProperties().llDescriptorId);
+    sQuery += CEString::sToString(m_pLexeme->stGetProperties().llDescriptorId);
     sQuery += L";";
 
     shared_ptr<CSqlite> spDb;
 
     try
     {
-        spDb = m_spLexeme->spGetDb();
+        spDb = m_pLexeme->spGetDb();
         spDb->PrepareForSelect(sQuery);
         while (spDb->bGetRow())
         {
@@ -861,8 +861,8 @@ ET_ReturnCode CInflection::eGenerateParadigm()
 
     try
     {
-        if (m_spLexeme->stGetProperties().bHasIrregularForms || 
-            POS_NUM == m_spLexeme->stGetProperties().ePartOfSpeech)
+        if (m_pLexeme->stGetProperties().bHasIrregularForms || 
+            POS_NUM == m_pLexeme->stGetProperties().ePartOfSpeech)
         {
             rc = eLoadIrregularForms();
             if (rc != H_NO_ERROR && rc != H_FALSE && rc != H_NO_MORE)
@@ -871,7 +871,7 @@ ET_ReturnCode CInflection::eGenerateParadigm()
             }
         }
 
-        if (m_spLexeme->stGetProperties().bHasMissingForms)
+        if (m_pLexeme->stGetProperties().bHasMissingForms)
         {
             rc = eLoadMissingForms();
             if (rc != H_NO_ERROR && rc != H_FALSE && rc != H_NO_MORE)
@@ -880,7 +880,7 @@ ET_ReturnCode CInflection::eGenerateParadigm()
             }
         }
 
-        if (m_spLexeme->stGetProperties().bHasDifficultForms)
+        if (m_pLexeme->stGetProperties().bHasDifficultForms)
         {
             rc = eLoadDifficultForms();
             if (rc != H_NO_ERROR && rc != H_FALSE && rc != H_NO_MORE)
@@ -891,16 +891,16 @@ ET_ReturnCode CInflection::eGenerateParadigm()
 
         m_mmWordForms.clear();
 
-        auto& stLexemeProperties = m_spLexeme->stGetPropertiesForWriteAccess();
+        auto& stLexemeProperties = m_pLexeme->stGetPropertiesForWriteAccess();
 
         if (L"мо" == stLexemeProperties.sInflectionType || L"м" == stLexemeProperties.sInflectionType || L"жо" == stLexemeProperties.sInflectionType
             || L"ж" == stLexemeProperties.sInflectionType || L"со" == stLexemeProperties.sInflectionType || L"с" == stLexemeProperties.sInflectionType
             || L"мо-жо" == stLexemeProperties.sInflectionType || L"мн." == stLexemeProperties.sInflectionType || L"мн. неод." == stLexemeProperties.sInflectionType
             || L"мн. одуш." == stLexemeProperties.sInflectionType || L"мн. от" == stLexemeProperties.sInflectionType)
         {
-            CFormBuilderNouns bn(m_spLexeme, shared_from_this());
+            CFormBuilderNouns bn(m_pLexeme, this);
             rc = bn.eBuild();
-            auto spLexeme2 = m_spLexeme->spGetSecondPart();
+            auto spLexeme2 = m_pLexeme->spGetSecondPart();
             if (spLexeme2)
             {
                 CInflectionEnumerator ie2(spLexeme2);
@@ -923,13 +923,13 @@ ET_ReturnCode CInflection::eGenerateParadigm()
         {
             if (!stLexemeProperties.bNoLongForms)
             {
-                CFormBuilderLongAdj lfb(m_spLexeme, shared_from_this(), stLexemeProperties.sGraphicStem, m_stProperties.eAccentType1, SUBPARADIGM_LONG_ADJ);
+                CFormBuilderLongAdj lfb(m_pLexeme, this, stLexemeProperties.sGraphicStem, m_stProperties.eAccentType1, SUBPARADIGM_LONG_ADJ);
                 rc = lfb.eBuild();
                 if (rc != H_NO_ERROR)
                 {
                     return rc;
                 }
-                auto spLexeme2 = m_spLexeme->spGetSecondPart();
+                auto spLexeme2 = m_pLexeme->spGetSecondPart();
                 if (spLexeme2)
                 {
                     CInflectionEnumerator ie2(spLexeme2);
@@ -951,14 +951,14 @@ ET_ReturnCode CInflection::eGenerateParadigm()
 
             if (L"п" == stLexemeProperties.sMainSymbol)
             {
-                CFormBuilderShortAdj sfb(m_spLexeme, shared_from_this());
+                CFormBuilderShortAdj sfb(m_pLexeme, this);
                 rc = sfb.eBuild();
                 if (rc != H_NO_ERROR)
                 {
                     return rc;
                 }
 
-                auto spLexeme2 = m_spLexeme->spGetSecondPart();
+                auto spLexeme2 = m_pLexeme->spGetSecondPart();
                 if (spLexeme2)
                 {
                     CInflectionEnumerator ie(spLexeme2);
@@ -977,12 +977,12 @@ ET_ReturnCode CInflection::eGenerateParadigm()
   
                 if (!stLexemeProperties.bNoComparative && !stLexemeProperties.sSourceForm.bEndsWith(L"ийся"))
                 {
-                    CFormBuilderComparative cfb(m_spLexeme, shared_from_this());
+                    CFormBuilderComparative cfb(m_pLexeme, this);
                     rc = cfb.eBuild();
                 }
             }
 
-            if (m_spLexeme->spGetSecondPart())
+            if (m_pLexeme->spGetSecondPart())
             {
                 rc = eAlignInflectedParts();
             }
@@ -992,7 +992,7 @@ ET_ReturnCode CInflection::eGenerateParadigm()
            (L"мс" == stLexemeProperties.sInflectionType && (L"п" == stLexemeProperties.sMainSymbol ||
             L"числ.-п" == stLexemeProperties.sMainSymbol || POS_NOUN == stLexemeProperties.ePartOfSpeech)))
         {
-            CFormBuilderPronounAdj pab (m_spLexeme, shared_from_this(), stLexemeProperties.sGraphicStem, m_stProperties.eAccentType1);
+            CFormBuilderPronounAdj pab (m_pLexeme, this, stLexemeProperties.sGraphicStem, m_stProperties.eAccentType1);
             rc = pab.eBuild();
         }
             
@@ -1008,38 +1008,38 @@ ET_ReturnCode CInflection::eGenerateParadigm()
                 stLexemeProperties.eAspect = ASPECT_PERFECTIVE;
             }
 
-            CFormBuilderPersonal personal(m_spLexeme, shared_from_this());
+            CFormBuilderPersonal personal(m_pLexeme, this);
             rc = personal.eBuild();
             //                if (rc != H_NO_ERROR)
             //                {
             //                    return rc;
             //                }
 
-            CFormBuilderPast past (m_spLexeme, shared_from_this());
+            CFormBuilderPast past (m_pLexeme, this);
             rc = past.eBuild();
 //                if (rc != H_NO_ERROR)
 //                {
 //                    return rc;
 //                }
 
-            CFormBuilderImperative imperative (m_spLexeme, shared_from_this());
+            CFormBuilderImperative imperative (m_pLexeme, this);
             rc = imperative.eBuild();
 //                if (rc != H_NO_ERROR)
 //                {
 //                    return rc;
 //                }
 
-            CFormBuilderNonFinite nonFinite (m_spLexeme, shared_from_this());
+            CFormBuilderNonFinite nonFinite (m_pLexeme, this);
             rc = nonFinite.eBuild();
 
-            if (m_spLexeme->bHasAspectPair())
+            if (m_pLexeme->bHasAspectPair())
             {
-                CFormBuilderAspectPair aspectPair(m_spLexeme, shared_from_this());
+                CFormBuilderAspectPair aspectPair(m_pLexeme, this);
                 rc = aspectPair.eBuild();
                 if (H_NO_ERROR == rc)
                 {
                     rc = aspectPair.eGetAspectPair(m_sAspectPair, m_iAspectPairStressPos);
-                    if (H_NO_ERROR == rc && m_spLexeme->bHasAltAspectPair())
+                    if (H_NO_ERROR == rc && m_pLexeme->bHasAltAspectPair())
                     {
                         rc = aspectPair.eGetAltAspectPair(m_sAltAspectPair, m_iAltAspectPairStressPos);
                     }
@@ -1072,11 +1072,11 @@ ET_ReturnCode CInflection::eGenerateParadigm()
             || POS_PARENTH == stLexemeProperties.ePartOfSpeech || POS_NULL == stLexemeProperties.ePartOfSpeech)
         {
             shared_ptr<CWordForm> spWordForm = make_shared<CWordForm>();
-            spWordForm->m_spInflection = shared_from_this();
+            spWordForm->m_spInflection = this;
             spWordForm->m_ePos = stLexemeProperties.ePartOfSpeech;
             spWordForm->m_sStem = stLexemeProperties.sGraphicStem;
             spWordForm->m_sWordForm = stLexemeProperties.sGraphicStem;
-            spWordForm->m_llLexemeId = m_spLexeme->llLexemeId();
+            spWordForm->m_llLexemeId = m_pLexeme->llLexemeId();
             for (vector<int>::iterator itStress = stLexemeProperties.vecSourceStressPos.begin();
                  itStress != stLexemeProperties.vecSourceStressPos.end(); ++itStress)
             {
@@ -1091,7 +1091,7 @@ ET_ReturnCode CInflection::eGenerateParadigm()
     {
         CEString sMsg(ex.szGetDescription());
         sMsg += L" lexeme = ";
-        sMsg += m_spLexeme->sSourceForm();
+        sMsg += m_pLexeme->sSourceForm();
         return H_EXCEPTION;
     }
     catch (...)
@@ -1180,7 +1180,7 @@ bool CInflection::bHasIrregularForm(CEString sGramHash)
     return (H_NO_ERROR == rc) ? true : false;
 }
 
-ET_ReturnCode CInflection::eGetIrregularForms(CEString sHash, map<shared_ptr<CWordForm>, bool>& mapResult)
+ET_ReturnCode CInflection::eGetIrregularForms(CEString sHash, map<CWordForm*, bool>& mapResult)
 {
     ET_ReturnCode rc = H_NO_ERROR;
 
@@ -1201,7 +1201,7 @@ ET_ReturnCode CInflection::eGetIrregularForms(CEString sHash, map<shared_ptr<CWo
     }
 
     // Fill in data for the first irregular form
-    mapResult[spWf] = bIsOptional;
+    mapResult[spWf.get()] = bIsOptional;
 
     // Continue for other irregular forms for this hash 
     // (which, in all likelyhood do not exist)
@@ -1217,7 +1217,7 @@ ET_ReturnCode CInflection::eGetIrregularForms(CEString sHash, map<shared_ptr<CWo
 
         if (H_NO_ERROR == rc)
         {
-            map<shared_ptr<CWordForm>, bool>::iterator it = mapResult.find(spWf);
+            map<CWordForm*, bool>::iterator it = mapResult.find(spWf.get());
             if (it != mapResult.end())
             {
                 assert(0);
@@ -1225,7 +1225,7 @@ ET_ReturnCode CInflection::eGetIrregularForms(CEString sHash, map<shared_ptr<CWo
                 return H_ERROR_UNEXPECTED;
             }
 
-            mapResult[spWf] = bIsOptional;
+            mapResult[spWf.get()] = bIsOptional;
         }
 
     } while (H_NO_ERROR == rc);
@@ -1471,7 +1471,7 @@ ET_ReturnCode CInflection::eIsFormDifficult(const CEString& sFH)
     sFormHash.SetBreakChars(L"_");
 
     if ((m_stProperties.bShortFormsRestricted && sFormHash.uiNFields() > 0) ||      // pometa "x"
-        7 == m_spLexeme->stGetProperties().iSection)
+        7 == m_pLexeme->stGetProperties().iSection)
     {
         if (sFormHash.sGetField(0).bStartsWith(L"AdjS"))
         {
@@ -1499,7 +1499,7 @@ ET_ReturnCode CInflection::eIsFormDifficult(const CEString& sFH)
         }
     }
 
-    if (!m_spLexeme->stGetProperties().bHasDifficultForms)
+    if (!m_pLexeme->stGetProperties().bHasDifficultForms)
     {
         return H_FALSE;
     }
@@ -1597,7 +1597,7 @@ ET_ReturnCode CInflection::eIsFormAssumed(const CEString& sFH)
     auto& sFormHash = const_cast<CEString&> (sFH);
     sFormHash.SetBreakChars(L"_");
 
-    if (m_spLexeme->stGetProperties().bAssumedForms)
+    if (m_pLexeme->stGetProperties().bAssumedForms)
     {
         if (L"Noun" == sFormHash.sGetField(0) && L"Pl" == sFormHash.sGetField(1))
         {
@@ -1616,7 +1616,7 @@ ET_ReturnCode CInflection::eIsFormAssumed(const CEString& sFH)
 
 ET_ReturnCode CInflection::eSetHasAssumedForms(bool bIsAssumed)
 {
-    m_spLexeme->stGetPropertiesForWriteAccess().bAssumedForms = bIsAssumed;
+    m_pLexeme->stGetPropertiesForWriteAccess().bAssumedForms = bIsAssumed;
     return H_NO_ERROR;
 }
 
@@ -1626,12 +1626,12 @@ ET_ReturnCode CInflection::eSetHasAssumedForms(bool bIsAssumed)
 //
 bool CInflection::bIsMultistressedCompound()
 {
-    if (m_spLexeme->stGetProperties().vecSourceStressPos.size() < 2)
+    if (m_pLexeme->stGetProperties().vecSourceStressPos.size() < 2)
     {
         return false;
     }
 
-    unsigned int uiDashPos = m_spLexeme->stGetProperties().sGraphicStem.uiFind(L"-");
+    unsigned int uiDashPos = m_pLexeme->stGetProperties().sGraphicStem.uiFind(L"-");
     if (ecNotFound == uiDashPos || uiDashPos < 1)
     {
         return false;
@@ -1639,17 +1639,17 @@ bool CInflection::bIsMultistressedCompound()
 
     // find any two that are separated by dash
     try {
-        auto itLeft = m_spLexeme->stGetProperties().vecSourceStressPos.begin();
-        unsigned int uiLeftVowelPos = m_spLexeme->stGetProperties().sGraphicStem.uiGetVowelPos(*itLeft);
+        auto itLeft = m_pLexeme->stGetProperties().vecSourceStressPos.begin();
+        unsigned int uiLeftVowelPos = m_pLexeme->stGetProperties().sGraphicStem.uiGetVowelPos(*itLeft);
         if (uiLeftVowelPos > uiDashPos)
         {
             return false;
         }
 
         auto itRight = itLeft + 1;
-        for (; itRight != m_spLexeme->stGetProperties().vecSourceStressPos.end(); ++itRight)
+        for (; itRight != m_pLexeme->stGetProperties().vecSourceStressPos.end(); ++itRight)
         {
-            if (m_spLexeme->stGetProperties().sGraphicStem.uiGetVowelPos(*itRight) > uiDashPos)
+            if (m_pLexeme->stGetProperties().sGraphicStem.uiGetVowelPos(*itRight) > uiDashPos)
             {
                 return true;
             }
@@ -1668,14 +1668,14 @@ bool CInflection::bIsMultistressedCompound()
 
 ET_ReturnCode CInflection::eCreateWordForm(shared_ptr<CWordForm>& spWf)
 {
-    spWf = make_shared<CWordForm>(shared_from_this());
-    spWf->m_spInflection = shared_from_this();
-    spWf->m_llLexemeId = m_spLexeme->stGetProperties().llDescriptorId;
+    spWf = make_shared<CWordForm>(this);
+    spWf->m_spInflection = this;
+    spWf->m_llLexemeId = m_pLexeme->stGetProperties().llDescriptorId;
 
     return H_NO_ERROR;
 }
 
-ET_ReturnCode CInflection::eWordFormFromHash(CEString sHash, int iAt, shared_ptr<CWordForm>& spWf)
+ET_ReturnCode CInflection::eWordFormFromHash(CEString sHash, int iAt, CWordForm*& spWf)
 {
     pair<multimap<CEString, shared_ptr<CWordForm>>::iterator, multimap<CEString, shared_ptr<CWordForm>>::iterator> pairRange;
     pairRange = m_mmWordForms.equal_range(sHash);
@@ -1700,7 +1700,7 @@ ET_ReturnCode CInflection::eWordFormFromHash(CEString sHash, int iAt, shared_ptr
         return H_ERROR_INVALID_ARG;
     }
 
-    spWf = itWf->second;
+    spWf = itWf->second.get();
 
     return H_NO_ERROR;
 
@@ -1763,12 +1763,12 @@ ET_ReturnCode CInflection::eSaveIrregularForms(long long llDescriptorDbKey)
 {
     ET_ReturnCode rc = H_NO_ERROR;
 
-    if (! m_spLexeme->stGetProperties().bHasIrregularForms)
+    if (! m_pLexeme->stGetProperties().bHasIrregularForms)
     {
         return H_FALSE;
     }
 
-    auto spDb = m_spLexeme->spGetDb();
+    auto spDb = m_pLexeme->spGetDb();
     if (nullptr == spDb)
     {
         return H_ERROR_POINTER;
@@ -1855,12 +1855,12 @@ ET_ReturnCode CInflection::eDeleteIrregularForm(const CEString& sFormHash)
         try
         {
             CEString sSelectIrregularForms(L"SELECT id FROM irregular_forms WHERE descriptor_id=\"");
-            sSelectIrregularForms += CEString::sToString(m_spLexeme->stGetProperties().llDescriptorId);
+            sSelectIrregularForms += CEString::sToString(m_pLexeme->stGetProperties().llDescriptorId);
             sSelectIrregularForms += L"\" AND gram_hash = \"";
             sSelectIrregularForms += sFormHash;
             sSelectIrregularForms += L"\"";
 
-            spDbHandle = m_spLexeme->spGetDb();
+            spDbHandle = m_pLexeme->spGetDb();
             spDbHandle->PrepareForSelect(sSelectIrregularForms);
             int64_t iDbKey = 0;
             while (spDbHandle->bGetRow())
@@ -1907,11 +1907,11 @@ ET_ReturnCode CInflection::eDeleteIrregularForm(const CEString& sFormHash)
 
     if (m_mmapIrregularForms.empty())
     {
-        m_spLexeme->stGetPropertiesForWriteAccess().bHasIrregularForms = false;
+        m_pLexeme->stGetPropertiesForWriteAccess().bHasIrregularForms = false;
         try
         {
             vector<CEString> vecColumns = { L"has_irregular_forms" };
-            spDbHandle->PrepareForUpdate(L"descriptor", vecColumns, m_spLexeme->stGetProperties().llDescriptorId);
+            spDbHandle->PrepareForUpdate(L"descriptor", vecColumns, m_pLexeme->stGetProperties().llDescriptorId);
             spDbHandle->Bind(1, false);
 
             spDbHandle->UpdateRow();
@@ -1946,12 +1946,12 @@ ET_ReturnCode CInflection::eDeleteIrregularForm(const CEString& sFormHash)
 ET_ReturnCode CInflection::eSaveIrregularForm(const CEString& sFormHash, shared_ptr<CWordForm>& spWordForm)
 {
     CEString sSelectIrregularForms(L"SELECT id FROM irregular_forms WHERE descriptor_id=\"");
-    sSelectIrregularForms += CEString::sToString(m_spLexeme->stGetProperties().llDescriptorId);
+    sSelectIrregularForms += CEString::sToString(m_pLexeme->stGetProperties().llDescriptorId);
     sSelectIrregularForms += L"\" AND gram_hash = \"";
     sSelectIrregularForms += sFormHash;
     sSelectIrregularForms += L"\"";
 
-    auto spDbHandle = m_spLexeme->spGetDb();
+    auto spDbHandle = m_pLexeme->spGetDb();
     CEString sLeadComment;
     CEString sTrailingComment;
 
@@ -1959,7 +1959,7 @@ ET_ReturnCode CInflection::eSaveIrregularForm(const CEString& sFormHash, shared_
     {
         bool bIgnoreOnConflict = true;
         spDbHandle->PrepareForInsert(L"irregular_forms", 7, bIgnoreOnConflict);
-        spDbHandle->Bind(1, (int64_t)m_spLexeme->stGetProperties().llDescriptorId);
+        spDbHandle->Bind(1, (int64_t)m_pLexeme->stGetProperties().llDescriptorId);
         spDbHandle->Bind(2, sFormHash);
         spDbHandle->Bind(3, spWordForm->sWordForm());
         spDbHandle->Bind(4, spWordForm->bIsVariant());
@@ -2022,7 +2022,7 @@ ET_ReturnCode CInflection::eSaveIrregularForm(const CEString& sFormHash, shared_
     try
     {
         vector<CEString> vecColumns = { L"has_irregular_forms", L"is_edited" };
-        spDbHandle->PrepareForUpdate(L"descriptor", vecColumns, m_spLexeme->stGetProperties().llDescriptorId);
+        spDbHandle->PrepareForUpdate(L"descriptor", vecColumns, m_pLexeme->stGetProperties().llDescriptorId);
         spDbHandle->Bind(1, true);
         spDbHandle->Bind(2, true);
 
@@ -2058,7 +2058,7 @@ ET_ReturnCode CInflection::eSaveIrregularForms(const CEString& sGramHash)
 {
     ET_ReturnCode rc = H_NO_ERROR;
 
-    auto spDb = m_spLexeme->spGetDb();
+    auto spDb = m_pLexeme->spGetDb();
     if (nullptr == spDb)
     {
         return H_ERROR_POINTER;
@@ -2069,13 +2069,13 @@ ET_ReturnCode CInflection::eSaveIrregularForms(const CEString& sGramHash)
         //        pDb->BeginTransaction();
 
         CEString sStressDelQuery(L"DELETE FROM irregular_stress WHERE form_id IN (SELECT id FROM irregular_forms WHERE descriptor_id = ");
-        sStressDelQuery += CEString::sToString(m_spLexeme->stGetProperties().llDescriptorId);
+        sStressDelQuery += CEString::sToString(m_pLexeme->stGetProperties().llDescriptorId);
         sStressDelQuery += L" AND gram_hash = '";
         sStressDelQuery += sGramHash + L"')";
         spDb->Delete(sStressDelQuery);
 
         CEString sDelQuery(L"DELETE FROM irregular_forms WHERE descriptor_id = ");
-        sDelQuery += CEString::sToString(m_spLexeme->stGetProperties().llDescriptorId);
+        sDelQuery += CEString::sToString(m_pLexeme->stGetProperties().llDescriptorId);
         sDelQuery += L" AND gram_hash = '";
         sDelQuery += sGramHash + L"'";
         spDb->Delete(sDelQuery);
@@ -2087,7 +2087,7 @@ ET_ReturnCode CInflection::eSaveIrregularForms(const CEString& sGramHash)
         auto pairFormsForHash = m_mmapIrregularForms.equal_range(sGramHash);
         for (auto& it = pairFormsForHash.first; it != pairFormsForHash.second; ++it)
         {
-            spDb->Bind(1, (int64_t)m_spLexeme->stGetProperties().llDescriptorId, llFormInsertHandle);
+            spDb->Bind(1, (int64_t)m_pLexeme->stGetProperties().llDescriptorId, llFormInsertHandle);
             spDb->Bind(2, sGramHash, llFormInsertHandle);
             spDb->Bind(3, it->second.spWordForm->m_sWordForm, llFormInsertHandle);
             spDb->Bind(4, it->second.bIsOptional, llFormInsertHandle);
@@ -2115,9 +2115,9 @@ ET_ReturnCode CInflection::eSaveIrregularForms(const CEString& sGramHash)
         }
         spDb->Finalize(llFormInsertHandle);
 
-        m_spLexeme->stGetPropertiesForWriteAccess().bHasIrregularForms = true;
+        m_pLexeme->stGetPropertiesForWriteAccess().bHasIrregularForms = true;
         vector<CEString> vecColumns = { L"has_irregular_forms", L"is_edited" };
-        spDb->PrepareForUpdate(L"descriptor", vecColumns, m_spLexeme->stGetProperties().llDescriptorId);
+        spDb->PrepareForUpdate(L"descriptor", vecColumns, m_pLexeme->stGetProperties().llDescriptorId);
         spDb->Bind(1, true);
         spDb->Bind(2, true);
 
@@ -2214,7 +2214,7 @@ ET_ReturnCode CInflection::eAssignStemIds()
 
             try
             {
-                auto spDbHandle = m_spLexeme->spGetDb();
+                auto spDbHandle = m_pLexeme->spGetDb();
                 spDbHandle->PrepareForSelect(sQuery);
                 if (spDbHandle->bGetRow())
                 {
@@ -2227,7 +2227,7 @@ ET_ReturnCode CInflection::eAssignStemIds()
                     CEString sMsg(L"Unable to find stem id for \"");
                     sMsg += (*itWf).second->m_sStem;
                     sMsg += L"\"; lexeme = ";
-                    ERROR_LOG(sMsg += m_spLexeme->stGetProperties().sSourceForm);
+                    ERROR_LOG(sMsg += m_pLexeme->stGetProperties().sSourceForm);
                 }
                 spDbHandle->Finalize();
             }
@@ -2306,7 +2306,7 @@ ET_ReturnCode CInflection::eSaveIrregularFormsToDb()
 
 CEString CInflection::sHash()
 {
-    auto stLexemeProperties = m_spLexeme->stGetProperties();
+    auto stLexemeProperties = m_pLexeme->stGetProperties();
     CEString sSource(stLexemeProperties.sSourceForm);
     vector<int>::iterator itHomonym = stLexemeProperties.vecHomonyms.begin();
     for (; itHomonym != stLexemeProperties.vecHomonyms.end(); ++itHomonym)
@@ -2356,30 +2356,30 @@ CEString CInflection::sHash()
 
 CEString CInflection::sParadigmHash()
 {
-    CEString sSource(m_spLexeme->stGetProperties().sSourceForm);
-    auto itHomonym = m_spLexeme->stGetProperties().vecHomonyms.begin();
-    for (; itHomonym != m_spLexeme->stGetProperties().vecHomonyms.end(); ++itHomonym)
+    CEString sSource(m_pLexeme->stGetProperties().sSourceForm);
+    auto itHomonym = m_pLexeme->stGetProperties().vecHomonyms.begin();
+    for (; itHomonym != m_pLexeme->stGetProperties().vecHomonyms.end(); ++itHomonym)
     {
         sSource += CEString::sToString(*itHomonym);
     }
 
-    auto itStress = m_spLexeme->stGetProperties().vecSourceStressPos.begin();
-    for (; itStress != m_spLexeme->stGetProperties().vecSourceStressPos.end(); ++itStress)
+    auto itStress = m_pLexeme->stGetProperties().vecSourceStressPos.begin();
+    for (; itStress != m_pLexeme->stGetProperties().vecSourceStressPos.end(); ++itStress)
     {
         auto iPos = *itStress;
         sSource += 32 + iPos;
     }
 
-    itStress = m_spLexeme->stGetProperties().vecSecondaryStressPos.begin();
-    for (; itStress != m_spLexeme->stGetProperties().vecSecondaryStressPos.end(); ++itStress)
+    itStress = m_pLexeme->stGetProperties().vecSecondaryStressPos.begin();
+    for (; itStress != m_pLexeme->stGetProperties().vecSecondaryStressPos.end(); ++itStress)
     {
         auto iPos = *itStress;
         sSource += 32 + iPos;
     }
 
-    sSource += m_spLexeme->stGetProperties().sMainSymbol;
-    sSource += m_spLexeme->stGetProperties().sInflectionType;
-    sSource += m_spLexeme->stGetProperties().sAltMainSymbol;
+    sSource += m_pLexeme->stGetProperties().sMainSymbol;
+    sSource += m_pLexeme->stGetProperties().sInflectionType;
+    sSource += m_pLexeme->stGetProperties().sAltMainSymbol;
     sSource += 32 + m_stProperties.iType;
     sSource += 32 + m_stProperties.eAccentType1;
     sSource += 32 + m_stProperties.eAccentType2;
@@ -2390,18 +2390,18 @@ CEString CInflection::sParadigmHash()
     //        sSource += charIsSecondPart;
     //    }
 
-    sSource += m_spLexeme->stGetProperties().sHeadwordComment;
-    sSource += m_spLexeme->stGetProperties().sComment;
-    sSource += m_spLexeme->stGetProperties().sTrailingComment;
+    sSource += m_pLexeme->stGetProperties().sHeadwordComment;
+    sSource += m_pLexeme->stGetProperties().sComment;
+    sSource += m_pLexeme->stGetProperties().sTrailingComment;
 
     sSource += m_stProperties.bFleetingVowel ? '1' : '0';
-    sSource += m_spLexeme->stGetProperties().bNoComparative ? '1' : '0';
-    sSource += m_spLexeme->stGetProperties().bNoLongForms ? '1' : '0';
-    sSource += m_spLexeme->stGetProperties().bYoAlternation ? '1' : '0';
-    sSource += m_spLexeme->stGetProperties().bOAlternation ? '1' : '0';
-    sSource += 32 + m_spLexeme->stGetProperties().ePartOfSpeech;
-    sSource += m_spLexeme->stGetProperties().bPartPastPassZhd ? '1' : '0';
-    sSource += 32 + m_spLexeme->stGetProperties().iSection;
+    sSource += m_pLexeme->stGetProperties().bNoComparative ? '1' : '0';
+    sSource += m_pLexeme->stGetProperties().bNoLongForms ? '1' : '0';
+    sSource += m_pLexeme->stGetProperties().bYoAlternation ? '1' : '0';
+    sSource += m_pLexeme->stGetProperties().bOAlternation ? '1' : '0';
+    sSource += 32 + m_pLexeme->stGetProperties().ePartOfSpeech;
+    sSource += m_pLexeme->stGetProperties().bPartPastPassZhd ? '1' : '0';
+    sSource += 32 + m_pLexeme->stGetProperties().iSection;
     sSource += 32 + m_stProperties.iStemAugment;
     for (auto& pairCd : m_stProperties.mapCommonDeviations)
     {
@@ -2428,7 +2428,7 @@ ET_ReturnCode CInflection::eSaveTestData()
     }
 
     shared_ptr<CSqlite> spDbHandle;
-    spDbHandle = m_spLexeme->spGetDb();
+    spDbHandle = m_pLexeme->spGetDb();
 
     spDbHandle->BeginTransaction();
 
@@ -2491,15 +2491,15 @@ ET_ReturnCode CInflection::eSaveTestData()
 
     try
     {
-        spDbHandle = m_spLexeme->spGetDb();
+        spDbHandle = m_pLexeme->spGetDb();
 
         CEString sDeleteQuery(L"DELETE FROM lexeme_hash_to_descriptor WHERE descriptor_id = ");
-        sDeleteQuery += CEString::sToString(m_spLexeme->stGetProperties().llDescriptorId);
+        sDeleteQuery += CEString::sToString(m_pLexeme->stGetProperties().llDescriptorId);
         spDbHandle->Exec(sDeleteQuery);
 
         spDbHandle->PrepareForInsert(L"lexeme_hash_to_descriptor", 3);
         spDbHandle->Bind(1, sHash());
-        spDbHandle->Bind(2, (int64_t)m_spLexeme->stGetProperties().llDescriptorId);
+        spDbHandle->Bind(2, (int64_t)m_pLexeme->stGetProperties().llDescriptorId);
         spDbHandle->Bind(3, (int64_t)m_stProperties.llInflectionId);
         spDbHandle->InsertRow();
         spDbHandle->Finalize();
@@ -2523,7 +2523,7 @@ ET_ReturnCode CInflection::eSaveTestData()
         ERROR_LOG(sMsg);
     }
 
-    if (m_spLexeme->bHasAspectPair())
+    if (m_pLexeme->bHasAspectPair())
     {
         CEString sAspectPairHash(L"AspectPair");
 
@@ -2543,7 +2543,7 @@ ET_ReturnCode CInflection::eSaveTestData()
         spDbHandle->InsertRow();
         spDbHandle->Finalize();
 
-        if (m_spLexeme->bHasAltAspectPair())
+        if (m_pLexeme->bHasAltAspectPair())
         {
             CEString sAltAspectPairHash(L"AltAspectPair");
 
@@ -2573,7 +2573,7 @@ ET_ReturnCode CInflection::eSaveTestData()
 
 ET_ReturnCode CInflection::eAlignInflectedParts()
 {
-    auto spLexeme2 = m_spLexeme->spGetSecondPart();
+    auto spLexeme2 = m_pLexeme->spGetSecondPart();
     if (!spLexeme2)
     {
         ERROR_LOG(L"No second part.");
@@ -2588,7 +2588,7 @@ ET_ReturnCode CInflection::eAlignInflectedParts()
     if (rc != H_NO_ERROR || nullptr == spInflection2)
     {
         CEString sMsg(L"Unable to read inflection data for ");
-        sMsg += m_spLexeme->sSourceForm();
+        sMsg += m_pLexeme->sSourceForm();
         ERROR_LOG(sMsg);
         return H_ERROR_UNEXPECTED;
     }

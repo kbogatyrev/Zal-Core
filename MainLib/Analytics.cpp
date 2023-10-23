@@ -36,7 +36,7 @@ ET_ReturnCode CAnalytics::eInit()
     return H_NO_ERROR;
 }
 
-ET_ReturnCode CAnalytics::eParseText(const CEString& sTextName, const CEString& sMetadata, const CEString& sText, long long& llParsedTextId, bool bIsProse)
+ET_ReturnCode CAnalytics::eParseText(const CEString& sTextName, const CEString& sMetadata, const CEString& sText, [[maybe_unused]]long long llFirstLineNum, bool bIsProse)
 {
     ET_ReturnCode eRet = H_NO_ERROR;
 
@@ -165,12 +165,17 @@ ET_ReturnCode CAnalytics::eParseText(const CEString& sTextName, const CEString& 
             {
                 m_mmapLinePosToHomophones.insert(make_pair(iField, setInvariants));
             }
+
+//            m_spParser->ClearResults();
+
         }       // for (int iField ...)
 
         m_vecTactGroupListHeads.clear();        // TODO -- verify that it is empty first?
 
         auto spCurrentTactGroup = make_shared<StTactGroup>();
         eRet = eAddParsesToTactGroup(iLine, 0, spCurrentTactGroup);
+
+        spCurrentTactGroup->iNumOfSyllables = spCurrentTactGroup->sSource.uiNSyllables();
 
         for (auto spTg : m_vecTactGroupListHeads) {
             eSaveLineParses(spTg);
@@ -179,9 +184,9 @@ ET_ReturnCode CAnalytics::eParseText(const CEString& sTextName, const CEString& 
 
     m_spDb->CommitTransaction();
 
-    m_spParser->ClearResults();
+//    m_spParser->ClearResults();
 
-    llParsedTextId = m_llTextDbId;
+//    llParsedTextId = m_llTextDbId;
 
     return H_NO_ERROR;
 
@@ -437,7 +442,7 @@ ET_ReturnCode CAnalytics::eParseWord(const CEString& sWord,
         stParse.llWordInLineDbId = llWordInLineDbKey;
         stParse.llWordToWordFormId = llWordToWordFormId;
 //        stParse.iPosInTactGroup = 0;
-        stParse.WordForm = *spWf;
+        stParse.spWordForm = spWf;
 //        m_mmapLinePosToParses.insert(make_pair(iNumInLine, stParse));
 
         vecParses.push_back(make_shared<StWordParse>(stParse));
@@ -445,6 +450,8 @@ ET_ReturnCode CAnalytics::eParseWord(const CEString& sWord,
         eRet = m_spParser->eGetNextWordForm(spWf);
     
     }       //  while...
+
+    m_spParser->ClearResults();
 
     return H_NO_ERROR;
 
@@ -472,7 +479,7 @@ ET_ReturnCode CAnalytics::eFindEquivalencies(const vector<shared_ptr<StWordParse
                 return H_ERROR_UNEXPECTED;
             }
             auto pstRhs = *(setInvariants.begin());
-            if (bArePhoneticallyIdentical(pstParse->WordForm, pstRhs->WordForm))
+            if (bArePhoneticallyIdentical(pstParse->spWordForm, pstRhs->spWordForm))
             {
                 bIsHomophone = true;
                 setInvariants.insert(pstParse);
@@ -497,6 +504,8 @@ ET_ReturnCode CAnalytics::eGetStress(shared_ptr<StTactGroup> pTg)
     vector<int> vecPrimary;
     vector<int> vecSecondary;
 
+    pTg->iNumOfSyllables = pTg->sSource.uiNSyllables();
+
     for (int iWord = pTg->iFirstWordNum, iCount = 0; iCount < pTg->iNumOfWords; ++iWord, ++iCount)
     {
         if (pTg->iNumOfWords < (int)pTg->m_vecParses.size())
@@ -505,13 +514,13 @@ ET_ReturnCode CAnalytics::eGetStress(shared_ptr<StTactGroup> pTg)
             return H_ERROR_UNEXPECTED;
         }
 
-        auto& setInvariants = pTg->m_vecParses[iWord];
+        auto& setInvariants = pTg->m_vecParses[iCount];
         auto pParse = *setInvariants.begin();      // we can use any of the words
         if (WORD_STRESS_TYPE_AUTONOMOUS == pParse->eStressType)
         {
             int iPos = -1;
             ET_StressType eType = STRESS_TYPE_UNDEFINED;
-            eRet = const_cast<CWordForm&>(pParse->WordForm).eGetFirstStressPos(iPos, eType);
+            eRet = pParse->spWordForm->eGetFirstStressPos(iPos, eType);
             if (H_NO_ERROR == eRet)     //  NB: H_NO_MORE is the same as H_FALSE
             {
                 if (STRESS_PRIMARY == eType)
@@ -531,7 +540,7 @@ ET_ReturnCode CAnalytics::eGetStress(shared_ptr<StTactGroup> pTg)
             // Very unlikely:
             while (H_NO_ERROR == eRet)
             {
-                eRet = const_cast<CWordForm&>(pParse->WordForm).eGetNextStressPos(iPos, eType);
+                eRet = pParse->spWordForm->eGetNextStressPos(iPos, eType);
                 if (H_NO_ERROR == eRet)     //  NB: H_NO_MORE is the same as H_FALSE
                 {
                     if (STRESS_PRIMARY == eType)
@@ -557,7 +566,7 @@ ET_ReturnCode CAnalytics::eGetStress(shared_ptr<StTactGroup> pTg)
             if (vecPrimary.size() == 1)
             {
                 auto iStressedCharPosInWord = *vecPrimary.begin();
-                CEString sWord = pParse->WordForm.sWordForm();
+                CEString sWord = pParse->spWordForm->sWordForm();
 
                 try
                 {
@@ -573,7 +582,7 @@ ET_ReturnCode CAnalytics::eGetStress(shared_ptr<StTactGroup> pTg)
                 {
                     auto& setParses = pTg->m_vecParses[iWord];
                     auto pWpProclitic = *setParses.begin();      // we can use any of the words
-                    pTg->iStressedSyllable += pWpProclitic->WordForm.sWordForm().uiNSyllables();
+                    pTg->iStressedSyllable += pWpProclitic->spWordForm->sWordForm().uiNSyllables();
                 }
 
                 eRet = H_NO_ERROR;
@@ -587,7 +596,7 @@ ET_ReturnCode CAnalytics::eGetStress(shared_ptr<StTactGroup> pTg)
         if (vecSecondary.size() == 1)
         {
             auto iSecondaryStressedCharPosInWord = *vecSecondary.begin();
-            CEString sWord = pParse->WordForm.sWordForm();
+            CEString sWord = pParse->spWordForm->sWordForm();
 
             try
             {
@@ -605,13 +614,13 @@ ET_ReturnCode CAnalytics::eGetStress(shared_ptr<StTactGroup> pTg)
             {
                 auto& setParses = pTg->m_vecParses[iWord];
                 auto pWpProclitic = *setParses.begin();      // we can use any of the words
-                pTg->iStressedSyllable += pWpProclitic->WordForm.sWordForm().uiNSyllables();
+                pTg->iStressedSyllable += pWpProclitic->spWordForm->sWordForm().uiNSyllables();
             }
             for (auto iProclitic = pTg->iFirstWordNum; iProclitic < iWord; ++iProclitic)
             {
                 auto& setParses = pTg->m_vecParses[iWord];
                 auto pWpProclitic = *setParses.begin();      // we can use any of the words
-                pTg->iSecondaryStressedSyllable += pWpProclitic->WordForm.sWordForm().uiNSyllables();
+                pTg->iSecondaryStressedSyllable += pWpProclitic->spWordForm->sWordForm().uiNSyllables();
             }
 
             eRet = H_NO_ERROR;
@@ -703,7 +712,22 @@ ET_ReturnCode CAnalytics::eSaveLineDescriptor(int iLineNum, int iTextOffset, int
 
 ET_ReturnCode CAnalytics::eSaveLineParses(shared_ptr<StTactGroup> spTactGroup)
 {
-    auto rc = eSaveTactGroup(spTactGroup);
+    if (spTactGroup->sSource.bIsEmpty())
+    {
+        ERROR_LOG(L"Empty tact group.");
+        return H_ERROR_UNEXPECTED;
+    }
+
+    auto rc = eGetStress(spTactGroup);
+    if (rc != H_NO_ERROR && rc != H_FALSE && rc != H_NO_ERROR)
+    {
+        ERROR_LOG(L"Unable to retrieve stress data.");
+        return H_ERROR_UNEXPECTED;
+    }
+
+    rc = eTranscribe(spTactGroup);
+
+    rc = eSaveTactGroup(spTactGroup);
     if (rc != H_NO_ERROR)
     {
         return rc;
@@ -859,17 +883,17 @@ ET_WordStressType CAnalytics::eGetStressType(CWordForm& wordForm)
     return ET_WordStressType::WORD_STRESS_TYPE_UNDEFINED;
 }
 
-bool CAnalytics::bArePhoneticallyIdentical(CWordForm& wf1, CWordForm& wf2)
+bool CAnalytics::bArePhoneticallyIdentical(shared_ptr<CWordForm> spWf1, shared_ptr<CWordForm> spWf2)
 {
-    if (wf1.sWordForm() != wf2.sWordForm())
+    if (spWf1->sWordForm() != spWf2->sWordForm())
     {
         return false;
     }
 
     int iStressPos1, iStressPos2 = -1;
     ET_StressType eStressType1, eStressType2 = STRESS_TYPE_UNDEFINED;
-    auto eRet1 = wf1.eGetFirstStressPos(iStressPos1, eStressType1);
-    auto eRet2 = wf2.eGetFirstStressPos(iStressPos2, eStressType2);
+    auto eRet1 = spWf1->eGetFirstStressPos(iStressPos1, eStressType1);
+    auto eRet2 = spWf2->eGetFirstStressPos(iStressPos2, eStressType2);
     if (H_FALSE == eRet1 && H_FALSE == eRet2)       //  both are unstressed
     {
         return true;
@@ -878,7 +902,7 @@ bool CAnalytics::bArePhoneticallyIdentical(CWordForm& wf1, CWordForm& wf2)
     if (eRet1 != H_NO_ERROR && eRet1 != H_FALSE)
     {
         CEString sMsg(L"Error getting 1st stress position, words: ");
-        sMsg += wf1.sWordForm();
+        sMsg += spWf1->sWordForm();
         ERROR_LOG(sMsg);
         return false;
     }
@@ -886,7 +910,7 @@ bool CAnalytics::bArePhoneticallyIdentical(CWordForm& wf1, CWordForm& wf2)
     if (eRet2 != H_NO_ERROR && eRet2 != H_FALSE)
     {
         CEString sMsg(L"Error getting 2nd stress position, words: ");
-        sMsg += wf2.sWordForm();
+        sMsg += spWf2->sWordForm();
         ERROR_LOG(sMsg);
         return false;
     }
@@ -898,8 +922,8 @@ bool CAnalytics::bArePhoneticallyIdentical(CWordForm& wf1, CWordForm& wf2)
 
     for (int iCount = 0; iCount < 5; ++iCount)
     {
-        eRet1 = wf1.eGetNextStressPos(iStressPos1, eStressType1);
-        eRet2 = wf2.eGetNextStressPos(iStressPos2, eStressType2);
+        eRet1 = spWf1->eGetNextStressPos(iStressPos1, eStressType1);
+        eRet2 = spWf2->eGetNextStressPos(iStressPos2, eStressType2);
 
         //  This is the most common scenario
         if (H_NO_MORE == eRet1 && H_NO_MORE == eRet2)
@@ -910,8 +934,8 @@ bool CAnalytics::bArePhoneticallyIdentical(CWordForm& wf1, CWordForm& wf2)
         if ((eRet1 != H_NO_ERROR && eRet1 != H_NO_MORE) || (eRet2 != H_NO_ERROR && eRet2 != H_NO_MORE))
         {
             CEString sMsg(L"Error getting 1st stress position: '");
-            sMsg += wf1.sWordForm() + L"', '";
-            sMsg += wf2.sWordForm() + L"'.";
+            sMsg += spWf1->sWordForm() + L"', '";
+            sMsg += spWf2->sWordForm() + L"'.";
             ERROR_LOG(sMsg);
             return false;
         }
@@ -1005,26 +1029,26 @@ ET_ReturnCode CAnalytics::eAddParsesToTactGroup(int iLine, int iPos, shared_ptr<
                 ERROR_LOG(sMsg);
                 continue;
             }
-            spCurrentTactGroup->AddWord(itInvariantSet->second, spWordParse->WordForm.sWordForm());
+            spCurrentTactGroup->AddWord(itInvariantSet->second, spWordParse->spWordForm->sWordForm());
             break;
 
         case ET_WordStressType::WORD_STRESS_TYPE_PROCLITIC:     // may be first in tg or follow another proclitic
             if (spCurrentTactGroup->iNumOfWords < 1)
             {   // First word in TG
-                spCurrentTactGroup->AddWord(itInvariantSet->second, spWordParse->WordForm.sWordForm());
+                spCurrentTactGroup->AddWord(itInvariantSet->second, spWordParse->spWordForm->sWordForm());
             }
             else
             {
                 auto spLastParse = *spCurrentTactGroup->m_vecParses.back().begin();  // nevermind, just take the first 
                 if (spLastParse->eStressType == ET_WordStressType::WORD_STRESS_TYPE_PROCLITIC)
                 {
-                    spCurrentTactGroup->AddWord(itInvariantSet->second, spWordParse->WordForm.sWordForm());
+                    spCurrentTactGroup->AddWord(itInvariantSet->second, spWordParse->spWordForm->sWordForm());
                 }
                 else
                 {   // Current word is proclitic preceded by anything other than a proclitic: start a new tact group
                     shared_ptr<StTactGroup> spNextTactGroup = make_shared<StTactGroup>();
                     spNextTactGroup->iFirstWordNum = iPos;
-                    spNextTactGroup->AddWord(itInvariantSet->second, spWordParse->WordForm.sWordForm());
+                    spNextTactGroup->AddWord(itInvariantSet->second, spWordParse->spWordForm->sWordForm());
                     spCurrentTactGroup->m_vecNext.push_back(spNextTactGroup);
                     spCurrentTactGroup = spNextTactGroup;
                 }
@@ -1037,20 +1061,20 @@ ET_ReturnCode CAnalytics::eAddParsesToTactGroup(int iLine, int iPos, shared_ptr<
         case ET_WordStressType::WORD_STRESS_TYPE_AUTONOMOUS:
             if (spCurrentTactGroup->iNumOfWords < 1)
             {   // First word in TG
-                spCurrentTactGroup->AddWord(itInvariantSet->second, spWordParse->WordForm.sWordForm());
+                spCurrentTactGroup->AddWord(itInvariantSet->second, spWordParse->spWordForm->sWordForm());
             }
             else
             {
                 auto spLastParse = *spCurrentTactGroup->m_vecParses.back().begin();  // nevermind, just take the first 
                 if (spLastParse->eStressType == ET_WordStressType::WORD_STRESS_TYPE_PROCLITIC)
                 {
-                    spCurrentTactGroup->AddWord(itInvariantSet->second, spWordParse->WordForm.sWordForm());
+                    spCurrentTactGroup->AddWord(itInvariantSet->second, spWordParse->spWordForm->sWordForm());
                 }
                 else
                 {   // Current word is autonomous preceded by anything other than a proclitic: start a new tact group
                     shared_ptr<StTactGroup> spNextTactGroup = make_shared<StTactGroup>();
                     spNextTactGroup->iFirstWordNum = iPos;
-                    spNextTactGroup->AddWord(itInvariantSet->second, spWordParse->WordForm.sWordForm());
+                    spNextTactGroup->AddWord(itInvariantSet->second, spWordParse->spWordForm->sWordForm());
                     spCurrentTactGroup->m_vecNext.push_back(spNextTactGroup);
                     spCurrentTactGroup = spNextTactGroup;
                 }

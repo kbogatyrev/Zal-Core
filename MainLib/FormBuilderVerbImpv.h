@@ -17,8 +17,8 @@ namespace Hlib
 class CFormBuilderImperative : public CFormBuilderConj
 {
 public:
-    CFormBuilderImperative (shared_ptr<CLexeme> spLexeme, shared_ptr<CInflection> spInflection) : 
-        CFormBuilderConj (spLexeme, spInflection, SUBPARADIGM_IMPERATIVE), m_bIrregularFormsOptional(false)
+    CFormBuilderImperative (CLexeme* pLexeme, CInflection* pInflection) : 
+        CFormBuilderConj (pLexeme, pInflection, SUBPARADIGM_IMPERATIVE), m_bIrregularFormsOptional(false)
     {}
 
 public:

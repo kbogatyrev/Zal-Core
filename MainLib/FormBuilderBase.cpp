@@ -4,14 +4,14 @@
 
 using namespace Hlib;
 
-CFormBuilder::CFormBuilder (shared_ptr<CLexeme> spLexeme, shared_ptr<CInflection> spInflection, ET_Subparadigm eSubparadigm) : 
-    m_spLexeme (spLexeme), 
-    m_spInflection (spInflection),
+CFormBuilder::CFormBuilder (CLexeme* pLexeme, CInflection* pInflection, ET_Subparadigm eSubparadigm) : 
+    m_pLexeme (pLexeme), 
+    m_pInflection (pInflection),
     m_eSubparadigm (eSubparadigm), 
-    m_spEndings (NULL), 
+    m_spEndings (nullptr), 
     m_eStatus (STATUS_COMMON)
 {
-    if (NULL == spLexeme)
+    if (nullptr == pLexeme)
     {
         assert(0);
         CEString sMsg(L"CLexeme ptr is NULL.");
@@ -22,12 +22,12 @@ CFormBuilder::CFormBuilder (shared_ptr<CLexeme> spLexeme, shared_ptr<CInflection
 
 void CFormBuilder::ReportDbError()
 {
-    if (!m_spLexeme)
+    if (!m_pLexeme)
     {
         ERROR_LOG (L"No lexeme handle.");
     }
 
-    if (!m_spInflection)
+    if (!m_pInflection)
     {
         ERROR_LOG(L"No lexeme handle.");
     }
@@ -36,7 +36,7 @@ void CFormBuilder::ReportDbError()
     CEString sMsg;
     try
     {
-        spDb = m_spLexeme->spGetDb();
+        spDb = m_pLexeme->spGetDb();
         CEString sError;
         spDb->GetLastError (sError);
         sMsg = L"DB error: ";
@@ -64,7 +64,7 @@ void CFormBuilder::CloneWordForm(const  shared_ptr<CWordForm> spSource, shared_p
         throw CException (H_ERROR_POINTER, sMsg);   
     }
 
-    spClone->m_spLexeme = spSource->m_spLexeme;
+    spClone->m_pLexeme = spSource->m_pLexeme;
     spClone->m_sWordForm = spSource->m_sWordForm;
     spClone->m_sStem = spSource->m_sStem;
     spClone->m_llLexemeId = spSource->m_llLexemeId;

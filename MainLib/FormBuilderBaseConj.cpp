@@ -6,11 +6,11 @@ using namespace Hlib;
 
 ET_ReturnCode CFormBuilderConj::eBuildVerbStems()
 {
-    assert(m_spLexeme);   // we assume base class ctor took care of this
+    assert(m_pLexeme);   // we assume base class ctor took care of this
 
     ET_ReturnCode rc = H_NO_ERROR;
 
-    StLexemeProperties& stProperties = m_spLexeme->stGetPropertiesForWriteAccess();
+    StLexemeProperties& stProperties = m_pLexeme->stGetPropertiesForWriteAccess();
 
     CEString& sInfinitive = stProperties.sSourceForm;
     CEString sGraphicStem = stProperties.sGraphicStem;                  // immutable
@@ -21,7 +21,7 @@ ET_ReturnCode CFormBuilderConj::eBuildVerbStems()
 
     sInfStem = stProperties.sGraphicStem;
 
-    switch (m_spInflection->iType())
+    switch (m_pInflection->iType())
     {
         case 1:         // делать, читать(ся), верстать, терять, жалеть, читать, стараться
         {
@@ -79,7 +79,7 @@ ET_ReturnCode CFormBuilderConj::eBuildVerbStems()
                         //                 слать, стлать, трепать, скакать, казаться
                         // With circle: (вы)сосать(ся), жаждать, рвать(ся), ткать, лгать, брать, звать, стонать
         {
-            if (1 != m_spInflection->iStemAugment())
+            if (1 != m_pInflection->iStemAugment())
             {
                 rc = eStandardAlternation (s1SgStem);
                 if (H_NO_ERROR != rc)
@@ -103,7 +103,7 @@ ET_ReturnCode CFormBuilderConj::eBuildVerbStems()
         {
             if (sInfStem.bEndsWith (L"с"))
             {
-                if (m_spLexeme->sVerbStemAlternation().bIsEmpty())
+                if (m_pLexeme->sVerbStemAlternation().bIsEmpty())
                 {
 //                    assert(0);
                     ERROR_LOG (L"Missing stem alternation for type 7");
@@ -192,7 +192,7 @@ ET_ReturnCode CFormBuilderConj::eBuildVerbStems()
         {
             if (sVerbStemAlternation.bIsEmpty())
             {
-                if (17 == m_spLexeme->iSection())
+                if (17 == m_pLexeme->iSection())
                 {
                     return H_NO_MORE; // внять, объять и т.п.
                 }
@@ -240,11 +240,11 @@ ET_ReturnCode CFormBuilderConj::eBuildVerbStems()
 
 ET_ReturnCode CFormBuilderConj::eStandardAlternation (CEString& sPresentStem)
 {
-	assert(m_spLexeme);   // we assume base class ctor took care of this
+	assert(m_pLexeme);   // we assume base class ctor took care of this
 
-    const CEString& sVerbStemAlternation = m_spLexeme->sVerbStemAlternation();
+    const CEString& sVerbStemAlternation = m_pLexeme->sVerbStemAlternation();
 
-    sPresentStem = m_spLexeme->sGraphicStem();
+    sPresentStem = m_pLexeme->sGraphicStem();
     sPresentStem.sErase (sPresentStem.uiLength()-1);
 
     CEString sFinale;
@@ -265,7 +265,7 @@ ET_ReturnCode CFormBuilderConj::eStandardAlternation (CEString& sPresentStem)
     }
 
     CEString sAlternant;
-    bool bHasStandardAlternation = m_spLexeme->bFindStandardAlternation(sFinale, sAlternant);
+    bool bHasStandardAlternation = m_pLexeme->bFindStandardAlternation(sFinale, sAlternant);
     if (bHasStandardAlternation)
     {
         if (L"щ" == sVerbStemAlternation)
@@ -297,9 +297,9 @@ ET_ReturnCode CFormBuilderConj::eGetPastTenseStressTypes (ET_AccentType eAccentT
                                                           ET_Gender eGender,
                                                           vector<ET_StressLocation>& vecStressType)
 {
-	assert(m_spLexeme);   // we assume base class ctor took care of this
+	assert(m_pLexeme);   // we assume base class ctor took care of this
 
-    if (POS_VERB != m_spLexeme->ePartOfSpeech())
+    if (POS_VERB != m_pLexeme->ePartOfSpeech())
     {
 		assert(0);
         CEString sMsg (L"Unexpected part of speech value.");
@@ -357,7 +357,7 @@ ET_ReturnCode CFormBuilderConj::eGetPastTenseStressTypes (ET_AccentType eAccentT
         }
         case AT_C2:
         {
-            if (REFL_NO == m_spLexeme->eIsReflexive())
+            if (REFL_NO == m_pLexeme->eIsReflexive())
             {
                 assert(0);
                 CEString sMsg (L"Unexpected part of speech value.");
@@ -394,7 +394,7 @@ ET_ReturnCode CFormBuilderConj::eGetStemStressPositions (CEString& sStem, vector
     //
     // Find the sequence # of the stressed vowel in infinitive
     //
-    vector<int>& vecInfStress = m_spLexeme->m_vecSourceStressPos; // alias for readability
+    vector<int>& vecInfStress = m_pLexeme->m_vecSourceStressPos; // alias for readability
     vector<int>::iterator itInfStresPos = vecInfStress.begin();
     for (; itInfStresPos != vecInfStress.end(); ++itInfStresPos)
     {
@@ -425,11 +425,11 @@ ET_ReturnCode CFormBuilderConj::eGetStemStressPositions (CEString& sStem, vector
 
 ET_ReturnCode CFormBuilderConj::eGetEndingStressPosition (const CEString& sStemSource, const CEString& sEndingSource, int& iPosition)
 {
-    assert(m_spLexeme);   // we assume base class ctor took care of this
+    assert(m_pLexeme);   // we assume base class ctor took care of this
 
     ET_ReturnCode rc = H_NO_ERROR;
 
-    if (POS_VERB != m_spLexeme->ePartOfSpeech())
+    if (POS_VERB != m_pLexeme->ePartOfSpeech())
     {
         assert(0);
         ERROR_LOG (L"Unexpected part of speech.");
@@ -483,9 +483,9 @@ ET_ReturnCode CFormBuilderConj::eGetEndingStressPosition (const CEString& sStemS
 
 ET_ReturnCode CFormBuilderConj::eFleetingVowelCheck (CEString& sVerbForm)
 {
-    assert(m_spLexeme);   // we assume base class ctor took care of this
+    assert(m_pLexeme);   // we assume base class ctor took care of this
 
-    if (!m_spInflection->bFleetingVowel())
+    if (!m_pInflection->bFleetingVowel())
     {
         return H_NO_ERROR;
     }
@@ -497,8 +497,8 @@ ET_ReturnCode CFormBuilderConj::eFleetingVowelCheck (CEString& sVerbForm)
     bool bPreverb = false;
     bool bVoicing = false;
 
-    vector<CEString>::iterator itP = m_spLexeme->m_vecAlternatingPreverbs.begin();
-    for (; itP != m_spLexeme->m_vecAlternatingPreverbs.end()&&!bPreverb; ++itP)
+    vector<CEString>::iterator itP = m_pLexeme->m_vecAlternatingPreverbs.begin();
+    for (; itP != m_pLexeme->m_vecAlternatingPreverbs.end()&&!bPreverb; ++itP)
     {
         if (sVerbForm.bStartsWith (*itP))
         {
@@ -509,8 +509,8 @@ ET_ReturnCode CFormBuilderConj::eFleetingVowelCheck (CEString& sVerbForm)
 
     if (!bPreverb)
     {
-        itP = m_spLexeme->m_vecAlternatingPreverbsWithVoicing.begin();
-        for (; itP != m_spLexeme->m_vecAlternatingPreverbsWithVoicing.end()&&!bPreverb; ++itP)
+        itP = m_pLexeme->m_vecAlternatingPreverbsWithVoicing.begin();
+        for (; itP != m_pLexeme->m_vecAlternatingPreverbsWithVoicing.end()&&!bPreverb; ++itP)
         {
             if (sVerbForm.bStartsWith (*itP))
             {
@@ -530,7 +530,7 @@ ET_ReturnCode CFormBuilderConj::eFleetingVowelCheck (CEString& sVerbForm)
 
     CEString sPreverb;
     bool bVoicing = false;
-//    rc = m_spLexeme->eGetAlternatingPreverb (sVerbForm, sPreverb, bVoicing);
+//    rc = m_pLexeme->eGetAlternatingPreverb (sVerbForm, sPreverb, bVoicing);
     rc = eGetAlternatingPreverb(sVerbForm, sPreverb, bVoicing);
     if (H_FALSE == rc)
     {
@@ -593,14 +593,14 @@ ET_ReturnCode CFormBuilderConj::eFleetingVowelCheck (CEString& sVerbForm)
 
 ET_ReturnCode CFormBuilderConj::eBuildPastTenseStem (CEString& sStem)
 {
-    assert(m_spLexeme);   // we assume base class ctor took care of this
+    assert(m_pLexeme);   // we assume base class ctor took care of this
 
     ET_ReturnCode hr = H_NO_ERROR;
 
-    int iType = m_spInflection->iType();
+    int iType = m_pInflection->iType();
     if (7 == iType || 8 == iType)
     {
-        sStem = m_spLexeme->s1SgStem();
+        sStem = m_pLexeme->s1SgStem();
         if (sStem.bEndsWithOneOf (L"тд"))
         {
             sStem = sStem.sErase (sStem.uiLength()-1);
@@ -608,14 +608,14 @@ ET_ReturnCode CFormBuilderConj::eBuildPastTenseStem (CEString& sStem)
     }
     else
     {
-        sStem = m_spLexeme->sInfStem();
+        sStem = m_pLexeme->sInfStem();
     }
     if (9 == iType)
     {
         assert(sStem.bEndsWith(L"е"));
         sStem.sErase (sStem.uiLength()-1);
     }
-    if (3 == iType && 1 == m_spInflection->iStemAugment())
+    if (3 == iType && 1 == m_pInflection->iStemAugment())
     {
         assert(sStem.bEndsWith(L"ну"));
         sStem.sErase (sStem.uiLength()-2);
@@ -625,11 +625,11 @@ ET_ReturnCode CFormBuilderConj::eBuildPastTenseStem (CEString& sStem)
 
 }   //  eBuildPastTenseStem (...)
 
-ET_ReturnCode CFormBuilderConj::eHandleYoAlternation (int iStressSyll, ET_Subparadigm eoSubParadigm, shared_ptr<CWordForm> spWordForm)
+ET_ReturnCode CFormBuilderConj::eHandleYoAlternation (int iStressSyll, ET_Subparadigm eoSubParadigm, CWordForm* pWordForm)
 {
-    assert(m_spLexeme);   // we assume base class ctor took care of this
+    assert(m_pLexeme);   // we assume base class ctor took care of this
 
-    if (!m_spLexeme->bHasYoAlternation())
+    if (!m_pLexeme->bHasYoAlternation())
     {
         return H_NO_ERROR;
     }
@@ -647,13 +647,13 @@ ET_ReturnCode CFormBuilderConj::eHandleYoAlternation (int iStressSyll, ET_Subpar
 
     if (SUBPARADIGM_PART_PAST_ACT == eoSubParadigm)
     {
-        assert(7 == m_spInflection->iType() &&                  // GDRL, p. 85
-        m_spLexeme->sSourceForm().bEndsWith (L"сти") &&
-        (L"т" == m_spLexeme->sVerbStemAlternation() || 
-         L"д" == m_spLexeme->sVerbStemAlternation()));
+        assert(7 == m_pInflection->iType() &&                  // GDRL, p. 85
+        m_pLexeme->sSourceForm().bEndsWith (L"сти") &&
+        (L"т" == m_pLexeme->sVerbStemAlternation() || 
+         L"д" == m_pLexeme->sVerbStemAlternation()));
     }
 
-    auto sStem = spWordForm->sStem();
+    auto sStem = pWordForm->sStem();
 
     sStem.SetVowels(CEString::g_szRusVowels);
     if (iStressSyll >= sStem.uiNSyllables())
@@ -675,7 +675,7 @@ ET_ReturnCode CFormBuilderConj::eHandleYoAlternation (int iStressSyll, ET_Subpar
         sStem[uiStressPos] = L'ё';
     }
 
-    spWordForm->SetStem(sStem);
+    pWordForm->SetStem(sStem);
 
     return H_NO_ERROR;
 
@@ -683,7 +683,7 @@ ET_ReturnCode CFormBuilderConj::eHandleYoAlternation (int iStressSyll, ET_Subpar
 
 ET_ReturnCode CFormBuilderConj::eGetAlternatingPreverb(const CEString& sVerbForm, CEString& sPreverb, bool& bVoicing)
 {
-    if (!m_spInflection->bFleetingVowel())
+    if (!m_pInflection->bFleetingVowel())
     {
         return H_NO_MORE;
     }
@@ -724,7 +724,7 @@ ET_ReturnCode CFormBuilderConj::eGetAlternatingPreverb(const CEString& sVerbForm
     {
         //        assert(0);
         CEString sMsg(L"Stem too short; lexeme = ");
-        ERROR_LOG(sMsg + m_spLexeme->sSourceForm());
+        ERROR_LOG(sMsg + m_pLexeme->sSourceForm());
         return H_ERROR_INVALID_ARG;
     }
 
@@ -734,11 +734,11 @@ ET_ReturnCode CFormBuilderConj::eGetAlternatingPreverb(const CEString& sVerbForm
 
 bool CFormBuilderConj::bHasIrregularPresent()
 {
-    assert(m_spLexeme);   // we assume base class ctor took care of this
+    assert(m_pLexeme);   // we assume base class ctor took care of this
 
     try
     {
-        if (!m_spLexeme->bHasIrregularForms())
+        if (!m_pLexeme->bHasIrregularForms())
         {
             return false;
         }
@@ -749,11 +749,11 @@ bool CFormBuilderConj::bHasIrregularPresent()
                              GENDER_UNDEFINED, 
                              PERSON_1, 
                              ANIM_UNDEFINED, 
-                             m_spLexeme->eAspect(),
+                             m_pLexeme->eAspect(),
                              CASE_UNDEFINED, 
-                             m_spLexeme->eIsReflexive());
+                             m_pLexeme->eIsReflexive());
     
-        if (!m_spInflection->bHasIrregularForm(sg1Hash.sGramHash()))
+        if (!m_pInflection->bHasIrregularForm(sg1Hash.sGramHash()))
         {
             return false;
         }
@@ -763,11 +763,11 @@ bool CFormBuilderConj::bHasIrregularPresent()
                              GENDER_UNDEFINED, 
                              PERSON_3, 
                              ANIM_UNDEFINED,
-                             m_spLexeme->eAspect(),
+                             m_pLexeme->eAspect(),
                             CASE_UNDEFINED, 
-                            m_spLexeme->eIsReflexive());
+                            m_pLexeme->eIsReflexive());
     
-        if (!m_spInflection->bHasIrregularForm(sg3Hash.sGramHash()))
+        if (!m_pInflection->bHasIrregularForm(sg3Hash.sGramHash()))
         {
             return false;   // isolated forms are permitted
         }
@@ -776,7 +776,7 @@ bool CFormBuilderConj::bHasIrregularPresent()
     {
         assert(0);
         CEString sMsg (L"Error checking for irregular present forms of ");
-        sMsg += m_spLexeme->sSourceForm();
+        sMsg += m_pLexeme->sSourceForm();
         sMsg += L"; ";
         sMsg += ex.szGetDescription();
         ERROR_LOG (sMsg);
@@ -789,11 +789,11 @@ bool CFormBuilderConj::bHasIrregularPresent()
 
 bool CFormBuilderConj::bHasIrregularPast()
 {
-    assert(m_spLexeme);   // we assume base class ctor took care of this
+    assert(m_pLexeme);   // we assume base class ctor took care of this
 
     try
     {
-        if (!m_spLexeme->bHasIrregularForms())
+        if (!m_pLexeme->bHasIrregularForms())
         {
             return false;
         }
@@ -804,11 +804,11 @@ bool CFormBuilderConj::bHasIrregularPast()
                              GENDER_M, 
                              PERSON_UNDEFINED, 
                              ANIM_UNDEFINED,
-                             m_spLexeme->eAspect(),
+                             m_pLexeme->eAspect(),
                              CASE_UNDEFINED, 
-                             m_spLexeme->eIsReflexive());
+                             m_pLexeme->eIsReflexive());
 
-        if (!m_spInflection->bHasIrregularForm(mSgHash.sGramHash()))
+        if (!m_pInflection->bHasIrregularForm(mSgHash.sGramHash()))
         {
             return false;
         }
@@ -818,11 +818,11 @@ bool CFormBuilderConj::bHasIrregularPast()
                              GENDER_F, 
                              PERSON_UNDEFINED, 
                              ANIM_UNDEFINED,
-                             m_spLexeme->eAspect(),
+                             m_pLexeme->eAspect(),
                              CASE_UNDEFINED, 
-                             m_spLexeme->eIsReflexive());
+                             m_pLexeme->eIsReflexive());
 
-        if (!m_spInflection->bHasIrregularForm(fSgHash.sGramHash()))
+        if (!m_pInflection->bHasIrregularForm(fSgHash.sGramHash()))
         {
             return false;   // isolated forms are permitted?
         }
@@ -831,7 +831,7 @@ bool CFormBuilderConj::bHasIrregularPast()
     {
         assert(0);
         CEString sMsg (L"Error checking for irregular past forms of ");
-        sMsg += m_spLexeme->sSourceForm();
+        sMsg += m_pLexeme->sSourceForm();
         sMsg += L"; ";
         sMsg += ex.szGetDescription();
         ERROR_LOG (sMsg);
@@ -843,11 +843,11 @@ bool CFormBuilderConj::bHasIrregularPast()
 
 bool CFormBuilderConj::bHasIrregularImperative()
 {
-    assert(m_spLexeme);   // we assume base class ctor took care of this
+    assert(m_pLexeme);   // we assume base class ctor took care of this
 
     try
     {
-        if (!m_spLexeme->bHasIrregularForms())
+        if (!m_pLexeme->bHasIrregularForms())
         {
             return false;
         }
@@ -858,17 +858,17 @@ bool CFormBuilderConj::bHasIrregularImperative()
                              GENDER_UNDEFINED, 
                              PERSON_2, 
                              ANIM_UNDEFINED, 
-                             m_spLexeme->eAspect(),
+                             m_pLexeme->eAspect(),
                              CASE_UNDEFINED, 
-                             m_spLexeme->eIsReflexive());
+                             m_pLexeme->eIsReflexive());
             
-        return m_spInflection->bHasIrregularForm(sg2Hash.sGramHash());
+        return m_pInflection->bHasIrregularForm(sg2Hash.sGramHash());
     }
     catch (CException& ex)
     {
         assert(0);
         CEString sMsg (L"Error checking for irregular imperative forms of ");
-        sMsg += m_spLexeme->sSourceForm();
+        sMsg += m_pLexeme->sSourceForm();
         sMsg += L"; ";
         sMsg += ex.szGetDescription();
         ERROR_LOG (sMsg);
@@ -880,14 +880,14 @@ bool CFormBuilderConj::bHasIrregularImperative()
 //
 // Get irregular form; fill stress pos if it is monosyllabic
 //
-ET_ReturnCode CFormBuilderConj::eGetIrregularForms (CEString sHash, vector<shared_ptr<CWordForm>>& vecForms)
+ET_ReturnCode CFormBuilderConj::eGetIrregularForms (CEString sHash, vector<CWordForm*>& vecForms)
 {
-    assert(m_spLexeme);   // we assume base class ctor took care of this
+    assert(m_pLexeme);   // we assume base class ctor took care of this
 
     ET_ReturnCode rc = H_NO_ERROR;
     
-    map<shared_ptr<CWordForm>, bool> mapIrregularForms;
-    rc = m_spInflection->eGetIrregularForms(sHash, mapIrregularForms);
+    map<CWordForm*, bool> mapIrregularForms;
+    rc = m_pInflection->eGetIrregularForms(sHash, mapIrregularForms);
     if (rc != H_NO_ERROR)
     {
         return rc;

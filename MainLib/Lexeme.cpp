@@ -65,7 +65,7 @@ ET_ReturnCode CInflectionEnumerator::eGetNextInflection(shared_ptr<CInflection>&
     return H_NO_ERROR;
 }
 
-CLexeme::CLexeme(shared_ptr<CDictionary> spD) : m_spDictionary(spD), m_spSecondPart(nullptr)
+CLexeme::CLexeme(shared_ptr<CDictionary> spD) : m_spDictionary(spD.get()), m_spSecondPart(nullptr)
 {
     Init();
 }
@@ -236,7 +236,7 @@ void CLexeme::Init()
 void CLexeme::SetDictionary(shared_ptr<CDictionary> spDict)
 {
     // Note: IDictionary is an interface, not a base class
-    m_spDictionary = spDict;
+    m_spDictionary = spDict.get();
 }
 
 ET_ReturnCode CLexeme::eCreateInflectionEnumerator(shared_ptr<CInflectionEnumerator>& pIe)
@@ -287,7 +287,7 @@ ET_ReturnCode CLexeme::eGetInflectionById(long long llInflectionId, shared_ptr<C
 
 ET_ReturnCode CLexeme::eCreateInflectionForEdit(shared_ptr<CInflection>& spInflection)
 {
-    spInflection = make_shared<CInflection>(shared_from_this());
+    spInflection = make_shared<CInflection>(this);
     if (nullptr == spInflection)
     {
         return H_ERROR_POINTER;
@@ -370,7 +370,7 @@ void CLexeme::AssignSecondaryStress (shared_ptr<CWordForm> spWordForm)
     }
 }
 
-ET_ReturnCode CLexeme::eUpdateDescriptorInfo(shared_ptr<CLexeme> spLexeme)
+ET_ReturnCode CLexeme::eUpdateDescriptorInfo(CLexeme* spLexeme)
 {
     return m_spDictionary->eUpdateDescriptorInfo(spLexeme);
 }

@@ -18,8 +18,8 @@ namespace Hlib
 class CFormBuilderNouns : public CFormBuilderDecl
 {
 public:
-    CFormBuilderNouns (shared_ptr<CLexeme> spLexeme, shared_ptr<CInflection> spInflection) 
-        : CFormBuilderDecl (spLexeme, spInflection, SUBPARADIGM_NOUN)
+    CFormBuilderNouns (CLexeme* pLexeme, CInflection* pInflection) 
+        : CFormBuilderDecl (pLexeme, pInflection, SUBPARADIGM_NOUN)
     {}
 
 protected:

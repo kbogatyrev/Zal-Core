@@ -162,19 +162,8 @@ endif()
 target_link_libraries (ZalPythonItf 
 	ZalMainLib)
 
-
-# ---------------------------------------------------------------
-#
-#	Tests
-#
-# ---------------------------------------------------------------
-
-add_executable (ZalStringTest)
-
-target_sources (ZalStringTest PRIVATE
-	HLib/StringTest.cpp
-)
 #-----------------------------------------------------------------
+
 add_executable (ZalGenerateAllForms)
 
 target_sources (ZalGenerateAllForms PRIVATE
@@ -192,3 +181,56 @@ if (MSVC)
 else()
 	target_link_libraries(ZalGenerateAllForms ZalMainLib pthread dl)
 endif()
+
+#-----------------------------------------------------------------
+
+add_executable (ZalRunAnalytics)
+
+target_sources (ZalRunAnalytics PRIVATE
+	MainLib/ZalAnalytics.cpp
+)
+
+target_include_directories (ZalRunAnalytics PUBLIC
+	HLib
+	ThirdParty/Sqlite
+	ThirdParty/sha1
+)
+
+if (MSVC)
+	target_link_libraries(ZalRunAnalytics ZalMainLib)
+else()
+	target_link_libraries(ZalRunAnalytics ZalMainLib pthread dl)
+endif()
+
+# ---------------------------------------------------------------
+#
+#	Tests
+#
+# ---------------------------------------------------------------
+
+add_executable (ZalStringTest)
+
+target_sources (ZalStringTest PRIVATE
+	HLib/StringTest.cpp
+)
+
+# ---------------------------------------------------------------
+
+add_executable (ZalLeakTest)
+
+target_include_directories (ZalLeakTest PUBLIC
+	HLib
+	ThirdParty/Sqlite
+	ThirdParty/sha1
+)
+target_sources (ZalLeakTest PRIVATE
+	"MainLib/LeakTest.cpp"
+
+)
+
+if (MSVC)
+	target_link_libraries(ZalLeakTest ZalMainLib)
+else()
+	target_link_libraries(ZalLeakTest ZalMainLib pthread dl)
+endif()
+

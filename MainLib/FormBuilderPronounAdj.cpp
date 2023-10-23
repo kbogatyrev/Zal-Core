@@ -57,7 +57,7 @@ ET_ReturnCode CFormBuilderPronounAdj::eGetStressPositions (CEString& sStem,
         }
         else
         {
-            if (L"мс-п" == m_spLexeme->sInflectionType() &&
+            if (L"мс-п" == m_pLexeme->sInflectionType() &&
                 (L"его" == sEnding || L"ему" == sEnding ||
                  L"ого" == sEnding || L"ому" == sEnding))
             {
@@ -94,7 +94,7 @@ ET_ReturnCode CFormBuilderPronounAdj::eCreateFormTemplate (ET_Gender eGender,
 {
     ET_ReturnCode rc = H_NO_ERROR;
     
-    spWordForm = make_shared<CWordForm>(m_spInflection);
+    spWordForm = make_shared<CWordForm>(m_pInflection);
     if (nullptr == spWordForm)
     {
 		assert(0);
@@ -102,9 +102,9 @@ ET_ReturnCode CFormBuilderPronounAdj::eCreateFormTemplate (ET_Gender eGender,
         return H_ERROR_POINTER;
     }
 
-//    spWordForm->m_spLexeme = m_spLexeme;
-    spWordForm->SetInflection(m_spInflection);
-    spWordForm->SetPos(m_spLexeme->ePartOfSpeech());
+//    spWordForm->m_pLexeme = m_pLexeme;
+    spWordForm->SetInflection(m_pInflection);
+    spWordForm->SetPos(m_pLexeme->ePartOfSpeech());
     spWordForm->SetSubparadigm(SUBPARADIGM_PRONOUN_ADJ);
     spWordForm->SetStem(sStem);
     spWordForm->SetEnding(sEnding);
@@ -115,7 +115,7 @@ ET_ReturnCode CFormBuilderPronounAdj::eCreateFormTemplate (ET_Gender eGender,
     spWordForm->SetAnimacy(eAnimacy);
     spWordForm->SetWordForm(sStem + sEnding);
     spWordForm->SetStatus(m_eStatus);
-    spWordForm->SetInflectionId(m_spInflection->llInflectionId());
+    spWordForm->SetInflectionId(m_pInflection->llInflectionId());
 
 //    rc = eAssignSecondaryStress (pWordForm);
 
@@ -123,7 +123,7 @@ ET_ReturnCode CFormBuilderPronounAdj::eCreateFormTemplate (ET_Gender eGender,
 
 }   //  eCreateFormTemplate (...)
 
-ET_ReturnCode CFormBuilderPronounAdj::eHandleCommonDeviations ([[maybe_unused]]shared_ptr<CWordForm> spWordForm)
+ET_ReturnCode CFormBuilderPronounAdj::eHandleCommonDeviations ([[maybe_unused]]CWordForm* spWordForm)
 {
     return H_NO_ERROR;
 
@@ -131,11 +131,11 @@ ET_ReturnCode CFormBuilderPronounAdj::eHandleCommonDeviations ([[maybe_unused]]s
 
 ET_ReturnCode CFormBuilderPronounAdj::eBuild()
 {
-	assert(m_spLexeme);   // we assume base class ctor took care of this
+	assert(m_pLexeme);   // we assume base class ctor took care of this
 
     ET_ReturnCode rc = H_NO_ERROR;
 
-    m_spEndings = make_shared<CAdjPronounEndings>(m_spLexeme, m_spInflection);
+    m_spEndings = make_shared<CAdjPronounEndings>(m_pLexeme, m_pInflection);
     if (NULL == m_spEndings)
     {
         return H_ERROR_POINTER;
@@ -143,14 +143,14 @@ ET_ReturnCode CFormBuilderPronounAdj::eBuild()
 
     CHasher gramTmp;
 //    gramTmp.Initialize (POS_PRONOUN_ADJ);
-//    gramTmp.Initialize(m_spLexeme->ePartOfSpeech());
+//    gramTmp.Initialize(m_pLexeme->ePartOfSpeech());
 //    gramTmp.SetParadigm(SUBPARADIGM_PRONOUN_ADJ);
   
     ET_Subparadigm eSubParadigm = SUBPARADIGM_PRONOUN_ADJ;
-    if (m_spLexeme->ePartOfSpeech() == POS_NOUN)
+    if (m_pLexeme->ePartOfSpeech() == POS_NOUN)
     {
-        gramTmp.Initialize(m_spLexeme->eMainSymbolToGender(), ET_Animacy::ANIM_UNDEFINED);
-//        gramTmp.Initialize(m_spLexeme->eMainSymbolToGender(), m_spLexeme->eMainSymbolToAnimacy());
+        gramTmp.Initialize(m_pLexeme->eMainSymbolToGender(), ET_Animacy::ANIM_UNDEFINED);
+//        gramTmp.Initialize(m_pLexeme->eMainSymbolToGender(), m_pLexeme->eMainSymbolToAnimacy());
         eSubParadigm = SUBPARADIGM_PRONOUN_ADJ;
     }
     else
@@ -163,26 +163,26 @@ ET_ReturnCode CFormBuilderPronounAdj::eBuild()
     do
     {
         bool bSkipRegular = false;
-        if (m_spLexeme->bHasIrregularForms())
+        if (m_pLexeme->bHasIrregularForms())
         {
-            CEString sPronAdj = sGramHash (m_spLexeme->ePartOfSpeech(),
+            CEString sPronAdj = sGramHash (m_pLexeme->ePartOfSpeech(),
                                            gramTmp.m_eCase, gramTmp.m_eNumber,
                                            gramTmp.m_eGender, gramTmp.m_eAnimacy);
 
-            if (m_spLexeme->bHasMissingForms() && H_TRUE != m_spInflection->eFormExists(sPronAdj))
+            if (m_pLexeme->bHasMissingForms() && H_TRUE != m_pInflection->eFormExists(sPronAdj))
             {
                 continue;
             }
 
-            if (m_spInflection->bHasIrregularForm(sPronAdj))
+            if (m_pInflection->bHasIrregularForm(sPronAdj))
             {
-                map<shared_ptr<CWordForm>, bool> mapPronAdj;
-                rc = m_spInflection->eGetIrregularForms(sPronAdj, mapPronAdj);
+                map<CWordForm*, bool> mapPronAdj;
+                rc = m_pInflection->eGetIrregularForms(sPronAdj, mapPronAdj);
                 if (rc != H_NO_ERROR)
                 {
                     CEString sMsg(L"Unable to acquire irregular ");
                     sMsg += sPronAdj;
-                    ERROR_LOG(sMsg + L" for " + m_spLexeme->sSourceForm());
+                    ERROR_LOG(sMsg + L" for " + m_pLexeme->sSourceForm());
                     continue;
                 }
 
@@ -203,20 +203,22 @@ ET_ReturnCode CFormBuilderPronounAdj::eBuild()
                     {
                         CEString sMsg(L"Unable to create irregular form template for  ");
                         sMsg += sPronAdj;
-                        ERROR_LOG(sMsg + L"; source form = " + m_spLexeme->sSourceForm());
+                        ERROR_LOG(sMsg + L"; source form = " + m_pLexeme->sSourceForm());
                         continue;
                     }
 
                     pWordForm->m_sWordForm = (*it).first->m_sWordForm;
                     pWordForm->m_mapStress = (*it).first->m_mapStress;
 */
-                    m_spInflection->AddWordForm(it->first);
+                    auto spWf = make_shared<CWordForm>();
+                    spWf->eCloneFrom(it->first);
+                    m_pInflection->AddWordForm(spWf);
 
                     bSkipRegular = !(*it).second;  // i.e. no regular variant TODO: this DOES NOT indicate that no regular variants exist
 //                    bSkipRegular = true;
                 }
             }
-        }       //  if (m_spLexeme->m_bHasIrregularForms)
+        }       //  if (m_pLexeme->m_bHasIrregularForms)
 
         if (bSkipRegular)
         {
@@ -224,7 +226,7 @@ ET_ReturnCode CFormBuilderPronounAdj::eBuild()
         }
 
         ET_StressLocation eStressType = STRESS_LOCATION_UNDEFINED;
-        switch (m_spInflection->eAccentType1())
+        switch (m_pInflection->eAccentType1())
         {
             case AT_A:
             {
@@ -260,28 +262,28 @@ ET_ReturnCode CFormBuilderPronounAdj::eBuild()
             {
 //                assert(0);
                 CEString sMsg(L"Illegal accent type; lexeme = ");
-                ERROR_LOG(sMsg + m_spLexeme->sSourceForm());
+                ERROR_LOG(sMsg + m_pLexeme->sSourceForm());
 //                return H_ERROR_UNEXPECTED;
                 continue;
             }
 
-        }   //  switch (m_spLexeme->eAccentType1())
+        }   //  switch (m_pLexeme->eAccentType1())
 
         ET_Animacy eAnimacy = ANIM_UNDEFINED;
         if (CASE_ACC == gramTmp.m_eCase)
         {
             if ((GENDER_M == gramTmp.m_eGender && NUM_SG == gramTmp.m_eNumber) || (NUM_PL == gramTmp.m_eNumber))
             {
-                eAnimacy = m_spLexeme->ePartOfSpeech() == POS_PRONOUN_ADJ ? gramTmp.m_eAnimacy : m_spLexeme->eMainSymbolToAnimacy();
+                eAnimacy = m_pLexeme->ePartOfSpeech() == POS_PRONOUN_ADJ ? gramTmp.m_eAnimacy : m_pLexeme->eMainSymbolToAnimacy();
             }
         }
 
         ET_Gender eGender = gramTmp.m_eGender;
-        if (m_spLexeme->ePartOfSpeech() == POS_NOUN)
+        if (m_pLexeme->ePartOfSpeech() == POS_NOUN)
         {
             if (NUM_SG == gramTmp.m_eNumber)
             {
-                eGender = m_spLexeme->eMainSymbolToGender();
+                eGender = m_pLexeme->eMainSymbolToGender();
             }
             else
             {
@@ -308,12 +310,12 @@ ET_ReturnCode CFormBuilderPronounAdj::eBuild()
                 CEString sMsg(L"Unable to acquire ");
                 sMsg += gramTmp.sGramHash();
                 sMsg += L" ending of ";
-                ERROR_LOG(sMsg + m_spLexeme->sSourceForm());
+                ERROR_LOG(sMsg + m_pLexeme->sSourceForm());
                 continue;
             }
 
             auto sStem(m_sStem);
-            if (m_spInflection->bFleetingVowel() )//&&
+            if (m_pInflection->bFleetingVowel() )//&&
 //                (gramTmp.m_eCase != CASE_NOM || gramTmp.m_eGender != GENDER_M || gramTmp.m_eNumber != NUM_SG) &&
  //               (gramTmp.m_eCase != CASE_ACC || gramTmp.m_eGender != GENDER_M || gramTmp.m_eAnimacy != ANIM_NO))
             {
@@ -325,7 +327,7 @@ ET_ReturnCode CFormBuilderPronounAdj::eBuild()
                     CEString sMsg(L"Fleeting vowel check failed for ");
                     sMsg += gramTmp.sGramHash();
                     sMsg += L" of ";
-                    sMsg += m_spLexeme->sSourceForm();
+                    sMsg += m_pLexeme->sSourceForm();
                     ERROR_LOG(sMsg);
                     continue;
                 }
@@ -345,7 +347,7 @@ ET_ReturnCode CFormBuilderPronounAdj::eBuild()
                 CEString sMsg(L"CreateFormTemplate failed for  ");
                 sMsg += gramTmp.sGramHash();
                 sMsg += L" of ";
-                ERROR_LOG(sMsg + m_spLexeme->sSourceForm());
+                ERROR_LOG(sMsg + m_pLexeme->sSourceForm());
                 continue;
             }
 
@@ -356,11 +358,11 @@ ET_ReturnCode CFormBuilderPronounAdj::eBuild()
                 CEString sMsg(L"Unable GetStressPositions() failed for ");
                 sMsg += gramTmp.sGramHash();
                 sMsg += L" of ";
-                ERROR_LOG(sMsg + m_spLexeme->sSourceForm());
+                ERROR_LOG(sMsg + m_pLexeme->sSourceForm());
                 continue;
             }
 
-            if (1 == vecStress.size() || m_spInflection->bIsMultistressedCompound())
+            if (1 == vecStress.size() || m_pInflection->bIsMultistressedCompound())
             {
                 vector<int>::iterator itStressPos = vecStress.begin();
                 for (; itStressPos != vecStress.end(); ++itStressPos)
@@ -368,7 +370,7 @@ ET_ReturnCode CFormBuilderPronounAdj::eBuild()
 //                    spWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;
                     spWordForm->SetStressPos(*itStressPos, STRESS_PRIMARY);
                 }
-                m_spInflection->AddWordForm (spWordForm);
+                m_pInflection->AddWordForm (spWordForm);
             }
             else
             {
@@ -379,12 +381,12 @@ ET_ReturnCode CFormBuilderPronounAdj::eBuild()
                     {
                         auto spWfVariant = make_shared<CWordForm>();
 //                        CloneWordForm(spWordForm, spWfVariant);
-                        spWfVariant->eCloneFrom(spWordForm);
+                        spWfVariant->eCloneFrom(spWordForm.get());
                         spWordForm = spWfVariant;
                     }
                     // spWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;
                     spWordForm->SetStressPos(*itStressPos, STRESS_PRIMARY);
-                    m_spInflection->AddWordForm (spWordForm);
+                    m_pInflection->AddWordForm (spWordForm);
                 }
             }
         }

@@ -39,8 +39,8 @@ CWordForm::CWordForm() :
     m_sEnding.SetVowels(CEString::g_szRusVowels);
 }
 
-CWordForm::CWordForm(const shared_ptr<CInflection> spInflection) :  
-    m_spInflection(spInflection),
+CWordForm::CWordForm(CInflection* pInflection) :  
+    m_spInflection(pInflection),
     m_ullDbInsertHandle(0),
     m_llDbKey(-1),
     m_sWordForm(L""),
@@ -69,7 +69,7 @@ CWordForm::CWordForm(const shared_ptr<CInflection> spInflection) :
     m_sEnding.SetVowels(CEString::g_szRusVowels);
 }
 
-CWordForm::CWordForm(const CEString& sHash, shared_ptr<CInflection> spInflection) : 
+CWordForm::CWordForm(const CEString& sHash, CInflection* spInflection) : 
     m_spInflection(spInflection),
     m_ullDbInsertHandle(0),
     m_llDbKey(-1),
@@ -120,9 +120,9 @@ const CWordForm& CWordForm::operator=(const CWordForm& rhs)
     return *this;
 }
 
-void CWordForm::SetInflection(shared_ptr<CInflection> spInflection)
+void CWordForm::SetInflection(CInflection* pInflection)
 {
-    m_spInflection = spInflection;
+    m_spInflection = pInflection;
 }
 
 CEString CWordForm::sGramHash()
@@ -166,7 +166,7 @@ ET_ReturnCode CWordForm::eInitFromHash (const CEString& sHash)
 
 // Partial copy
 // TODO: can it be replaced with a copy ctor?
-ET_ReturnCode CWordForm::eCloneFrom(const shared_ptr<CWordForm> spSource)
+ET_ReturnCode CWordForm::eCloneFrom(const CWordForm* spSource)
 {
     if (nullptr == spSource)
     {

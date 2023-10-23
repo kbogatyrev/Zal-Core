@@ -15,15 +15,15 @@ namespace Hlib
 class CFormBuilderLongAdj : public CFormBuilderDecl
 {
 public:
-    CFormBuilderLongAdj (shared_ptr<CLexeme> spLexeme,
-                         shared_ptr<CInflection> spInflection,
+    CFormBuilderLongAdj (CLexeme* pLexeme,
+                         CInflection* pInflection,
                          const CEString& sStem,
                          ET_AccentType eAccentType, 
                          ET_Subparadigm eSubparadigm,
                          int iStemStressPos = -1,
                          ET_Status eStatus = STATUS_COMMON,
                          bool bIrregular = false) 
-        : CFormBuilderDecl (spLexeme, spInflection, SUBPARADIGM_LONG_ADJ),
+        : CFormBuilderDecl (pLexeme, pInflection, SUBPARADIGM_LONG_ADJ),
           m_sStem(sStem),
           m_eAccentType (eAccentType),
           m_eSubparadigm (eSubparadigm),
@@ -47,7 +47,7 @@ protected:
     ET_ReturnCode eCreateFormTemplate (ET_Gender, ET_Number, ET_Case, ET_Animacy, 
                                        const CEString& sEnding, int64_t llEndingKey, shared_ptr<CWordForm>&);
     ET_ReturnCode eCheckIrregularForms(const CEString& sHash, bool& bHandled);
-    ET_ReturnCode eHandleCommonDeviations (shared_ptr<CWordForm>);
+    ET_ReturnCode eHandleCommonDeviations (CWordForm*);
 
 private:
     CEString m_sStem;

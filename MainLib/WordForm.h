@@ -24,8 +24,8 @@ namespace Hlib
 
     public:
         CWordForm();
-        CWordForm(shared_ptr<CInflection>);
-        CWordForm(const CEString& sHash, shared_ptr<CInflection>);
+        CWordForm(CInflection*);
+        CWordForm(const CEString& sHash, CInflection*);
         CWordForm(const CWordForm&);
 
         const CWordForm& operator= (const CWordForm&);
@@ -34,19 +34,19 @@ namespace Hlib
 
         // Partial copy
         // TODO: Can we use copy ctor instead?
-        ET_ReturnCode eCloneFrom(const shared_ptr<CWordForm>);
+        ET_ReturnCode eCloneFrom(const CWordForm*);
 
-        shared_ptr<CLexeme> spLexeme()
+        CLexeme* spLexeme()
         {
             return m_spInflection->spLexeme();
         }
 
-        shared_ptr<CInflection> spInflection()
+        CInflection* pInflection()
         {
             return m_spInflection;
         }
 
-        void SetInflection(shared_ptr<CInflection>);
+        void SetInflection(CInflection*);
 
         CEString sWordForm()
         {
@@ -339,7 +339,7 @@ namespace Hlib
         void Copy(const CWordForm&);
 
     private:
-        shared_ptr<CInflection> m_spInflection;
+        CInflection* m_spInflection { nullptr };
         unsigned long long m_ullDbInsertHandle;
         long long m_llDbKey;
         CEString m_sWordForm;
