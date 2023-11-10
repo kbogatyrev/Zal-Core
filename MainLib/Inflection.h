@@ -245,10 +245,7 @@ namespace Hlib
 
         ET_ReturnCode eGetFirstWordForm(shared_ptr<CWordForm>&);
         ET_ReturnCode eGetNextWordForm(shared_ptr<CWordForm>&);
-//        ET_ReturnCode eGetFirstWordForm(CWordForm*&);               // .Net consumers only
-//        ET_ReturnCode eGetNextWordForm(CWordForm*&);                //        --"--
 
-        //        ET_ReturnCode eGetFirstIrregularForm(CEString sHash, IWordForm*&, bool& bIsOptional);
         ET_ReturnCode eGetFirstIrregularForm(shared_ptr<CWordForm>&, bool& bIsOptional);
         ET_ReturnCode eGetNextIrregularForm(shared_ptr<CWordForm>&, bool& bIsOptional);
         ET_ReturnCode eGetFirstIrregularForm(CWordForm*&, bool& bIsOptional);           // .Net consumers only
@@ -256,11 +253,8 @@ namespace Hlib
 
         ET_ReturnCode eGetFirstIrregularForm(CEString sHash, shared_ptr<CWordForm>&, bool& bIsOptional);
         ET_ReturnCode eGetFirstIrregularForm(CEString sHash, CWordForm*&, bool& bIsOptional);
-        //        ET_ReturnCode eGetFirstIrregularForm(shared_ptr<CWordForm>&, bool& bIsOptional);
-        //        ET_ReturnCode eGetNextIrregularForm(shared_ptr<CWordForm>&, bool& bIsOptional);
 
         ET_ReturnCode eGetIrregularForms(CEString sHash, map<CWordForm*, bool>& mapResult);
-//        ET_ReturnCode eGetIrregularForms(CEString sHash, map<shared_ptr<CWordForm>, bool>& mapResult);
         void AssignPrimaryStress(shared_ptr<CWordForm>);
         void AssignSecondaryStress(shared_ptr<CWordForm> spWordForm);
 
@@ -268,10 +262,6 @@ namespace Hlib
         ET_ReturnCode eCreateWordForm(shared_ptr<CWordForm>&);
         ET_ReturnCode eRemoveWordForm(CEString sHash, int iAt);
         ET_ReturnCode eRemoveIrregularForms(CEString sHash);
-
-        //ET_ReturnCode eGetFirstIrregularForm(CEString sHash, CWordForm *&, bool& bIsOptional);
-        //ET_ReturnCode eGetFirstIrregularForm(CWordForm *&, bool& bIsOptional);
-        //ET_ReturnCode eGetNextIrregularForm(CWordForm *&, bool& bIsOptional);
 
         int iFormCount(CEString sHash);
 
@@ -316,7 +306,6 @@ namespace Hlib
         // Populate DB:
         ET_ReturnCode eSaveStemsToDb();
         ET_ReturnCode eAssignStemIds();
-        //        ET_ReturnCode ePrepareDataInsert(uint64_t& uiStmtHandle);
         ET_ReturnCode eSaveWordFormsToDb();
         ET_ReturnCode eSaveIrregularFormsToDb();  // for spryazh sm entries
         ET_ReturnCode eLoadIrregularForms();
@@ -340,9 +329,6 @@ namespace Hlib
         map<CEString, ET_Animacy> m_mapMainSymbolToAnimacy;
         map<CEString, CEString> m_mapStandardAlternations;
         multimap<int, int> m_mmEndingsHash;
-        //        vector<CEString> m_vecAlternatingPreverbs, m_vecAlternatingPreverbsWithVoicing;
-//        CDictionary* m_pDictionary;
-//        shared_ptr<CLexeme> m_spSecondPart;
         vector<CEString> m_vecHypotheticalForms;     //  gram hashes of missing forms that were generated anyway 
         //  to be used in generation of other forms
 
