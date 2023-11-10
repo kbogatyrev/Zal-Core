@@ -80,7 +80,7 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildInfinitive()
     for (; it != mapIrreg.end(); ++it)
     {
         bNoRegularForms = true;
-        auto pWordForm = it->first;
+//        auto pWordForm = it->first;
         if (it->second)
         {
             bNoRegularForms = false;
@@ -361,8 +361,7 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPresentAdverbial()
     auto it = mapIrreg.begin();
     for (; it != mapIrreg.end(); ++it)
     {
-        auto pWordForm = it->first;
-
+//        auto pWordForm = it->first;
         try
         {
             auto spWf = make_shared<CWordForm>(m_pInflection);
