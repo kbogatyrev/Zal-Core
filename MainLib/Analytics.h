@@ -140,7 +140,7 @@ namespace Hlib
         ET_ReturnCode eClearTextData(long long llText);
         ET_WordStressType eGetStressType(CWordForm&);
         bool bArePhoneticallyIdentical(shared_ptr<CWordForm>, shared_ptr<CWordForm>);
-        ET_ReturnCode eAddParsesToTactGroup(int iLineNum, int iWord, shared_ptr<StTactGroup>);
+        ET_ReturnCode eAddParsesToTactGroup(long long llLineDbId, int iLineNum, int iWord, shared_ptr<StTactGroup>);
 
     private:
         shared_ptr<CSqlite> m_spDb;

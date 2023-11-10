@@ -91,6 +91,7 @@ ET_ReturnCode CAnalytics::eParseText(const CEString& sTextName, const CEString& 
     eRet = eRegisterText();
     if (eRet != H_NO_ERROR)
     {
+        m_spDb->RollbackTransaction();
         ERROR_LOG(L"Unable to register text");
         return eRet;
     }
@@ -101,6 +102,7 @@ ET_ReturnCode CAnalytics::eParseText(const CEString& sTextName, const CEString& 
     int iNLines = const_cast<CEString&>(sText).uiNFields();
     if (iNLines < 1)
     {
+        m_spDb->RollbackTransaction();
         return H_FALSE;
     }
 
@@ -173,7 +175,8 @@ ET_ReturnCode CAnalytics::eParseText(const CEString& sTextName, const CEString& 
         m_vecTactGroupListHeads.clear();        // TODO -- verify that it is empty first?
 
         auto spCurrentTactGroup = make_shared<StTactGroup>();
-        eRet = eAddParsesToTactGroup(iLine, 0, spCurrentTactGroup);
+        spCurrentTactGroup->llLineId = llLineDbId;
+        eRet = eAddParsesToTactGroup(llLineDbId, iLine, 0, spCurrentTactGroup);
 
         spCurrentTactGroup->iNumOfSyllables = spCurrentTactGroup->sSource.uiNSyllables();
 
@@ -580,7 +583,7 @@ ET_ReturnCode CAnalytics::eGetStress(shared_ptr<StTactGroup> pTg)
                 // If this word is not the first word in the tact group, add syllable count from that word
                 for (auto iProclitic = pTg->iFirstWordNum; iProclitic < iWord; ++iProclitic)
                 {
-                    auto& setParses = pTg->m_vecParses[iWord];
+                    auto& setParses = pTg->m_vecParses[iProclitic - pTg->iFirstWordNum];
                     auto pWpProclitic = *setParses.begin();      // we can use any of the words
                     pTg->iStressedSyllable += pWpProclitic->spWordForm->sWordForm().uiNSyllables();
                 }
@@ -625,10 +628,10 @@ ET_ReturnCode CAnalytics::eGetStress(shared_ptr<StTactGroup> pTg)
 
             eRet = H_NO_ERROR;
         }
-        else
-        {
-            eRet = H_FALSE;
-        }
+//        else
+//        {
+//            eRet = H_FALSE;
+//        }
 
     }       //  for (auto iWord = stTg.iFirstWordNum; ...
 
@@ -859,7 +862,7 @@ ET_WordStressType CAnalytics::eGetStressType(CWordForm& wordForm)
     if (m_spDb->bGetRow())
     {
         m_spDb->GetData(0, bProclitic);
-        m_spDb->GetData(0, bEnclitic);
+        m_spDb->GetData(1, bEnclitic);
     }
     m_spDb->Finalize();
 
@@ -958,7 +961,7 @@ bool CAnalytics::bArePhoneticallyIdentical(shared_ptr<CWordForm> spWf1, shared_p
 }       //  bArePhoneticallyIdentical()
 
 // Recursively create tact groups as a liniked list 
-ET_ReturnCode CAnalytics::eAddParsesToTactGroup(int iLine, int iPos, shared_ptr<StTactGroup> spCurrentTactGroup)
+ET_ReturnCode CAnalytics::eAddParsesToTactGroup(long long llLineId, int iLine, int iPos, shared_ptr<StTactGroup> spCurrentTactGroup)
 {
     if (iPos >= m_iWordsInCurrentLine)
     {
@@ -983,7 +986,7 @@ ET_ReturnCode CAnalytics::eAddParsesToTactGroup(int iLine, int iPos, shared_ptr<
         sMsg += CEString::sToString(iLine) + L".";
         ERROR_LOG(sMsg);
 //        return H_ERROR_UNEXPECTED;
-        auto eRc = eAddParsesToTactGroup(iLine, iPos + 1, spCurrentTactGroup);
+        auto eRc = eAddParsesToTactGroup(llLineId, iLine, iPos + 1, spCurrentTactGroup);
         if (eRc != H_NO_ERROR)
         {
             CEString sMsg(L"Unable to add parse to the tact group, word position is ");
@@ -1002,7 +1005,7 @@ ET_ReturnCode CAnalytics::eAddParsesToTactGroup(int iLine, int iPos, shared_ptr<
             sMsg += CEString::sToString(iLine) + L".";
             ERROR_LOG(sMsg);
 //            return H_ERROR_UNEXPECTED;
-            auto eRc = eAddParsesToTactGroup(iLine, iPos + 1, spCurrentTactGroup);
+            auto eRc = eAddParsesToTactGroup(llLineId, iLine, iPos + 1, spCurrentTactGroup);
             if (eRc != H_NO_ERROR)
             {
                 CEString sMsg(L"Unable to add parse to the tact group, word position is ");
@@ -1048,6 +1051,7 @@ ET_ReturnCode CAnalytics::eAddParsesToTactGroup(int iLine, int iPos, shared_ptr<
                 {   // Current word is proclitic preceded by anything other than a proclitic: start a new tact group
                     shared_ptr<StTactGroup> spNextTactGroup = make_shared<StTactGroup>();
                     spNextTactGroup->iFirstWordNum = iPos;
+                    spNextTactGroup->llLineId = llLineId;
                     spNextTactGroup->AddWord(itInvariantSet->second, spWordParse->spWordForm->sWordForm());
                     spCurrentTactGroup->m_vecNext.push_back(spNextTactGroup);
                     spCurrentTactGroup = spNextTactGroup;
@@ -1073,6 +1077,7 @@ ET_ReturnCode CAnalytics::eAddParsesToTactGroup(int iLine, int iPos, shared_ptr<
                 else
                 {   // Current word is autonomous preceded by anything other than a proclitic: start a new tact group
                     shared_ptr<StTactGroup> spNextTactGroup = make_shared<StTactGroup>();
+                    spNextTactGroup->llLineId = llLineId;
                     spNextTactGroup->iFirstWordNum = iPos;
                     spNextTactGroup->AddWord(itInvariantSet->second, spWordParse->spWordForm->sWordForm());
                     spCurrentTactGroup->m_vecNext.push_back(spNextTactGroup);
@@ -1090,7 +1095,7 @@ ET_ReturnCode CAnalytics::eAddParsesToTactGroup(int iLine, int iPos, shared_ptr<
         }       // switch...
 
         // Next word?
-        auto eRc = eAddParsesToTactGroup(iLine, iPos + 1, spCurrentTactGroup);
+        auto eRc = eAddParsesToTactGroup(llLineId, iLine, iPos + 1, spCurrentTactGroup);
         if (eRc != H_NO_ERROR)
         {
             CEString sMsg(L"Unable to add parse to the tact group, word position is ");
