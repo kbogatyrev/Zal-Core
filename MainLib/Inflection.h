@@ -248,7 +248,6 @@ namespace Hlib
 
         ET_ReturnCode eGetFirstIrregularForm(shared_ptr<CWordForm>&, bool& bIsOptional);
         ET_ReturnCode eGetNextIrregularForm(shared_ptr<CWordForm>&, bool& bIsOptional);
-        ET_ReturnCode eGetFirstIrregularForm(CWordForm*&, bool& bIsOptional);           // .Net consumers only
         ET_ReturnCode eGetNextIrregularForm(CWordForm*&, bool& bIsOptional);            //        --"--
 
         ET_ReturnCode eGetFirstIrregularForm(CEString sHash, shared_ptr<CWordForm>&, bool& bIsOptional);
@@ -330,7 +329,7 @@ namespace Hlib
         map<CEString, CEString> m_mapStandardAlternations;
         multimap<int, int> m_mmEndingsHash;
         vector<CEString> m_vecHypotheticalForms;     //  gram hashes of missing forms that were generated anyway 
-        //  to be used in generation of other forms
+                                                     //  to be used in generation of other forms
 
 // Word forms
         multimap<CEString, shared_ptr<CWordForm>>::iterator m_itCurrentWordForm;

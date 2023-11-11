@@ -7,7 +7,6 @@
 
 #include "Enums.h"
 #include "EString.h"
-//#include "IDictionary.h"
 #include "LexemeProperties.h"
 #include "InflectionProperties.h"
 
@@ -59,26 +58,16 @@ public:
     ET_ReturnCode eCopyEntryForEdit(const shared_ptr<CInflection> spSource, shared_ptr<CInflection>& spCopy);
     ET_ReturnCode eGetLexemeById(long long Id, shared_ptr<CLexeme>& spLexeme);
     ET_ReturnCode eGetLexemesByHash(const CEString& sMd5);
-//    ET_ReturnCode eGetLexemesByGraphicStem(const CEString&);
     ET_ReturnCode eGetLexemesByInitialForm(const CEString&);
     ET_ReturnCode eGenerateAllForms();
-//    ET_ReturnCode eGenerateFormsForSelectedLexemes();
     ET_ReturnCode eCountLexemes(int64_t& iLexemes);
 
-//    ET_ReturnCode eGetFirstLexeme(shared_ptr<CLexeme>& pLexemeItf);
-//    ET_ReturnCode eGetNextLexeme(shared_ptr<CLexeme>& pLexemeItf);
-
     int nLexemesFound();
-//    ET_ReturnCode eGetFirstLexeme(shared_ptr<CLexeme>& pLexeme);
-//    ET_ReturnCode eGetNextLexeme(shared_ptr<CLexeme>& pLexeme);
 
     void Clear();
     ET_ReturnCode Clear(shared_ptr<CLexeme>);
 
     ET_ReturnCode eCreateLexemeEnumerator(shared_ptr<CLexemeEnumerator>&);
-//    void DeleteLexemeEnumerator(shared_ptr<CLexemeEnumerator>);
-
-//    ET_ReturnCode eGetLexemeInstance (int i, shared_ptr<CLexeme>&);
 
     ET_ReturnCode eGetParser(shared_ptr<CParser>&);
     ET_ReturnCode eGetAnalytics(shared_ptr<CAnalytics>&);
@@ -100,14 +89,9 @@ public:
     ET_ReturnCode eSaveDescriptorInfo(CLexeme*);
     ET_ReturnCode eSaveCommonDeviation(CInflection*);
     ET_ReturnCode eSaveInflectionInfo(CInflection*);
-//    ET_ReturnCode eSaveMissingFormHashes(shared_ptr<CLexeme> pLexeme);
-//    ET_ReturnCode eSaveLexeme(shared_ptr<CLexeme> pLexeme);
 
     ET_ReturnCode ePopulateHashToDescriptorTable(PROGRESS_CALLBACK_CLR, PROGRESS_CALLBACK_PYTHON=nullptr);
 
-//    shared_ptr<CSqlite> spGetDbHandle();
-
-//    ET_ReturnCode eGetSecondPart(long long Id, shared_ptr<CLexeme>& pLexeme);       // non-itf version used to get second part of a xurda-murda compound
     ET_ReturnCode eGetSecondPart(long long llId, shared_ptr<CLexeme>& pLexeme);
 
 
@@ -141,8 +125,6 @@ private:
     ET_ReturnCode eGetWordIdFromLemexeId(int64_t llLexemeId, int64_t& llWordId);
 
     ET_ReturnCode eMarkLexemeAsEdited(shared_ptr<CLexeme> pLexeme);
-
-//    ET_ReturnCode eDifficultFormLabelToGramHash(const CEString sLabel);
 
     void HandleDbException(CException&);
 };
