@@ -856,7 +856,7 @@ ET_ReturnCode CAnalytics::eSaveWordParse(long long llWordId, long long llWordFor
 ET_WordStressType CAnalytics::eGetStressType(CWordForm& wordForm)
 {
     CEString sQuery = L"SELECT is_proclitic, is_enclitic FROM clitics WHERE headword_id = '#HEADWORD_ID#';";
-    sQuery = sQuery.sReplace(L"#HEADWORD_ID#", CEString::sToString(wordForm.spLexeme()->llHeadwordId()));
+    sQuery = sQuery.sReplace(L"#HEADWORD_ID#", CEString::sToString(wordForm.pLexeme()->llHeadwordId()));
     m_spDb->PrepareForSelect(sQuery);
     bool bProclitic {false}, bEnclitic {false};
     if (m_spDb->bGetRow())

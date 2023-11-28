@@ -454,8 +454,8 @@ ET_ReturnCode CFormBuilderNouns::eCreateFormTemplate (ET_Number eNumber,
     spWordForm->SetCase(eCase);
     spWordForm->SetStem(sStem);
     spWordForm->SetNumber(eNumber);
-    spWordForm->SetGender(m_pInflection->spLexeme()->eInflectionTypeToGender());
-    spWordForm->SetAnimacy(m_pInflection->spLexeme()->eInflectionTypeToAnimacy());
+    spWordForm->SetGender(m_pInflection->pLexeme()->eInflectionTypeToGender());
+    spWordForm->SetAnimacy(m_pInflection->pLexeme()->eInflectionTypeToAnimacy());
     if (NUM_PL == eNumber && m_pLexeme->bAssumedForms())
     {
         spWordForm->SetStatus(STATUS_ASSUMED);
