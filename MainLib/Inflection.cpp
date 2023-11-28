@@ -1277,18 +1277,14 @@ ET_ReturnCode CInflection::eGetFirstWordForm(shared_ptr<CWordForm>& spWf)
 
 ET_ReturnCode CInflection::eGetNextWordForm(shared_ptr<CWordForm>& spWf)
 {
-    if (m_mmWordForms.end() != m_itCurrentWordForm)
-    {
-        ++m_itCurrentWordForm;
-    }
-    if (m_mmWordForms.end() == m_itCurrentWordForm)
+    if (m_mmWordForms.end() == m_itCurrentWordForm || m_mmWordForms.end() == ++m_itCurrentWordForm)
     {
         spWf = NULL;
         return H_NO_MORE;
     }
 
     spWf = m_itCurrentWordForm->second;
-    
+
     return H_NO_ERROR;
 }
 

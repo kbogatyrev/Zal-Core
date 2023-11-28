@@ -356,14 +356,14 @@ ET_ReturnCode CWordForm::eGetNextStressSyll(int& iSyll, ET_StressType& eType)
 //
 ET_ReturnCode CWordForm::eSaveIrregularForm()
 {
-    shared_ptr<CSqlite> spDbHandle = spLexeme()->spGetDb();
+    shared_ptr<CSqlite> spDbHandle = pLexeme()->spGetDb();
     if (nullptr == spDbHandle)
     {
         ERROR_LOG(L"No database access.");
         return H_ERROR_DB;
     }
 
-    const StLexemeProperties& stProps = spLexeme()->stGetProperties();
+    const StLexemeProperties& stProps = pLexeme()->stGetProperties();
 
     if (m_llDbKey >= 0)
     {
@@ -403,10 +403,10 @@ ET_ReturnCode CWordForm::eSaveIrregularForm()
         }
     }
 
-    if (!spLexeme()->bHasIrregularForms())
+    if (!pLexeme()->bHasIrregularForms())
     {
-        spLexeme()->SetHasIrregularForms(true);
-        spLexeme()->eUpdateDescriptorInfo(spLexeme());
+        pLexeme()->SetHasIrregularForms(true);
+        pLexeme()->eUpdateDescriptorInfo(pLexeme());
     }
 
     try
@@ -494,13 +494,13 @@ bool CWordForm::bSaveStemToDb()
     shared_ptr<CSqlite> spDbHandle;
     try
     {
-        if (nullptr == spLexeme())
+        if (nullptr == pLexeme())
         {
             ERROR_LOG(L"No lexeme.");
             return false;
         }
 
-        spDbHandle = spLexeme()->spGetDb();
+        spDbHandle = pLexeme()->spGetDb();
         if (nullptr == spDbHandle)
         {
             ERROR_LOG(L"No database access.");
@@ -553,11 +553,11 @@ bool CWordForm::bSaveToDb()
 {
     long long llStemDataId = -1;
     shared_ptr<CSqlite> spDbHandle;
-    const StLexemeProperties& stLexemeProperties = spLexeme()->stGetProperties();
+    const StLexemeProperties& stLexemeProperties = pLexeme()->stGetProperties();
 
     try
     {
-        spDbHandle = spLexeme()->spGetDb();
+        spDbHandle = pLexeme()->spGetDb();
         if (nullptr == spDbHandle)
         {
             ERROR_LOG(L"No database access.");
@@ -630,11 +630,11 @@ bool CWordForm::bSaveIrregularForm() // currently intended for spryazh. sm verbs
 {
 //    long long llStemDataId = -1;
     shared_ptr<CSqlite> spDbHandle;
-    const StLexemeProperties& stLexemeProperties = spLexeme()->stGetProperties();
+    const StLexemeProperties& stLexemeProperties = pLexeme()->stGetProperties();
 
     try
     {
-        spDbHandle = spLexeme()->spGetDb();
+        spDbHandle = pLexeme()->spGetDb();
         if (nullptr == spDbHandle)
         {
             ERROR_LOG(L"No database access.");
@@ -697,12 +697,12 @@ bool CWordForm::bSaveIrregularForm() // currently intended for spryazh. sm verbs
 
 ET_ReturnCode CWordForm::eSaveTestData()
 {
-    if (nullptr == spLexeme())
+    if (nullptr == pLexeme())
     {
         return H_ERROR_POINTER;
     }
 
-    CSqlite& db = *spLexeme()->spGetDb();
+    CSqlite& db = *pLexeme()->spGetDb();
     CEString sHash = sGramHash();
 
     try
@@ -755,7 +755,7 @@ ET_ReturnCode CWordForm::eSaveTestData()
 
 void CWordForm::Copy(const CWordForm& source)
 {
-//    m_spLexeme = source.m_spLexeme;
+//    m_pLexeme = source.m_pLexeme;
     m_spInflection = source.m_spInflection;
     m_ullDbInsertHandle = source.m_ullDbInsertHandle;
     m_llDbKey = source.m_llDbKey;

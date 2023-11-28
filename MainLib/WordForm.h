@@ -36,9 +36,9 @@ namespace Hlib
         // TODO: Can we use copy ctor instead?
         ET_ReturnCode eCloneFrom(const CWordForm*);
 
-        CLexeme* spLexeme()
+        CLexeme* pLexeme()
         {
-            return m_spInflection->spLexeme();
+            return m_spInflection->pLexeme();
         }
 
         CInflection* pInflection()

@@ -85,7 +85,7 @@ ET_ReturnCode CParser::eParseWord(const CEString& sWord)
         if (nullptr == spLexeme)
         {
             CEString sMsg(L"Failed to get lexeme by ID, ID = ");
-            sMsg += CEString::sToString(spWf->spLexeme()->llLexemeId());
+            sMsg += CEString::sToString(spWf->pLexeme()->llLexemeId());
             ERROR_LOG(sMsg);
             continue;
         }
@@ -473,7 +473,7 @@ ET_ReturnCode CParser::eFormLookup(const CEString& sWord)
     ET_ReturnCode rc = m_spEndingsTree->eGetFirstMatch(iEndingLength);
     while (H_NO_ERROR == rc || H_FALSE == rc)
     {
-        if (iEndingLength > 0)
+        if (iEndingLength >= 0)     // TODO: is the opposite expected? Error message under else clause?
         {
             try
             {

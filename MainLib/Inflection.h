@@ -55,7 +55,7 @@ namespace Hlib
             return H_NO_ERROR;
         }
 
-        CLexeme* spLexeme()
+        CLexeme* pLexeme()
         {
             return m_pLexeme;
         }
