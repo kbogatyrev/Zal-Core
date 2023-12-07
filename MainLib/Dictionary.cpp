@@ -921,7 +921,7 @@ ET_ReturnCode CDictionary::ePopulateWordFormDataTables()
                         CEString sMsg(L"Unable to find stem id for \"");
                         sMsg += spWf->sStem();
                         sMsg += L'"';
-                        sMsg += L" lexeme = " + spInflection->spLexeme()->sSourceForm();
+                        sMsg += L" lexeme = " + spInflection->pLexeme()->sSourceForm();
                         ERROR_LOG(sMsg);
 
                         continue;
