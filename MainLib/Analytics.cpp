@@ -1345,16 +1345,16 @@ static CEString sLineQuery{ L"SELECT lit.id, wil.word_position, lit.source, sd.g
                              INNER JOIN word_to_wordform AS wtw ON wtw.word_in_line_id = wil.id INNER JOIN wordforms AS wf ON wf.id = wtw.wordform_id \
                              INNER JOIN stem_data AS sd ON sd.id = wf.stem_data_id INNER JOIN stress_data AS stress ON stress.form_id = wtw.wordform_id;" };
 
-ET_ReturnCode CAnalytics::eGetFirstLineParse(CEString& sLine, vector<StWordContext>& vecParses, int64_t llStartAt)
+ET_ReturnCode CAnalytics::eGetFirstSegment(int64_t& llOutId, CEString& sOutText, vector<StWordContext>& vecParses, int64_t llStartAt)
 {
     StWordContext stWord;
     try
     {
-        CEString sCurrentLine;
-        m_llCurrentLineId = -1;
-        bool bNextLine{false};
+        CEString sText;
+        m_llCurrentSegmentId = -1;
+        bool bNextSegment{false};
         m_spDb->PrepareForSelect(sLineQuery);
-        while (!bNextLine)
+        while (!bNextSegment)
         {
             auto rc = m_spDb->bGetRow();
             if (!rc)
@@ -1364,20 +1364,23 @@ ET_ReturnCode CAnalytics::eGetFirstLineParse(CEString& sLine, vector<StWordConte
                 return H_NO_MORE;
             }
 
-            int64_t llLineId{-1};
-            m_spDb->GetData(0, llLineId);        // lit.id
-            if (llLineId < llStartAt)
+            int64_t llId{-1};
+            m_spDb->GetData(0, llId);        // lit.id
+            if (llId < llStartAt)
             {
                 continue;
             }
-            if (m_llCurrentLineId < 0)
+            if (m_llCurrentSegmentId < 0)
             {
-                m_llCurrentLineId = llLineId;
+                m_llCurrentSegmentId = llId;
             }
-            else if (m_llCurrentLineId != llLineId)
+            else if (m_llCurrentSegmentId != llId)
             {
-                m_llCurrentLineId = llLineId;
-                bNextLine = true;
+                llOutId = m_llCurrentSegmentId;
+                sOutText = m_sCurrentSegment;
+                m_sCurrentSegment = sText;
+                m_llCurrentSegmentId = llId;
+                bNextSegment = true;
                 vecParses.push_back(stWord);
                 continue;
             }
@@ -1391,21 +1394,22 @@ ET_ReturnCode CAnalytics::eGetFirstLineParse(CEString& sLine, vector<StWordConte
                     vecParses.push_back(stWord);
                     stWord.Reset();
                 }
-                stWord.llLineNum = m_llCurrentLineId;
+//                stWord.llSegmentId = m_llCurrentSegmentId;
+                llId = m_llCurrentSegmentId;
                 stWord.iSeqNum = iPos;
             }
 
-            m_spDb->GetData(2, sLine);
-            if (!sCurrentLine.bIsEmpty() && sCurrentLine != sLine)
+            m_spDb->GetData(2, sText);
+            if (!m_sCurrentSegment.bIsEmpty() && m_sCurrentSegment != sText)
             {
                 CEString sError;
                 m_spDb->GetLastError(sError);
-                ERROR_LOG(L"Line source must be same for all words in line.");
+                ERROR_LOG(L"Source text must be same for all words in the segment.");
                 return H_ERROR_UNEXPECTED;
             }
-            if (sCurrentLine.bIsEmpty())
+            if (m_sCurrentSegment.bIsEmpty())
             {
-                sCurrentLine = sLine;
+                m_sCurrentSegment = sText;
             }
 
             CEString sHash;
@@ -1449,38 +1453,41 @@ ET_ReturnCode CAnalytics::eGetFirstLineParse(CEString& sLine, vector<StWordConte
     }
     return H_NO_ERROR;
 
-}   //  eGetFirstLineParse()
+}   //  eGetFirstParagraphParse()
 
-ET_ReturnCode CAnalytics::eGetNextLineParse(CEString& sLine, vector<StWordContext>& vecParses)
+ET_ReturnCode CAnalytics::eGetNextSegment(int64_t& llOutId, CEString& sOutText, vector<StWordContext>& vecParses)
 {
     StWordContext stWord;
     try
     {
-        CEString sCurrentLine;
-        bool bNextLine{ false };
+        CEString sText;
+        bool bNextLine{false};
         while (!bNextLine)
         {
             // Read data from the current row; line/paragraph ID must match the one 
             // stored during previous call to eGetFirstLineParse() or eGetNextLineParse()
-            int64_t llLineId{ -1 };
-            m_spDb->GetData(0, llLineId);        // lit.id
-            if (m_llCurrentLineId != llLineId)
+            int64_t llId{ -1 };
+            m_spDb->GetData(0, llId);        // lit.id
+            if (m_llCurrentSegmentId != llId)
             {
                 if (stWord.iSeqNum < 0) // 1st iteration?
                 {
-                    ERROR_LOG(L"Unexpected line number.");
+                    ERROR_LOG(L"Unexpected segment ID.");
                     return H_ERROR_UNEXPECTED;
                 }
                 else
                 {
-                    m_llCurrentLineId = llLineId;
+                    llOutId = m_llCurrentSegmentId;
+                    m_llCurrentSegmentId = llId;
+                    sOutText = m_sCurrentSegment;
+                    m_sCurrentSegment = sText;
                     bNextLine = true;
                     vecParses.push_back(stWord);
                     continue;
                 }
             }
 
-            int iPos{ -1 };
+            int iPos{-1};
             m_spDb->GetData(1, iPos);            //  word_position
             if (iPos != stWord.iSeqNum)
             {
@@ -1489,21 +1496,20 @@ ET_ReturnCode CAnalytics::eGetNextLineParse(CEString& sLine, vector<StWordContex
                     vecParses.push_back(stWord);
                     stWord.Reset();
                 }
-                stWord.llLineNum = m_llCurrentLineId;
                 stWord.iSeqNum = iPos;
             }
 
-            m_spDb->GetData(2, sLine);
-            if (!sCurrentLine.bIsEmpty() && sCurrentLine != sLine)
+            m_spDb->GetData(2, sText);
+//            if (!m_sCurrentSegment.bIsEmpty() && m_sCurrentSegment != sText)
+//            {
+//                CEString sError;
+//                m_spDb->GetLastError(sError);
+//                ERROR_LOG(L"Source text must be same for all words in segment.");
+//                return H_ERROR_UNEXPECTED;
+//            }
+            if (m_sCurrentSegment.bIsEmpty())
             {
-                CEString sError;
-                m_spDb->GetLastError(sError);
-                ERROR_LOG(L"Line source must be same for all words in line.");
-                return H_ERROR_UNEXPECTED;
-            }
-            if (sCurrentLine.bIsEmpty())
-            {
-                sCurrentLine = sLine;
+                m_sCurrentSegment = sText;
             }
 
             CEString sHash;
@@ -1512,7 +1518,7 @@ ET_ReturnCode CAnalytics::eGetNextLineParse(CEString& sLine, vector<StWordContex
 
             m_spDb->GetData(4, stWord.sWord);
 
-            int iStressSyll{ -1 };
+            int iStressSyll{-1};
             m_spDb->GetData(5, iStressSyll);
             try
             {
@@ -1553,4 +1559,4 @@ ET_ReturnCode CAnalytics::eGetNextLineParse(CEString& sLine, vector<StWordContex
     }
     return H_NO_ERROR;
 
-}  //  eGetNextLineParse()
+}  //  eGetNextParagraphParse()

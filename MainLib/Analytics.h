@@ -59,19 +59,20 @@ namespace Hlib
 
     struct StWordContext
     {
-        int64_t llLineNum;
+//        int64_t llSegmentId;
         int iSeqNum;
         CEString sWord;
         vector<int> vecStressPositions;
         vector<CEString> vecGramHashes;
 
-        StWordContext() : llLineNum(-1), iSeqNum{ -1 }
+        StWordContext() : iSeqNum(-1)
         {}
 
         void Reset()
         {
-            llLineNum = -1;
+//            llSegmentId = -1;
             iSeqNum = -1;
+            vecStressPositions.clear();
             vecGramHashes.clear();
         }
     };
@@ -141,8 +142,8 @@ namespace Hlib
 
 //        virtual ET_ReturnCode eParseText(const CEString& sTextName, const CEString& sMetadata, const CEString& sText, int64_t& llParsedTextId, bool bIsProse = false);
         virtual ET_ReturnCode eParseText(const CEString& sTextName, const CEString& sMetadata, const CEString& sText, int64_t llFirstLineNum, bool bIsProse = false);
-        ET_ReturnCode eGetFirstLineParse(CEString& sLine, vector<StWordContext>&, int64_t llStartAt=0);
-        ET_ReturnCode eGetNextLineParse(CEString& sLine, vector<StWordContext>&);
+        ET_ReturnCode eGetFirstSegment(int64_t& llSegmentId, CEString& sText, vector<StWordContext>&, int64_t llStartAt=0);
+        ET_ReturnCode eGetNextSegment(int64_t& llSegmentId, CEString& sText, vector<StWordContext>&);
 
     private:
         ET_ReturnCode eInit();
@@ -178,7 +179,8 @@ namespace Hlib
         multimap<int, InvariantParses> m_mmapLinePosToHomophones;
         vector<pair<CEString, CEString>> m_vecMetadataKeyValPairs;
         vector<shared_ptr<StTactGroup>> m_vecTactGroupListHeads;
-        int64_t m_llCurrentLineId{ -1 };
+        int64_t m_llCurrentSegmentId{-1};
+        CEString m_sCurrentSegment;
         int m_iWordsInCurrentLine;
 
     };      //  class CAnalytics
