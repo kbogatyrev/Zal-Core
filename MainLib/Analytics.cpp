@@ -1347,6 +1347,9 @@ static CEString sLineQuery{ L"SELECT lit.id, wil.word_position, lit.source, sd.g
 
 ET_ReturnCode CAnalytics::eGetFirstSegment(int64_t& llOutId, CEString& sOutText, vector<StWordContext>& vecParses, int64_t llStartAt)
 {
+    m_sCurrentSegment.Erase();
+    m_llCurrentSegmentId = -1;
+
     StWordContext stWord;
     try
     {
