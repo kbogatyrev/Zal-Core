@@ -1355,6 +1355,7 @@ ET_ReturnCode CAnalytics::eGetFirstSegment(int64_t& llOutId, CEString& sOutText,
     {
         CEString sText;
         m_llCurrentSegmentId = -1;
+        int iLastWordPos = -1;
         bool bNextSegment{false};
         m_spDb->PrepareForSelect(sLineQuery);
         while (!bNextSegment)
@@ -1385,6 +1386,16 @@ ET_ReturnCode CAnalytics::eGetFirstSegment(int64_t& llOutId, CEString& sOutText,
                 m_llCurrentSegmentId = llId;
                 bNextSegment = true;
                 vecParses.push_back(stWord);
+                while ((int)m_vecCurrentSourceWords.size() - 1 > stWord.iSeqNum)
+                {
+                    stWord.Reset();
+                    stWord.bIncomplete = true;
+                    stWord.iSeqNum = vecParses.size();
+                    vecParses.push_back(stWord);
+                }
+                stWord.Reset();
+                stWord.bBreak = true;
+                vecParses.push_back(stWord);
                 continue;
             }
             
@@ -1392,12 +1403,40 @@ ET_ReturnCode CAnalytics::eGetFirstSegment(int64_t& llOutId, CEString& sOutText,
             m_spDb->GetData(1, iPos);            //  word_position
             if (iPos != stWord.iSeqNum)
             {
+                if (iPos < stWord.iSeqNum)
+                {
+                    ERROR_LOG(L"Word numbering error.");
+                    return H_ERROR_UNEXPECTED;
+                }
+
                 if (stWord.iSeqNum >= 0)
                 {
+                    if (vecParses.empty() && iPos > 1)
+                    {
+                        assert(-1 == iLastWordPos);
+                        while (++iLastWordPos < iPos)
+                        {
+                            StWordContext stMissing;
+                            stMissing.iSeqNum = iLastWordPos;
+                            stMissing.bIncomplete = true;
+                            vecParses.push_back(stMissing);
+                        }
+                    }
+
                     vecParses.push_back(stWord);
                     stWord.Reset();
+
+                    // Unrecognized words between current and previous one?
+                    while (iLastWordPos >= 0 && iPos - iLastWordPos > 1)
+                    {
+                        StWordContext stMissing;
+                        stMissing.iSeqNum = ++iLastWordPos;
+                        stMissing.bIncomplete = true;
+                        vecParses.push_back(stMissing);
+                    }
+                    iLastWordPos = iPos;
                 }
-//                stWord.llSegmentId = m_llCurrentSegmentId;
+
                 llId = m_llCurrentSegmentId;
                 stWord.iSeqNum = iPos;
             }
@@ -1413,6 +1452,19 @@ ET_ReturnCode CAnalytics::eGetFirstSegment(int64_t& llOutId, CEString& sOutText,
             if (m_sCurrentSegment.bIsEmpty())
             {
                 m_sCurrentSegment = sText;
+                m_vecCurrentSourceTokens.clear();
+                int iNTokens = m_sCurrentSegment.uiGetNumOfTokens();
+                for (int iAt = 0; iAt < iNTokens; ++iAt)
+                {
+                    m_vecCurrentSourceTokens.emplace_back(m_sCurrentSegment.stGetToken(iAt));
+                }
+
+                m_vecCurrentSourceWords.clear();
+                int iNFields = sText.uiGetNumOfFields();
+                for (int iAt = 0; iAt < iNFields; ++iAt)
+                {
+                    m_vecCurrentSourceWords.emplace_back(m_sCurrentSegment.sGetField(iAt));
+                }
             }
 
             CEString sHash;
@@ -1456,7 +1508,7 @@ ET_ReturnCode CAnalytics::eGetFirstSegment(int64_t& llOutId, CEString& sOutText,
     }
     return H_NO_ERROR;
 
-}   //  eGetFirstParagraphParse()
+}   //  eGetFirstSegment()
 
 ET_ReturnCode CAnalytics::eGetNextSegment(int64_t& llOutId, CEString& sOutText, vector<StWordContext>& vecParses)
 {
@@ -1464,8 +1516,9 @@ ET_ReturnCode CAnalytics::eGetNextSegment(int64_t& llOutId, CEString& sOutText, 
     try
     {
         CEString sText;
-        bool bNextLine{false};
-        while (!bNextLine)
+        int iLastWordPos = -1;
+        bool bNextSegment{false};
+        while (!bNextSegment)
         {
             // Read data from the current row; line/paragraph ID must match the one 
             // stored during previous call to eGetFirstLineParse() or eGetNextLineParse()
@@ -1484,7 +1537,30 @@ ET_ReturnCode CAnalytics::eGetNextSegment(int64_t& llOutId, CEString& sOutText, 
                     m_llCurrentSegmentId = llId;
                     sOutText = m_sCurrentSegment;
                     m_sCurrentSegment = sText;
-                    bNextLine = true;
+                    m_vecCurrentSourceTokens.clear();
+                    int iNTokens = m_sCurrentSegment.uiGetNumOfTokens();
+                    for (int iAt = 0; iAt < iNTokens; ++iAt)
+                    {
+                        m_vecCurrentSourceTokens.emplace_back(m_sCurrentSegment.stGetToken(iAt));
+                    }
+
+                    m_vecCurrentSourceWords.clear();
+                    int iNFields = sText.uiGetNumOfFields();
+                    for (int iAt = 0; iAt < iNFields; ++iAt)
+                    {
+                        m_vecCurrentSourceWords.emplace_back(m_sCurrentSegment.sGetField(iAt));
+                    }
+                    bNextSegment = true;
+                    vecParses.push_back(stWord);
+                    while ((int)m_vecCurrentSourceWords.size() - 1 > stWord.iSeqNum)
+                    {
+                        stWord.Reset();
+                        stWord.bIncomplete = true;
+                        stWord.iSeqNum = vecParses.size();
+                        vecParses.push_back(stWord);
+                    }
+                    stWord.Reset();
+                    stWord.bBreak = true;
                     vecParses.push_back(stWord);
                     continue;
                 }
@@ -1494,26 +1570,36 @@ ET_ReturnCode CAnalytics::eGetNextSegment(int64_t& llOutId, CEString& sOutText, 
             m_spDb->GetData(1, iPos);            //  word_position
             if (iPos != stWord.iSeqNum)
             {
+                if (vecParses.empty() && iPos > 1)
+                {
+                    assert(-1 == iLastWordPos);
+                    while (++iLastWordPos < iPos)
+                    {
+                        StWordContext stMissing;
+                        stMissing.iSeqNum = iLastWordPos;
+                        stMissing.bIncomplete = true;
+                        vecParses.push_back(stMissing);
+                    }
+                }
                 if (stWord.iSeqNum >= 0)
                 {
                     vecParses.push_back(stWord);
                     stWord.Reset();
+
+                    // Unrecognized words between current and previous one?
+                    while (iLastWordPos >= 0 && iPos - iLastWordPos > 1)
+                    {
+                        StWordContext stEmpty;
+                        stEmpty.iSeqNum = ++iLastWordPos;
+                        stEmpty.bIncomplete = true;
+                        vecParses.push_back(stEmpty);
+                    }
+                    iLastWordPos = iPos;
                 }
                 stWord.iSeqNum = iPos;
             }
 
             m_spDb->GetData(2, sText);
-//            if (!m_sCurrentSegment.bIsEmpty() && m_sCurrentSegment != sText)
-//            {
-//                CEString sError;
-//                m_spDb->GetLastError(sError);
-//                ERROR_LOG(L"Source text must be same for all words in segment.");
-//                return H_ERROR_UNEXPECTED;
-//            }
-            if (m_sCurrentSegment.bIsEmpty())
-            {
-                m_sCurrentSegment = sText;
-            }
 
             CEString sHash;
             m_spDb->GetData(3, sHash);
@@ -1562,4 +1648,4 @@ ET_ReturnCode CAnalytics::eGetNextSegment(int64_t& llOutId, CEString& sOutText, 
     }
     return H_NO_ERROR;
 
-}  //  eGetNextParagraphParse()
+}  //  eGetNextSegment()

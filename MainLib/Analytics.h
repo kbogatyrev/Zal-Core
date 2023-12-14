@@ -20,6 +20,15 @@ namespace Hlib
 //    class CWordForm;
     class CEString;
 
+    enum class ET_WordContext
+    {
+        WORD_CONTEXT_UNDEFINED,
+        WORD_CONTEXT_COMPLETE,
+        WORD_CONTEXT_INCOMPLETE,
+        WORD_CONTEXT_BREAK,
+        WORD_CONTEXT_COUNT
+    };
+
     struct StWordParse
     {
         int iPosInLine;
@@ -59,7 +68,8 @@ namespace Hlib
 
     struct StWordContext
     {
-//        int64_t llSegmentId;
+        bool bIncomplete {false};
+        bool bBreak {false};
         int iSeqNum;
         CEString sWord;
         vector<int> vecStressPositions;
@@ -70,8 +80,10 @@ namespace Hlib
 
         void Reset()
         {
-//            llSegmentId = -1;
+            bIncomplete = false;
+            bBreak = false;
             iSeqNum = -1;
+            sWord.Erase();
             vecStressPositions.clear();
             vecGramHashes.clear();
         }
@@ -175,12 +187,13 @@ namespace Hlib
         CEString m_sText;
         int64_t m_llTextDbId;
 
-//        shared_ptr<StTactGroup> m_spCurrentTactGroup;
         multimap<int, InvariantParses> m_mmapLinePosToHomophones;
         vector<pair<CEString, CEString>> m_vecMetadataKeyValPairs;
         vector<shared_ptr<StTactGroup>> m_vecTactGroupListHeads;
         int64_t m_llCurrentSegmentId{-1};
         CEString m_sCurrentSegment;
+        vector<StToken> m_vecCurrentSourceTokens;
+        vector<CEString> m_vecCurrentSourceWords;
         int m_iWordsInCurrentLine;
 
     };      //  class CAnalytics
