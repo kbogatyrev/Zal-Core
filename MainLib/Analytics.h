@@ -70,18 +70,20 @@ namespace Hlib
     {
         bool bIncomplete {false};
         bool bBreak {false};
+        int64_t llSegmentId;
         int iSeqNum;
         CEString sWord;
         vector<int> vecStressPositions;
         vector<CEString> vecGramHashes;
 
-        StWordContext() : iSeqNum(-1)
+        StWordContext() : llSegmentId(-1), iSeqNum(-1)
         {}
 
         void Reset()
         {
             bIncomplete = false;
             bBreak = false;
+            llSegmentId = -1;
             iSeqNum = -1;
             sWord.Erase();
             vecStressPositions.clear();
@@ -154,8 +156,8 @@ namespace Hlib
 
 //        virtual ET_ReturnCode eParseText(const CEString& sTextName, const CEString& sMetadata, const CEString& sText, int64_t& llParsedTextId, bool bIsProse = false);
         virtual ET_ReturnCode eParseText(const CEString& sTextName, const CEString& sMetadata, const CEString& sText, int64_t llFirstLineNum, bool bIsProse = false);
-        ET_ReturnCode eGetFirstSegment(int64_t& llSegmentId, CEString& sText, vector<StWordContext>&, int64_t llStartAt=0);
-        ET_ReturnCode eGetNextSegment(int64_t& llSegmentId, CEString& sText, vector<StWordContext>&);
+        ET_ReturnCode eGetFirstSegment(vector<StWordContext>&, int64_t llStartAt=0);
+        ET_ReturnCode eGetNextSegment(vector<StWordContext>&);
 
     private:
         ET_ReturnCode eInit();
@@ -175,8 +177,11 @@ namespace Hlib
         ET_WordStressType eGetStressType(CWordForm&);
         bool bArePhoneticallyIdentical(shared_ptr<CWordForm>, shared_ptr<CWordForm>);
         ET_ReturnCode eAddParsesToTactGroup(int64_t llLineDbId, int iLineNum, int iWord, shared_ptr<StTactGroup>);
-//        ET_ReturnCode eGetLineParses(int iFirstLine, int iNum, CEString& sLine, vector<StWordContext>&);
 
+        ET_ReturnCode eGetSegment(vector<StWordContext>&);
+        ET_ReturnCode eStoreSegmentTokens();
+        ET_ReturnCode eStoreSegmentWords();
+        
     private:
         shared_ptr<CSqlite> m_spDb;
         shared_ptr<CParser> m_spParser;

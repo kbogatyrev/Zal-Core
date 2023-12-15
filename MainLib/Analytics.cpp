@@ -2,8 +2,8 @@
 
 #include <set>
 #include <vector>
-
 #include "Logging.h"
+#include "Exception.h"
 #include "SqliteWrapper.h"
 #include "WordForm.h"
 #include "Parser.h"
@@ -1345,150 +1345,135 @@ static CEString sLineQuery{ L"SELECT lit.id, wil.word_position, lit.source, sd.g
                              INNER JOIN word_to_wordform AS wtw ON wtw.word_in_line_id = wil.id INNER JOIN wordforms AS wf ON wf.id = wtw.wordform_id \
                              INNER JOIN stem_data AS sd ON sd.id = wf.stem_data_id INNER JOIN stress_data AS stress ON stress.form_id = wtw.wordform_id;" };
 
-ET_ReturnCode CAnalytics::eGetFirstSegment(int64_t& llOutId, CEString& sOutText, vector<StWordContext>& vecParses, int64_t llStartAt)
+
+
+ET_ReturnCode CAnalytics::eGetFirstSegment(vector<StWordContext>& vecParses, int64_t llStartAt)
 {
     m_sCurrentSegment.Erase();
     m_llCurrentSegmentId = -1;
 
-    StWordContext stWord;
+    m_spDb->PrepareForSelect(sLineQuery);
+    auto bRc = m_spDb->bGetRow();
+    if (!bRc)
+    {
+        m_spDb->Finalize();
+        ERROR_LOG(L"WARNING: no records.");
+        return H_NO_MORE;
+    }
+
+    int64_t llId{ -1 };
+    while (llId < llStartAt)
+    {
+        auto rc = m_spDb->bGetRow();
+        if (!rc)
+        {
+            m_spDb->Finalize();
+            ERROR_LOG(L"WARNING: no records.");
+            return H_NO_MORE;
+        }
+        m_spDb->GetData(0, llId);   
+    }
+
+    m_llCurrentSegmentId = llId;
+    m_spDb->GetData(2, m_sCurrentSegment);
+
+    auto rc = eGetSegment(vecParses);
+    return rc;
+
+}   //  eGetFirstSegment()
+
+ET_ReturnCode CAnalytics::eGetNextSegment(vector<StWordContext>& vecParses)
+{
+    auto rc = eGetSegment(vecParses);
+    return rc;
+}  //  eGetNextSegment()
+
+ET_ReturnCode CAnalytics::eGetSegment(vector<StWordContext>& vecParses)
+{    
+    StWordContext stCurrentWord;
     try
     {
-        CEString sText;
-        m_llCurrentSegmentId = -1;
-        int iLastWordPos = -1;
-        bool bNextSegment{false};
-        m_spDb->PrepareForSelect(sLineQuery);
+        bool bNextSegment{ false };
         while (!bNextSegment)
         {
+            int64_t llId{ -1 };
+            m_spDb->GetData(0, llId);        // lit.id
+            if (llId < m_llCurrentSegmentId)
+            {
+                ERROR_LOG(L"Illegal segment ID.");
+                return H_ERROR_UNEXPECTED;
+            }
+
+            if (llId > m_llCurrentSegmentId)
+            {
+                bNextSegment = true;
+
+                // Last word
+                stCurrentWord.llSegmentId = m_llCurrentSegmentId;
+                vecParses.push_back(stCurrentWord);
+
+                // Line break token
+                StWordContext stLineBreak;
+                stLineBreak.llSegmentId = m_llCurrentSegmentId;
+                stLineBreak.bBreak = true;
+                vecParses.push_back(stLineBreak);
+
+                m_llCurrentSegmentId = llId;
+                m_spDb->GetData(2, m_sCurrentSegment);
+                continue;
+            }
+
+            int iPos{ -1 };
+            m_spDb->GetData(1, iPos);            //  word_position
+            if (iPos != stCurrentWord.iSeqNum)
+            {
+                if (iPos < stCurrentWord.iSeqNum)
+                {
+                    ERROR_LOG(L"Word numbering error.");
+                    return H_ERROR_UNEXPECTED;
+                }
+
+                if (stCurrentWord.iSeqNum >= 0)
+                {
+//                    stCurrentWord.llSegmentId = m_llCurrentSegmentId;
+                    vecParses.push_back(stCurrentWord);
+                    stCurrentWord.Reset();
+                }
+
+                stCurrentWord.llSegmentId = m_llCurrentSegmentId;
+                stCurrentWord.iSeqNum = iPos;
+            }
+
+            CEString sHash;
+            m_spDb->GetData(3, sHash);
+            stCurrentWord.vecGramHashes.push_back(sHash);
+
+            m_spDb->GetData(4, stCurrentWord.sWord);
+
+            int iStressSyll{ -1 };
+            m_spDb->GetData(5, iStressSyll);
+            try
+            {
+                auto uiStressPos = stCurrentWord.sWord.uiGetVowelPos(iStressSyll);
+                stCurrentWord.vecStressPositions.push_back(uiStressPos);
+            }
+            catch (CException& e)
+            {
+                CEString sMsg = CEString(L"Exception: ");
+                sMsg += e.szGetDescription();
+                return H_EXCEPTION;
+            }
+
             auto rc = m_spDb->bGetRow();
             if (!rc)
             {
                 m_spDb->Finalize();
                 ERROR_LOG(L"WARNING: no more records.");
                 return H_NO_MORE;
-            }
-
-            int64_t llId{-1};
-            m_spDb->GetData(0, llId);        // lit.id
-            if (llId < llStartAt)
-            {
-                continue;
-            }
-            if (m_llCurrentSegmentId < 0)
-            {
-                m_llCurrentSegmentId = llId;
-            }
-            else if (m_llCurrentSegmentId != llId)
-            {
-                llOutId = m_llCurrentSegmentId;
-                sOutText = m_sCurrentSegment;
-                m_sCurrentSegment = sText;
-                m_llCurrentSegmentId = llId;
-                bNextSegment = true;
-                vecParses.push_back(stWord);
-                while ((int)m_vecCurrentSourceWords.size() - 1 > stWord.iSeqNum)
-                {
-                    stWord.Reset();
-                    stWord.bIncomplete = true;
-                    stWord.iSeqNum = vecParses.size();
-                    vecParses.push_back(stWord);
-                }
-                stWord.Reset();
-                stWord.bBreak = true;
-                vecParses.push_back(stWord);
-                continue;
-            }
-            
-            int iPos{-1};
-            m_spDb->GetData(1, iPos);            //  word_position
-            if (iPos != stWord.iSeqNum)
-            {
-                if (iPos < stWord.iSeqNum)
-                {
-                    ERROR_LOG(L"Word numbering error.");
-                    return H_ERROR_UNEXPECTED;
-                }
-
-                if (stWord.iSeqNum >= 0)
-                {
-                    if (vecParses.empty() && iPos > 1)
-                    {
-                        assert(-1 == iLastWordPos);
-                        while (++iLastWordPos < iPos)
-                        {
-                            StWordContext stMissing;
-                            stMissing.iSeqNum = iLastWordPos;
-                            stMissing.bIncomplete = true;
-                            vecParses.push_back(stMissing);
-                        }
-                    }
-
-                    vecParses.push_back(stWord);
-                    stWord.Reset();
-
-                    // Unrecognized words between current and previous one?
-                    while (iLastWordPos >= 0 && iPos - iLastWordPos > 1)
-                    {
-                        StWordContext stMissing;
-                        stMissing.iSeqNum = ++iLastWordPos;
-                        stMissing.bIncomplete = true;
-                        vecParses.push_back(stMissing);
-                    }
-                    iLastWordPos = iPos;
-                }
-
-                llId = m_llCurrentSegmentId;
-                stWord.iSeqNum = iPos;
-            }
-
-            m_spDb->GetData(2, sText);
-            if (!m_sCurrentSegment.bIsEmpty() && m_sCurrentSegment != sText)
-            {
-                CEString sError;
-                m_spDb->GetLastError(sError);
-                ERROR_LOG(L"Source text must be same for all words in the segment.");
-                return H_ERROR_UNEXPECTED;
-            }
-            if (m_sCurrentSegment.bIsEmpty())
-            {
-                m_sCurrentSegment = sText;
-                m_vecCurrentSourceTokens.clear();
-                int iNTokens = m_sCurrentSegment.uiGetNumOfTokens();
-                for (int iAt = 0; iAt < iNTokens; ++iAt)
-                {
-                    m_vecCurrentSourceTokens.emplace_back(m_sCurrentSegment.stGetToken(iAt));
-                }
-
-                m_vecCurrentSourceWords.clear();
-                int iNFields = sText.uiGetNumOfFields();
-                for (int iAt = 0; iAt < iNFields; ++iAt)
-                {
-                    m_vecCurrentSourceWords.emplace_back(m_sCurrentSegment.sGetField(iAt));
-                }
-            }
-
-            CEString sHash;
-            m_spDb->GetData(3, sHash);
-            stWord.vecGramHashes.push_back(sHash);
-
-            m_spDb->GetData(4, stWord.sWord);
-
-            int iStressSyll{-1};
-            m_spDb->GetData(5, iStressSyll);
-            try
-            {
-                auto uiStressPos = stWord.sWord.uiGetVowelPos(iStressSyll);
-                stWord.vecStressPositions.push_back(uiStressPos);
-            }
-            catch (CException& e)
-            {
-                CEString sMsg = CEString(L"Exception: ");
-                sMsg += e.szGetDescription();
-                return H_EXCEPTION;
-            }
-        }
-//        m_spDb->Finalize();
-    }
+            }       
+        }       // while(!bNextSegment)
+        //        m_spDb->Finalize();
+    } 
     catch (CException& exc)
     {
         CEString sMsg(exc.szGetDescription());
@@ -1508,144 +1493,44 @@ ET_ReturnCode CAnalytics::eGetFirstSegment(int64_t& llOutId, CEString& sOutText,
     }
     return H_NO_ERROR;
 
-}   //  eGetFirstSegment()
+}       // eGetSegment()
 
-ET_ReturnCode CAnalytics::eGetNextSegment(int64_t& llOutId, CEString& sOutText, vector<StWordContext>& vecParses)
+ET_ReturnCode CAnalytics::eStoreSegmentTokens()
 {
-    StWordContext stWord;
     try
     {
-        CEString sText;
-        int iLastWordPos = -1;
-        bool bNextSegment{false};
-        while (!bNextSegment)
+        m_vecCurrentSourceTokens.clear();
+        int iNTokens = m_sCurrentSegment.uiGetNumOfTokens();
+        for (int iAt = 0; iAt < iNTokens; ++iAt)
         {
-            // Read data from the current row; line/paragraph ID must match the one 
-            // stored during previous call to eGetFirstLineParse() or eGetNextLineParse()
-            int64_t llId{ -1 };
-            m_spDb->GetData(0, llId);        // lit.id
-            if (m_llCurrentSegmentId != llId)
-            {
-                if (stWord.iSeqNum < 0) // 1st iteration?
-                {
-                    ERROR_LOG(L"Unexpected segment ID.");
-                    return H_ERROR_UNEXPECTED;
-                }
-                else
-                {
-                    llOutId = m_llCurrentSegmentId;
-                    m_llCurrentSegmentId = llId;
-                    sOutText = m_sCurrentSegment;
-                    m_sCurrentSegment = sText;
-                    m_vecCurrentSourceTokens.clear();
-                    int iNTokens = m_sCurrentSegment.uiGetNumOfTokens();
-                    for (int iAt = 0; iAt < iNTokens; ++iAt)
-                    {
-                        m_vecCurrentSourceTokens.emplace_back(m_sCurrentSegment.stGetToken(iAt));
-                    }
-
-                    m_vecCurrentSourceWords.clear();
-                    int iNFields = sText.uiGetNumOfFields();
-                    for (int iAt = 0; iAt < iNFields; ++iAt)
-                    {
-                        m_vecCurrentSourceWords.emplace_back(m_sCurrentSegment.sGetField(iAt));
-                    }
-                    bNextSegment = true;
-                    vecParses.push_back(stWord);
-                    while ((int)m_vecCurrentSourceWords.size() - 1 > stWord.iSeqNum)
-                    {
-                        stWord.Reset();
-                        stWord.bIncomplete = true;
-                        stWord.iSeqNum = vecParses.size();
-                        vecParses.push_back(stWord);
-                    }
-                    stWord.Reset();
-                    stWord.bBreak = true;
-                    vecParses.push_back(stWord);
-                    continue;
-                }
-            }
-
-            int iPos{-1};
-            m_spDb->GetData(1, iPos);            //  word_position
-            if (iPos != stWord.iSeqNum)
-            {
-                if (vecParses.empty() && iPos > 1)
-                {
-                    assert(-1 == iLastWordPos);
-                    while (++iLastWordPos < iPos)
-                    {
-                        StWordContext stMissing;
-                        stMissing.iSeqNum = iLastWordPos;
-                        stMissing.bIncomplete = true;
-                        vecParses.push_back(stMissing);
-                    }
-                }
-                if (stWord.iSeqNum >= 0)
-                {
-                    vecParses.push_back(stWord);
-                    stWord.Reset();
-
-                    // Unrecognized words between current and previous one?
-                    while (iLastWordPos >= 0 && iPos - iLastWordPos > 1)
-                    {
-                        StWordContext stEmpty;
-                        stEmpty.iSeqNum = ++iLastWordPos;
-                        stEmpty.bIncomplete = true;
-                        vecParses.push_back(stEmpty);
-                    }
-                    iLastWordPos = iPos;
-                }
-                stWord.iSeqNum = iPos;
-            }
-
-            m_spDb->GetData(2, sText);
-
-            CEString sHash;
-            m_spDb->GetData(3, sHash);
-            stWord.vecGramHashes.push_back(sHash);
-
-            m_spDb->GetData(4, stWord.sWord);
-
-            int iStressSyll{-1};
-            m_spDb->GetData(5, iStressSyll);
-            try
-            {
-                auto uiStressPos = stWord.sWord.uiGetVowelPos(iStressSyll);
-                stWord.vecStressPositions.push_back(uiStressPos);
-            }
-            catch (CException& e)
-            {
-                CEString sMsg = CEString(L"Exception: ");
-                sMsg += e.szGetDescription();
-                return H_EXCEPTION;
-            }
-
-            auto bRc = m_spDb->bGetRow();
-            if (!bRc)
-            {
-                return H_NO_MORE;
-            }
+            m_vecCurrentSourceTokens.emplace_back(m_sCurrentSegment.stGetToken(iAt));
         }
-//        m_spDb->Finalize();
     }
-    catch (CException& exc)
+    catch (CException& ex)
     {
-        CEString sMsg(exc.szGetDescription());
-        CEString sError;
-        try
-        {
-            m_spDb->GetLastError(sError);
-            sMsg += CEString(L", error: ");
-            sMsg += sError;
-        }
-        catch (...)
-        {
-            sMsg = L"Apparent DB error ";
-        }
-
-        ERROR_LOG(L"Error getting line/paragraph context: " + sMsg);
+        Hlib::CEString sMsg(L"Error retrieving source tokens: ");
+        ERROR_LOG(sMsg + ex.szGetDescription());
+        return H_EXCEPTION;
     }
     return H_NO_ERROR;
+}
 
-}  //  eGetNextSegment()
+ET_ReturnCode CAnalytics::eStoreSegmentWords()
+{
+    try
+    {
+        m_vecCurrentSourceWords.clear();
+        int iNFields = m_sCurrentSegment.uiGetNumOfFields();
+        for (int iAt = 0; iAt < iNFields; ++iAt)
+        {
+            m_vecCurrentSourceWords.emplace_back(m_sCurrentSegment.sGetField(iAt));
+        }
+    }
+    catch (CException& ex)
+    {
+        Hlib::CEString sMsg(L"Error retrieving source tokens: ");
+        ERROR_LOG(sMsg + ex.szGetDescription());
+        return H_EXCEPTION;
+    }
+    return H_NO_ERROR;
+}
