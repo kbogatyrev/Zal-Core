@@ -600,14 +600,12 @@ ET_ReturnCode CFormBuilderNonFinite::ePresAdvGeneral(ET_Subparadigm eSubparadigm
                 return H_ERROR_POINTER;
             }
 
-//            spWordForm->m_pLexeme = m_pLexeme;
             spWordForm->SetPos(POS_VERB);
             spWordForm->SetSubparadigm(eSubparadigm);   // usually SUBPARADIGM_ADVERBIAL_PRESENT 
                                                         // but can be SUBPARADIGM_ADVERBIAL_PAST with
                                                         // std deviation "9", see p. 83
             spWordForm->SetAspect(m_pLexeme->eAspect());
             spWordForm->SetReflexivity(m_pLexeme->eIsReflexive());
-//            spWordForm->m_llLexemeId = m_pLexeme->llLexemeId();
             spWordForm->SetInflectionId(m_pInflection->llInflectionId());
             spWordForm->SetEndingDataId(llEndingKey);
             spWordForm->SetStem(sStem);
@@ -719,12 +717,14 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastAdverbial()
  
     if (m_pInflection->bHasCommonDeviation(9))
     {
-        if (L"св" != m_pLexeme->sMainSymbol())
-        {
-            assert(0);
-            ERROR_LOG(L"Non-perfective verb with CD-9");
-            return H_ERROR_UNEXPECTED;
-        }
+
+//        This section was wrong, CD-9 is allowed with non-perf verbs, cf. gnesti
+//        if (L"св" != m_pLexeme->sMainSymbol())
+//        {
+//            assert(0);
+//            ERROR_LOG(L"Non-perfective verb with CD-9");
+//            return H_ERROR_UNEXPECTED;
+//        }
 
         rc = ePresAdvGeneral(SUBPARADIGM_ADVERBIAL_PAST); // GDRL p. 83: use present form
         if (rc != H_NO_ERROR)
