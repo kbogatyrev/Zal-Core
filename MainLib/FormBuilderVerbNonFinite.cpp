@@ -150,7 +150,6 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildInfinitive()
             spWordForm->SetStem(m_pLexeme->sInfStem());
             spWordForm->SetWordForm(m_pLexeme->sSourceForm());
             spWordForm->SetEndingDataId(llEndingKey);
-//            spWordForm->m_llLexemeId = m_pLexeme->llLexemeId();
             spWordForm->SetInflectionId(m_pInflection->llInflectionId());
 
             vector<int> vecStress;
@@ -187,11 +186,9 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildInfinitive()
                     if (itStressedSyll != vecStress.begin())
                     {
                         auto spWfVariant = make_shared<CWordForm>();
-//                        CloneWordForm(spWordForm, spWfVariant);
                         spWfVariant->eCloneFrom(spWordForm.get());
                         spWordForm = spWfVariant;
                     }
-//                    spWordForm->m_mapStress[*itStressedSyll] = STRESS_PRIMARY;
                     spWordForm->SetStressPos(*itStressedSyll, STRESS_PRIMARY);
                     m_pInflection->AddWordForm(spWordForm);
                 }
@@ -848,7 +845,6 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastAdverbial()
                     return H_ERROR_POINTER;
                 }
 
-//                spWordForm->m_pLexeme = m_pLexeme;
                 spWordForm->SetPos(POS_VERB);
                 spWordForm->SetSubparadigm(SUBPARADIGM_ADVERBIAL_PAST);
                 spWordForm->SetStem(sStem);
@@ -861,9 +857,9 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastAdverbial()
                 }
                 spWordForm->SetAspect(m_pLexeme->eAspect());
                 spWordForm->SetReflexivity(m_pLexeme->eIsReflexive());
-//                spWordForm->m_llLexemeId = m_pLexeme->llLexemeId();
                 spWordForm->SetInflectionId(m_pInflection->llInflectionId());
                 spWordForm->SetEndingDataId(llEndingKey);
+                spWordForm->SetEnding(sEnding);
                 spWordForm->SetWordForm(spWordForm->sStem() + sEnding);
                 spWordForm->AssignStress(pPastPart->mapGetStressPositions());
 
@@ -942,12 +938,10 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastAdverbial()
                 return H_ERROR_POINTER;
             }
 
-//            spWordForm->m_pLexeme = m_pLexeme;
             spWordForm->SetPos(POS_VERB);
             spWordForm->SetSubparadigm(SUBPARADIGM_ADVERBIAL_PAST);
             spWordForm->SetAspect(m_pLexeme->eAspect());
             spWordForm->SetReflexivity(m_pLexeme->eIsReflexive());
-//            spWordForm->m_llLexemeId = m_pLexeme->llLexemeId();
             spWordForm->SetInflectionId(m_pInflection->llInflectionId());
 
             spWordForm->SetStem(m_pLexeme->sInfStem());
@@ -987,11 +981,11 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastAdverbial()
                 if (iEnding > 0)
                 {
                     auto spVariant = make_shared<CWordForm>();
-//                    CloneWordForm(spWordForm, spVariant);
                     spVariant->eCloneFrom(spWordForm.get());
                     spWordForm = spVariant;
                 }
                 spWordForm->SetEndingDataId(llEndingKey);
+                spWordForm->SetEnding(sEnding);
                 spWordForm->SetWordForm(spWordForm->sStem() + sEnding);
                 spWordForm->AssignStress(pInfinitive->mapGetStressPositions());
                 m_pInflection->AddWordForm(spWordForm);
@@ -1154,8 +1148,6 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastActiveParticiple()
         return H_ERROR_POINTER;
     }
 
-//    spWordForm->m_pLexeme = m_pLexeme;
-//    spWordForm->m_llLexemeId = m_pLexeme->llLexemeId();
     spWordForm->SetInflectionId(m_pInflection->llInflectionId());
     spWordForm->SetAspect(m_pLexeme->eAspect());
 
@@ -2272,6 +2264,8 @@ ET_ReturnCode CFormBuilderNonFinite::eDeriveIrregPresAdverbial()
                     continue;
                 }
 
+                spWordForm->SetEndingDataId(llEndingKey);
+                spWordForm->SetEnding(sEnding);
                 spWordForm->SetWordForm(spWordForm->sStem() + sEnding);
             }
 
@@ -2986,7 +2980,6 @@ ET_ReturnCode CFormBuilderNonFinite::eDeriveIrregPartPastPassShort()
                     return H_ERROR_POINTER;
                 }
 
-//                spWordForm->m_pLexeme = m_pLexeme;
                 spWordForm->SetPos(POS_VERB);
                 spWordForm->SetSubparadigm(SUBPARADIGM_PART_PAST_PASS_SHORT);
                 spWordForm->SetAspect(m_pLexeme->eAspect());
@@ -2995,7 +2988,6 @@ ET_ReturnCode CFormBuilderNonFinite::eDeriveIrregPartPastPassShort()
                 spWordForm->SetWordForm(sStem + mapEndings[eGender]);
                 spWordForm->SetGender(eGender);
                 spWordForm->SetNumber(eNumber);
-//                spWordForm->m_llLexemeId = m_pLexeme->llLexemeId();
                 spWordForm->SetInflectionId(m_pInflection->llInflectionId());
 
                 if (STRESS_LOCATION_STEM == eStressLocation)
@@ -3005,7 +2997,6 @@ ET_ReturnCode CFormBuilderNonFinite::eDeriveIrregPartPastPassShort()
                 else if (STRESS_LOCATION_ENDING == eStressLocation)
                 {
                     CEString sWf(spWordForm->sWordForm());
-//                    spWordForm->m_mapStress[sWf.uiNSyllables()-1] = STRESS_PRIMARY;
                     spWordForm->SetStressPos(sWf.uiNSyllables()-1, STRESS_PRIMARY);
                     unsigned int uiYoPos = spWordForm->sWordForm().uiFindLastOf(L"ё");
                     sWf.SetVowels(CEString::g_szRusVowels);
@@ -3015,7 +3006,6 @@ ET_ReturnCode CFormBuilderNonFinite::eDeriveIrregPartPastPassShort()
                         if (uiYoPos != (unsigned int)iStressPos)
                         {
                             auto sWordForm = spWordForm->sWordForm();
-//                            spWordForm->m_sWordForm[uiYoPos] = L'е';
                             sWordForm[uiYoPos] = L'е';
                             spWordForm->SetWordForm(sWordForm);
                         }
@@ -3027,20 +3017,6 @@ ET_ReturnCode CFormBuilderNonFinite::eDeriveIrregPartPastPassShort()
                     ERROR_LOG(L"Illegal stress type.");
                     return H_ERROR_UNEXPECTED;
                 }
-
-                //multimap<int, StIrregularForm>& map_if = m_pLexeme->map_IrregularForms;
-                //multimap<int, StIrregularForm>::iterator it_if = map_if.find (spWordForm->i_GramHash());
-                //if (map_if.end() != it_if)
-                //{
-                //    spWordForm->m_mapStress = (*it_if).second.m_mapStress;
-                //    spWordForm->m_sWordForm = (*it_if).second.m_sForm;
-                //}
-
-                //rc = eAssignSecondaryStress (spWordForm);
-                //if (rc != H_NO_ERROR)
-                //{
-                //    return rc;
-                //}
 
                 m_pInflection->AddWordForm(spWordForm);
             }
