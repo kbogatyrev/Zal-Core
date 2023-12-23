@@ -2,6 +2,7 @@
 
 #include <set>
 #include <vector>
+#include <map>
 #include "Logging.h"
 #include "Exception.h"
 #include "SqliteWrapper.h"
@@ -444,9 +445,7 @@ ET_ReturnCode CAnalytics::eParseWord(const CEString& sWord,
         stParse.llLineDbId = llLineDbKey;
         stParse.llWordInLineDbId = llWordInLineDbKey;
         stParse.llWordToWordFormId = llWordToWordFormId;
-//        stParse.iPosInTactGroup = 0;
         stParse.spWordForm = spWf;
-//        m_mmapLinePosToParses.insert(make_pair(iNumInLine, stParse));
 
         vecParses.push_back(make_shared<StWordParse>(stParse));
 
@@ -1340,7 +1339,13 @@ ET_ReturnCode CAnalytics::eClearTextData(int64_t llTextId)
 
 }       //  eClearTextData()
 
-static CEString sLineQuery{ L"SELECT lit.id, wil.word_position, lit.source, sd.gram_hash, wil.word_text, stress.position, stress.is_primary, stress.is_variant \
+
+//
+//  Web interface, manual editing
+//
+
+//                                     0               1             2        3           4             5             6                    7                 8
+static CEString sLineQuery{ L"SELECT lit.id, wil.word_position, lit.source, wf.id, sd.gram_hash, wil.word_text, stress.position, stress.is_primary, stress.is_variant \
                              FROM lines_in_text AS lit INNER JOIN words_in_line AS wil ON wil.line_id = lit.id \
                              INNER JOIN word_to_wordform AS wtw ON wtw.word_in_line_id = wil.id INNER JOIN wordforms AS wf ON wf.id = wtw.wordform_id \
                              INNER JOIN stem_data AS sd ON sd.id = wf.stem_data_id INNER JOIN stress_data AS stress ON stress.form_id = wtw.wordform_id;" };
@@ -1350,7 +1355,7 @@ static CEString sLineQuery{ L"SELECT lit.id, wil.word_position, lit.source, sd.g
 ET_ReturnCode CAnalytics::eGetFirstSegment(vector<StWordContext>& vecParses, int64_t llStartAt)
 {
     m_sCurrentSegment.Erase();
-    m_llCurrentSegmentId = -1;
+    m_llCurrentSegmentId = llStartAt;
 
     m_spDb->PrepareForSelect(sLineQuery);
     auto bRc = m_spDb->bGetRow();
@@ -1378,6 +1383,7 @@ ET_ReturnCode CAnalytics::eGetFirstSegment(vector<StWordContext>& vecParses, int
     m_spDb->GetData(2, m_sCurrentSegment);
 
     auto rc = eGetSegment(vecParses);
+
     return rc;
 
 }   //  eGetFirstSegment()
@@ -1386,83 +1392,86 @@ ET_ReturnCode CAnalytics::eGetNextSegment(vector<StWordContext>& vecParses)
 {
     auto rc = eGetSegment(vecParses);
     return rc;
+
 }  //  eGetNextSegment()
 
 ET_ReturnCode CAnalytics::eGetSegment(vector<StWordContext>& vecParses)
 {    
-    StWordContext stCurrentWord;
+    m_mmapWordPosToFormIds.clear();
+    m_mmapFormIdToStressPositions.clear();
+    m_mapFormIdToGramHashes.clear();
+    m_mapWordPosToWord.clear();
+
     try
     {
+        int64_t llSegmentId{ -1 };
+        CEString sSegment;
         bool bNextSegment{ false };
         while (!bNextSegment)
         {
-            int64_t llId{ -1 };
-            m_spDb->GetData(0, llId);        // lit.id
-            if (llId < m_llCurrentSegmentId)
+            m_spDb->GetData(0, llSegmentId);        // lit.id
+            if (llSegmentId < m_llCurrentSegmentId)
             {
                 ERROR_LOG(L"Illegal segment ID.");
                 return H_ERROR_UNEXPECTED;
             }
 
-            if (llId > m_llCurrentSegmentId)
+            if (m_llCurrentSegmentId < 0)
             {
-                bNextSegment = true;
+                m_llCurrentSegmentId = llSegmentId;
+            }
 
-                // Last word
-                stCurrentWord.llSegmentId = m_llCurrentSegmentId;
-                vecParses.push_back(stCurrentWord);
-
-                // Line break token
-                StWordContext stLineBreak;
-                stLineBreak.llSegmentId = m_llCurrentSegmentId;
-                stLineBreak.bBreak = true;
-                vecParses.push_back(stLineBreak);
-
-                m_llCurrentSegmentId = llId;
-                m_spDb->GetData(2, m_sCurrentSegment);
+            if (llSegmentId > m_llCurrentSegmentId)
+            {
+                // Last word in line
+                m_spDb->GetData(2, sSegment);
+                m_iCurrentPos = -1;
+                bNextSegment = true;    // exit loop
                 continue;
             }
 
             int iPos{ -1 };
             m_spDb->GetData(1, iPos);            //  word_position
-            if (iPos != stCurrentWord.iSeqNum)
+            if (iPos < m_iCurrentPos)
             {
-                if (iPos < stCurrentWord.iSeqNum)
-                {
-                    ERROR_LOG(L"Word numbering error.");
-                    return H_ERROR_UNEXPECTED;
-                }
-
-                if (stCurrentWord.iSeqNum >= 0)
-                {
-//                    stCurrentWord.llSegmentId = m_llCurrentSegmentId;
-                    vecParses.push_back(stCurrentWord);
-                    stCurrentWord.Reset();
-                }
-
-                stCurrentWord.llSegmentId = m_llCurrentSegmentId;
-                stCurrentWord.iSeqNum = iPos;
+                ERROR_LOG(L"Word numbering error.");
+                return H_ERROR_UNEXPECTED;
             }
+
+            if (iPos != m_iCurrentPos)
+            {
+                m_iCurrentPos = iPos;
+            }
+
+            int64_t llWordFormId = -1;
+            m_spDb->GetData(3, llWordFormId);
+            m_mmapWordPosToFormIds.insert(pair{iPos, llWordFormId});
+//            if (llWordFormId != m_llCurrentFormId)
+//            {
+//                m_llCurrentFormId = llWordFormId;
+//                m_mmapWordPosToFormIds.insert(pair{m_iCurrentPos, m_llCurrentFormId});
+//            }
 
             CEString sHash;
-            m_spDb->GetData(3, sHash);
-            stCurrentWord.vecGramHashes.push_back(sHash);
-
-            m_spDb->GetData(4, stCurrentWord.sWord);
-
-            int iStressSyll{ -1 };
-            m_spDb->GetData(5, iStressSyll);
-            try
+            m_spDb->GetData(4, sHash);
+            if (m_mapFormIdToGramHashes.find(llWordFormId) != m_mapFormIdToGramHashes.end())
             {
-                auto uiStressPos = stCurrentWord.sWord.uiGetVowelPos(iStressSyll);
-                stCurrentWord.vecStressPositions.push_back(uiStressPos);
+                CEString sMsg(L"Multiple gram hashes for a single wordform ID, word ID = ");
+                sMsg += CEString::sToString(llWordFormId);
+                ERROR_LOG(sMsg);
             }
-            catch (CException& e)
-            {
-                CEString sMsg = CEString(L"Exception: ");
-                sMsg += e.szGetDescription();
-                return H_EXCEPTION;
-            }
+            m_mapFormIdToGramHashes[llWordFormId] = sHash;
+
+            CEString sWord;
+            m_spDb->GetData(5, sWord);
+            m_mapWordPosToWord[iPos] = sWord;
+
+            int iStressSyll{-1};
+            m_spDb->GetData(6, iStressSyll);
+            bool bIsPrimary;
+            m_spDb->GetData(7, bIsPrimary);
+            ET_StressType eType = bIsPrimary ? ET_StressType::STRESS_PRIMARY : ET_StressType::STRESS_SECONDARY;
+            m_mmapFormIdToStressPositions.insert(pair{ llWordFormId, pair{iStressSyll, eType}});
 
             auto rc = m_spDb->bGetRow();
             if (!rc)
@@ -1473,7 +1482,11 @@ ET_ReturnCode CAnalytics::eGetSegment(vector<StWordContext>& vecParses)
             }       
         }       // while(!bNextSegment)
         //        m_spDb->Finalize();
-    } 
+
+        eAssembleParsedSegment(vecParses);
+        m_llCurrentSegmentId = llSegmentId;
+        m_sCurrentSegment = sSegment;
+    }
     catch (CException& exc)
     {
         CEString sMsg(exc.szGetDescription());
@@ -1491,10 +1504,143 @@ ET_ReturnCode CAnalytics::eGetSegment(vector<StWordContext>& vecParses)
 
         ERROR_LOG(L"Error getting line/paragraph context: " + sMsg);
     }
+
     return H_NO_ERROR;
 
 }       // eGetSegment()
 
+ET_ReturnCode CAnalytics::eAssembleParsedSegment(vector<StWordContext>& vecParses)
+{
+    cout << "--- current seg ID: " << m_llCurrentSegmentId << endl;
+
+    vecParses.clear();
+
+    multimap<int, StWordContext> mapWordContexts;        // Pos in segment --> StWordContext
+
+    int iCurrentWordPos {0};
+
+    // TODO --- check if m_mapWordPosToWord is empty
+
+    auto nTokens = m_sCurrentSegment.uiGetNumOfTokens();
+    for (int iAt = 0; iAt < (int)nTokens; ++iAt)
+    {
+        auto stCurrentToken = m_sCurrentSegment.stGetToken(iAt);
+        switch (stCurrentToken.eType)
+        {
+            case ETokenType::ecTokenText:
+            {
+                // All parses for this word
+                auto pairWfIdRange = m_mmapWordPosToFormIds.equal_range(iCurrentWordPos);
+                StWordContext stCtx;
+
+                if (pairWfIdRange.first == pairWfIdRange.second)        // no parse
+                {
+                    stCtx.bIncomplete = true;
+                    stCtx.iSeqNum = iCurrentWordPos;
+                }
+
+                for (auto itWfId = pairWfIdRange.first; itWfId != pairWfIdRange.second; ++itWfId)
+                {
+                    stCtx.bIgnore = false;
+                    stCtx.bBreak = false;
+                    stCtx.iSeqNum = iCurrentWordPos;
+                    stCtx.llWordFormId = itWfId->second;
+                    stCtx.sWord = m_mapWordPosToWord[iCurrentWordPos];
+                    stCtx.llSegmentId = m_llCurrentSegmentId;
+                    auto pairStressRange = m_mmapFormIdToStressPositions.equal_range(stCtx.llWordFormId);
+                    for (auto itStress = pairStressRange.first; itStress != pairStressRange.second; ++itStress)
+                    {
+                        auto pairStress = itStress->second;     // pair: < stress pos, stress type >
+                        eAddStressMark(stCtx.sWord, pairStress.first, pairStress.second);
+                    }
+
+                    if (m_mapFormIdToGramHashes.find(stCtx.llWordFormId) == m_mapFormIdToGramHashes.end())
+                    {
+                        CEString sMsg(L"No gram hash for wordform ID ");
+                        sMsg += CEString::sToString(stCtx.llWordFormId);
+                        ERROR_LOG(sMsg);
+                    }
+                    else
+                    {
+                        stCtx.sGramHash = m_mapFormIdToGramHashes[stCtx.llWordFormId];
+                    }
+                }
+                mapWordContexts.insert(pair{iCurrentWordPos++, stCtx});
+
+                break;
+            }
+            case ecTokenSpace:
+            case ecTokenTab:
+            case ecTokenDiacritics:
+            {
+                break;
+            }
+
+            case ecTokenPunctuation:
+            case ecTokenEndOfParagraph:
+            {
+//                StWordContext stCtx;
+//                stCtx.iSeqNum = iCurrentWordPos++;
+
+                break;
+            }
+
+            case ecTokenMeta:
+            case ecTokenRegexMatch:
+            default:
+            {
+                ERROR_LOG(L"Error assembling parsed segment: unknown token type.");
+                return H_ERROR_UNEXPECTED;
+            }
+        }       // switch
+    
+    }       //  for (int iAt; iAt < nTokens; ++iAt)
+
+    for (auto& pairWordCtx : mapWordContexts)
+    {
+        vecParses.push_back(pairWordCtx.second);
+    }
+
+    m_mmapWordPosToFormIds.clear();
+    m_mmapFormIdToStressPositions.clear();
+    m_mapFormIdToGramHashes.clear();
+    m_mapWordPosToWord.clear();
+
+    return H_NO_ERROR;
+
+}   //  eAssembleParsedSegment()
+
+ET_ReturnCode CAnalytics::eAddStressMark(CEString& sWord, int iPos, ET_StressType eType)
+{
+    sWord.SetVowels(CEString::g_szRusVowels);
+
+    try
+    {
+        auto uiVowelPos = sWord.uiGetVowelPos(iPos);
+        if (L'ё' == sWord[uiVowelPos])
+        {
+            return H_NO_ERROR;
+        }
+        if (eType == ET_StressType::STRESS_PRIMARY)
+        {
+            sWord.sInsert(uiVowelPos + 1, CEString::g_chrCombiningAcuteAccent);
+        }
+        else
+        {
+            sWord.sInsert(uiVowelPos + 1, CEString::g_chrCombiningGraveAccent);
+        }
+    }
+    catch (CException& exc)
+    {
+        CEString sMsg(exc.szGetDescription());
+        ERROR_LOG(sMsg);
+        return H_EXCEPTION;
+    }
+
+    return H_NO_ERROR;
+}
+
+/*
 ET_ReturnCode CAnalytics::eStoreSegmentTokens()
 {
     try
@@ -1534,3 +1680,43 @@ ET_ReturnCode CAnalytics::eStoreSegmentWords()
     }
     return H_NO_ERROR;
 }
+
+ET_ReturnCode CAnalytics::eMarkMissingParses(vector<StWordContext>& vecParses)
+{
+    auto vecOld(vecParses);
+    vecParses.clear();
+    int iCurrentPos = 0;
+    for (auto stWord : vecOld)
+    {
+        while (iCurrentPos < stWord.iSeqNum)
+        {
+            StWordContext stMissingWord;
+            stMissingWord.llSegmentId = stMissingWord.llSegmentId;
+            stMissingWord.iSeqNum = iCurrentPos;
+            stMissingWord.bIncomplete = true;
+            vecParses.push_back(stMissingWord);
+            ++iCurrentPos;
+        }
+        vecParses.push_back(stWord);
+        ++iCurrentPos;
+    }
+
+    auto llTotalWords = m_vecCurrentSourceWords.size();
+    while (vecParses.size() < llTotalWords)
+    {
+        StWordContext stMissingWord;
+        stMissingWord.llSegmentId = stMissingWord.llSegmentId;
+        stMissingWord.iSeqNum = ++iCurrentPos;
+        stMissingWord.bIncomplete = true;
+        vecParses.push_back(stMissingWord);
+    }
+
+    // Line break token
+    StWordContext stLineBreak;
+    stLineBreak.llSegmentId = m_llCurrentSegmentId;
+    stLineBreak.bBreak = true;
+    vecParses.push_back(stLineBreak);
+
+    return H_NO_ERROR;
+}
+*/

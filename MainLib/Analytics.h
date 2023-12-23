@@ -17,7 +17,6 @@ namespace Hlib
     class CSqlite;
     class CParser;
     class CTranscriber;
-//    class CWordForm;
     class CEString;
 
     enum class ET_WordContext
@@ -34,7 +33,6 @@ namespace Hlib
         int iPosInLine;
         int iLineOffset;
         int iLength;
-//        int iPosInTactGroup;        &&&& This doesn't work!!'
         ET_WordStressType eStressType;
         int64_t llLineDbId;
         int64_t llWordInLineDbId;
@@ -70,11 +68,12 @@ namespace Hlib
     {
         bool bIncomplete {false};
         bool bBreak {false};
+        bool bIgnore {false};
         int64_t llSegmentId;
         int iSeqNum;
+        int64_t llWordFormId {-1};
         CEString sWord;
-        vector<int> vecStressPositions;
-        vector<CEString> vecGramHashes;
+        CEString sGramHash;
 
         StWordContext() : llSegmentId(-1), iSeqNum(-1)
         {}
@@ -83,11 +82,10 @@ namespace Hlib
         {
             bIncomplete = false;
             bBreak = false;
+            bIgnore = false;
             llSegmentId = -1;
             iSeqNum = -1;
             sWord.Erase();
-            vecStressPositions.clear();
-            vecGramHashes.clear();
         }
     };
 
@@ -181,7 +179,11 @@ namespace Hlib
         ET_ReturnCode eGetSegment(vector<StWordContext>&);
         ET_ReturnCode eStoreSegmentTokens();
         ET_ReturnCode eStoreSegmentWords();
-        
+        ET_ReturnCode eMarkMissingParses(vector<StWordContext>&);
+        ET_ReturnCode eAssembleParsedSegment(vector<StWordContext>&);
+        ET_ReturnCode eAddStressMark(CEString&, int, ET_StressType);
+
+
     private:
         shared_ptr<CSqlite> m_spDb;
         shared_ptr<CParser> m_spParser;
@@ -200,6 +202,13 @@ namespace Hlib
         vector<StToken> m_vecCurrentSourceTokens;
         vector<CEString> m_vecCurrentSourceWords;
         int m_iWordsInCurrentLine;
+        int m_iCurrentPos {-1};
+//        int64_t m_llCurrentFormId {-1};
+
+        multimap<int, int64_t> m_mmapWordPosToFormIds;                              // 1 to many, multiple hypotheses
+        multimap<int64_t, pair<int, ET_StressType>> m_mmapFormIdToStressPositions;  // 1 to many, e.g. priimary + secondary stress
+        map<int64_t, CEString> m_mapFormIdToGramHashes;                             // 1 to 1?
+        map<int, CEString> m_mapWordPosToWord;
 
     };      //  class CAnalytics
 
