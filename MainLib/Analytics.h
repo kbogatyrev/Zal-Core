@@ -203,7 +203,6 @@ namespace Hlib
         vector<CEString> m_vecCurrentSourceWords;
         int m_iWordsInCurrentLine;
         int m_iCurrentPos {-1};
-//        int64_t m_llCurrentFormId {-1};
 
         multimap<int, int64_t> m_mmapWordPosToFormIds;                              // 1 to many, multiple hypotheses
         multimap<int64_t, pair<int, ET_StressType>> m_mmapFormIdToStressPositions;  // 1 to many, e.g. priimary + secondary stress
