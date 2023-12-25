@@ -28,6 +28,19 @@ namespace Hlib
         WORD_CONTEXT_COUNT
     };
 
+    struct StIrregularWord
+    {
+        int64_t llDbId {-1};
+        CEString sGramHash;
+        map<int, ET_StressType> mapStress;
+
+        void Reset() {
+            llDbId = -1;
+            sGramHash.Erase();
+            mapStress.clear();
+        }
+    };
+
     struct StWordParse
     {
         int iPosInLine;
@@ -72,6 +85,7 @@ namespace Hlib
         int64_t llSegmentId;
         int iSeqNum;
         int64_t llWordFormId {-1};
+        int64_t llIrregularFormId {-1};
         CEString sWord;
         CEString sGramHash;
 
@@ -176,10 +190,8 @@ namespace Hlib
         bool bArePhoneticallyIdentical(shared_ptr<CWordForm>, shared_ptr<CWordForm>);
         ET_ReturnCode eAddParsesToTactGroup(int64_t llLineDbId, int iLineNum, int iWord, shared_ptr<StTactGroup>);
 
+        ET_ReturnCode eLoadIrregularForms();
         ET_ReturnCode eGetSegment(vector<StWordContext>&);
-        ET_ReturnCode eStoreSegmentTokens();
-        ET_ReturnCode eStoreSegmentWords();
-        ET_ReturnCode eMarkMissingParses(vector<StWordContext>&);
         ET_ReturnCode eAssembleParsedSegment(vector<StWordContext>&);
         ET_ReturnCode eAddStressMark(CEString&, int, ET_StressType);
 
@@ -204,6 +216,7 @@ namespace Hlib
         int m_iWordsInCurrentLine;
         int m_iCurrentPos {-1};
 
+        multimap<CEString, StIrregularWord> m_mmapIrregularWords;
         multimap<int, int64_t> m_mmapWordPosToFormIds;                              // 1 to many, multiple hypotheses
         multimap<int64_t, pair<int, ET_StressType>> m_mmapFormIdToStressPositions;  // 1 to many, e.g. priimary + secondary stress
         map<int64_t, CEString> m_mapFormIdToGramHashes;                             // 1 to 1?

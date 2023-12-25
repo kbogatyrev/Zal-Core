@@ -34,7 +34,9 @@ ET_ReturnCode CAnalytics::eInit()
         return H_ERROR_POINTER;
     }
 
-    return H_NO_ERROR;
+    auto eRc = eLoadIrregularForms();
+
+    return eRc;
 }
 
 ET_ReturnCode CAnalytics::eParseText(const CEString& sTextName, const CEString& sMetadata, const CEString& sText, [[maybe_unused]]int64_t llFirstLineNum, bool bIsProse)
@@ -108,7 +110,7 @@ ET_ReturnCode CAnalytics::eParseText(const CEString& sTextName, const CEString& 
     }
 
     for (int iLine = 0; iLine < iNLines; ++iLine)
-    {
+        {
         int iTextOffset = const_cast<CEString&>(sText).uiGetFieldOffset(iLine);
         
         CEString sLine = const_cast<CEString&>(sText).sGetField(iLine);     // use to split line into words
@@ -1344,16 +1346,105 @@ ET_ReturnCode CAnalytics::eClearTextData(int64_t llTextId)
 //  Web interface, manual editing
 //
 
+//                                                 0       1          2         3           4
+static CEString sIrregularFormsQuery {L"SELECT wordform, form.id, gram_hash, position, is_primary FROM irregular_forms AS form \
+                                        INNER JOIN irregular_stress AS stress ON form.id = stress.form_id ORDER BY wordform, form.id;"};
+
 //                                     0               1             2        3           4             5             6                    7                 8
-static CEString sLineQuery{ L"SELECT lit.id, wil.word_position, lit.source, wf.id, sd.gram_hash, wil.word_text, stress.position, stress.is_primary, stress.is_variant \
-                             FROM lines_in_text AS lit INNER JOIN words_in_line AS wil ON wil.line_id = lit.id \
-                             INNER JOIN word_to_wordform AS wtw ON wtw.word_in_line_id = wil.id INNER JOIN wordforms AS wf ON wf.id = wtw.wordform_id \
-                             INNER JOIN stem_data AS sd ON sd.id = wf.stem_data_id INNER JOIN stress_data AS stress ON stress.form_id = wtw.wordform_id;" };
+static CEString sLineQuery {L"SELECT lit.id, wil.word_position, lit.source, wf.id, sd.gram_hash, wil.word_text, stress.position, stress.is_primary, stress.is_variant \
+                              FROM lines_in_text AS lit INNER JOIN words_in_line AS wil ON wil.line_id = lit.id \
+                              INNER JOIN word_to_wordform AS wtw ON wtw.word_in_line_id = wil.id INNER JOIN wordforms AS wf ON wf.id = wtw.wordform_id \
+                              INNER JOIN stem_data AS sd ON sd.id = wf.stem_data_id INNER JOIN stress_data AS stress ON stress.form_id = wtw.wordform_id;"};
 
+ET_ReturnCode CAnalytics::eLoadIrregularForms()
+{
+    if (nullptr == m_spDb)
+    {
+        ERROR_LOG(L"No database access.");
+        return H_ERROR_POINTER;
+    }
 
+    try
+    {
+        m_spDb->PrepareForSelect(sIrregularFormsQuery);
+        auto bRc = m_spDb->bGetRow();
+        if (!bRc)
+        {
+            m_spDb->Finalize();
+            ERROR_LOG(L"Unable to load irregular forms.");
+            return H_ERROR_UNEXPECTED;
+        }
+        
+        StIrregularWord stIrregularWord;
+        CEString sCurrentWord;
+        
+        while (bRc)
+        {
+            CEString sWord;
+            m_spDb->GetData(0, sWord);      //  key
+
+            int64_t llWordId {-1};
+            m_spDb->GetData(1, llWordId);
+
+            CEString sGramHash;
+            m_spDb->GetData(2, sGramHash);
+
+            int iStressPos {-1};
+            m_spDb->GetData(3, iStressPos);
+            bool bIsPrimary {true};
+            m_spDb->GetData(4, bIsPrimary);
+
+            if (llWordId != stIrregularWord.llDbId)
+            {
+                m_mmapIrregularWords.insert(pair {sWord, stIrregularWord});
+                stIrregularWord.Reset();
+                sCurrentWord = sWord;
+                stIrregularWord.llDbId = llWordId;
+                stIrregularWord.sGramHash = sGramHash;
+            }
+            else
+            {
+                if (stIrregularWord.sGramHash != sGramHash || sWord != sCurrentWord)
+                {
+                    ERROR_LOG(L"Gram hash or word source does not match.");
+                    return H_ERROR_UNEXPECTED;
+                }
+            }
+            stIrregularWord.mapStress[iStressPos] = bIsPrimary ? ET_StressType::STRESS_PRIMARY 
+                                                               : ET_StressType::STRESS_SECONDARY;
+
+            bRc = m_spDb->bGetRow();
+        }
+    }
+    catch (CException& exc)
+    {
+        CEString sMsg(exc.szGetDescription());
+        CEString sError;
+        try
+        {
+            m_spDb->GetLastError(sError);
+            sMsg += CEString(L", error: ");
+            sMsg += sError;
+        }
+        catch (...)
+        {
+            sMsg = L"Apparent DB error ";
+        }
+
+        ERROR_LOG(L"Error loading irregular forms: " + sMsg);
+    }
+
+    return H_NO_ERROR;
+}
 
 ET_ReturnCode CAnalytics::eGetFirstSegment(vector<StWordContext>& vecParses, int64_t llStartAt)
 {
+    if (nullptr == m_spDb)
+    {
+        ERROR_LOG(L"No database access.");
+        return H_ERROR_POINTER;
+    }
+
     m_sCurrentSegment.Erase();
     m_llCurrentSegmentId = llStartAt;
 
@@ -1397,6 +1488,12 @@ ET_ReturnCode CAnalytics::eGetNextSegment(vector<StWordContext>& vecParses)
 
 ET_ReturnCode CAnalytics::eGetSegment(vector<StWordContext>& vecParses)
 {    
+    if (nullptr == m_spDb)
+    {
+        ERROR_LOG(L"No database access.");
+        return H_ERROR_POINTER;
+    }
+
     m_mmapWordPosToFormIds.clear();
     m_mmapFormIdToStressPositions.clear();
     m_mapFormIdToGramHashes.clear();
@@ -1511,8 +1608,6 @@ ET_ReturnCode CAnalytics::eGetSegment(vector<StWordContext>& vecParses)
 
 ET_ReturnCode CAnalytics::eAssembleParsedSegment(vector<StWordContext>& vecParses)
 {
-    cout << "--- current seg ID: " << m_llCurrentSegmentId << endl;
-
     vecParses.clear();
 
     multimap<int, StWordContext> mapWordContexts;        // Pos in segment --> StWordContext
