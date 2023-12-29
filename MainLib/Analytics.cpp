@@ -34,9 +34,26 @@ ET_ReturnCode CAnalytics::eInit()
         return H_ERROR_POINTER;
     }
 
-    auto eRc = eLoadIrregularForms();
+    eLoadIrregularForms();
 
-    return eRc;
+    return H_NO_ERROR;
+}
+
+ET_ReturnCode CAnalytics::eHandleDbException(CException& e, CEString& sMsg)
+{
+    sMsg = e.szGetDescription();
+    CEString sError;
+    try
+    {
+        m_spDb->GetLastError(sError);
+        sMsg += CEString(L", error: ");
+        sMsg += sError;
+    }
+    catch (...)
+    {
+        sMsg = L"Apparent DB error ";
+    }
+    return H_NO_ERROR;
 }
 
 ET_ReturnCode CAnalytics::eParseText(const CEString& sTextName, const CEString& sMetadata, const CEString& sText, [[maybe_unused]]int64_t llFirstLineNum, bool bIsProse)
@@ -281,22 +298,10 @@ ET_ReturnCode CAnalytics::eRegisterText()
             m_spDb->Delete(sQuery);
         }
     }
-    catch (CException& exc)
+    catch (CException& e)
     {
-        CEString sMsg(exc.szGetDescription());
-        CEString sError;
-        try
-        {
-            m_spDb->GetLastError(sError);
-            sMsg += CEString(L", error: ");
-            sMsg += sError;
-        }
-        catch (...)
-        {
-            sMsg = L"Apparent DB error ";
-        }
-
-//        sMsg += CEString::sToString(m_spDb->iGetLastError());
+        CEString sMsg;
+        eHandleDbException(e, sMsg);
         ERROR_LOG(sMsg);
     }
 
@@ -322,26 +327,13 @@ ET_ReturnCode CAnalytics::eRegisterText()
 
         m_llTextDbId = m_spDb->llGetLastKey();
     }
-    catch (CException& exc)
+    catch (CException& e)
     {
         m_llTextDbId = -1;
 
-        CEString sMsg(exc.szGetDescription());
-        CEString sError;
-        try
-        {
-            m_spDb->GetLastError(sError);
-            sMsg += CEString(L", error: ");
-            sMsg += sError;
-        }
-        catch (...)
-        {
-            sMsg = L"Apparent DB error ";
-        }
-
-        sMsg += CEString::sToString(m_spDb->iGetLastError());
+        CEString sMsg;
+        eHandleDbException(e, sMsg);
         ERROR_LOG(sMsg);
-
         return H_ERROR_DB;
     }
 
@@ -365,24 +357,11 @@ ET_ReturnCode CAnalytics::eRegisterText()
 
 //            m_llTextDbId = m_spDb->llGetLastKey();
         }
-        catch (CException & exc)
+        catch (CException& e)
         {
-            CEString sMsg(exc.szGetDescription());
-            CEString sError;
-            try
-            {
-                m_spDb->GetLastError(sError);
-                sMsg += CEString(L", error: ");
-                sMsg += sError;
-            }
-            catch (...)
-            {
-                sMsg = L"Apparent DB error ";
-            }
-
-            sMsg += CEString::sToString(m_spDb->iGetLastError());
+            CEString sMsg;
+            eHandleDbException(e, sMsg);
             ERROR_LOG(sMsg);
-
             return H_ERROR_DB;
         }
     }
@@ -690,24 +669,10 @@ ET_ReturnCode CAnalytics::eSaveLineDescriptor(int iLineNum, int iTextOffset, int
         llDbKey = m_spDb->llGetLastKey();
 
     }
-    catch (CException& exc)
+    catch (CException& e)
     {
-        CEString sMsg(exc.szGetDescription());
-        CEString sError;
-        try
-        {
-            m_spDb->GetLastError(sError);
-            sMsg += CEString(L", error: ");
-            sMsg += sError;
-        }
-        catch (...)
-        {
-            sMsg = L"Apparent DB error ";
-        }
-
-        sMsg += CEString::sToString(m_spDb->iGetLastError());
-        ERROR_LOG(sMsg);
-
+        CEString sMsg;
+        eHandleDbException(e, sMsg);
         return H_ERROR_GENERAL;
     }
 
@@ -782,24 +747,10 @@ ET_ReturnCode CAnalytics::eSaveWord(int64_t llLineDbId, int iWord, int iWordsInL
 
         llWordDbKey = m_spDb->llGetLastKey();
     }
-    catch (CException& exc)
+    catch (CException& e)
     {
-        CEString sMsg(exc.szGetDescription());
-        CEString sError;
-        try
-        {
-            m_spDb->GetLastError(sError);
-            sMsg += CEString(L", error: ");
-            sMsg += sError;
-        }
-        catch (...)
-        {
-            sMsg = L"Apparent DB error ";
-        }
-
-        sMsg += CEString::sToString(m_spDb->iGetLastError());
-        ERROR_LOG(sMsg);
-
+        CEString sMsg;
+        eHandleDbException(e, sMsg);
         return H_ERROR_GENERAL;
     }
 
@@ -829,24 +780,10 @@ ET_ReturnCode CAnalytics::eSaveWordParse(int64_t llWordId, int64_t llWordFormId,
 
         llWordToWordFormId = m_spDb->llGetLastKey();
     }
-    catch (CException& exc)
+    catch (CException& e)
     {
-        CEString sMsg(exc.szGetDescription());
-        CEString sError;
-        try
-        {
-            m_spDb->GetLastError(sError);
-            sMsg += CEString(L", error: ");
-            sMsg += sError;
-        }
-        catch (...)
-        {
-            sMsg = L"Apparent DB error ";
-        }
-
-        sMsg += CEString::sToString(m_spDb->iGetLastError());
-        ERROR_LOG(sMsg);
-
+        CEString sMsg;
+        eHandleDbException(e, sMsg);
         return H_ERROR_GENERAL;
     }
 
@@ -1181,24 +1118,10 @@ ET_ReturnCode CAnalytics::eSaveTactGroup(shared_ptr<StTactGroup> spTg)
             m_spDb->Finalize(llInsertHandle);
 */
         }
-        catch (CException & exc)
+        catch (CException & e)
         {
-            CEString sMsg(exc.szGetDescription());
-            CEString sError;
-            try
-            {
-                m_spDb->GetLastError(sError);
-                sMsg += CEString(L", error: ");
-                sMsg += sError;
-            }
-            catch (...)
-            {
-                sMsg = L"Apparent DB error ";
-            }
-
-            sMsg += CEString::sToString(m_spDb->iGetLastError());
-            ERROR_LOG(sMsg);
-
+            CEString sMsg;
+            eHandleDbException(e, sMsg);
             return H_ERROR_DB;
         }
     }
@@ -1341,20 +1264,20 @@ ET_ReturnCode CAnalytics::eClearTextData(int64_t llTextId)
 
 }       //  eClearTextData()
 
-
 //
 //  Web interface, manual editing
 //
-
-//                                                 0       1          2         3           4
-static CEString sIrregularFormsQuery {L"SELECT wordform, form.id, gram_hash, position, is_primary FROM irregular_forms AS form \
-                                        INNER JOIN irregular_stress AS stress ON form.id = stress.form_id ORDER BY wordform, form.id;"};
 
 //                                     0               1             2        3           4             5             6                    7                 8
 static CEString sLineQuery {L"SELECT lit.id, wil.word_position, lit.source, wf.id, sd.gram_hash, wil.word_text, stress.position, stress.is_primary, stress.is_variant \
                               FROM lines_in_text AS lit INNER JOIN words_in_line AS wil ON wil.line_id = lit.id \
                               INNER JOIN word_to_wordform AS wtw ON wtw.word_in_line_id = wil.id INNER JOIN wordforms AS wf ON wf.id = wtw.wordform_id \
                               INNER JOIN stem_data AS sd ON sd.id = wf.stem_data_id INNER JOIN stress_data AS stress ON stress.form_id = wtw.wordform_id;"};
+
+//                                               0         1           2             3             4             5
+static CEString sIrregularFormsQuery{ L"SELECT f.id, f.gram_hash, f.wordform, f.is_alternative, s.position, s.is_primary \
+                                        FROM irregular_forms as f INNER JOIN irregular_stress as s ON f.id = s.form_id \
+                                        ORDER BY f.id;" };
 
 ET_ReturnCode CAnalytics::eLoadIrregularForms()
 {
@@ -1364,74 +1287,56 @@ ET_ReturnCode CAnalytics::eLoadIrregularForms()
         return H_ERROR_POINTER;
     }
 
+    int64_t llLastDbId = -1;
+    CEString sGramHash;
+    CEString sWordSource;
+//    bool bIsAlternative {false};
+    int iStressPos {-1};
+    bool bIsPrimary {true};
+
+    auto spIrregularForm = make_shared<StIrregularWord>();
+    bool bMore {true};
     try
     {
         m_spDb->PrepareForSelect(sIrregularFormsQuery);
-        auto bRc = m_spDb->bGetRow();
-        if (!bRc)
+        while (bMore)
         {
-            m_spDb->Finalize();
-            ERROR_LOG(L"Unable to load irregular forms.");
-            return H_ERROR_UNEXPECTED;
-        }
-        
-        StIrregularWord stIrregularWord;
-        CEString sCurrentWord;
-        
-        while (bRc)
-        {
-            CEString sWord;
-            m_spDb->GetData(0, sWord);      //  key
-
-            int64_t llWordId {-1};
-            m_spDb->GetData(1, llWordId);
-
-            CEString sGramHash;
-            m_spDb->GetData(2, sGramHash);
-
-            int iStressPos {-1};
-            m_spDb->GetData(3, iStressPos);
-            bool bIsPrimary {true};
-            m_spDb->GetData(4, bIsPrimary);
-
-            if (llWordId != stIrregularWord.llDbId)
+            auto bRc = m_spDb->bGetRow();
+            if (!bRc)
             {
-                m_mmapIrregularWords.insert(pair {sWord, stIrregularWord});
-                stIrregularWord.Reset();
-                sCurrentWord = sWord;
-                stIrregularWord.llDbId = llWordId;
-                stIrregularWord.sGramHash = sGramHash;
+                m_spDb->Finalize();
+                bMore = false;
+                continue;
             }
-            else
-            {
-                if (stIrregularWord.sGramHash != sGramHash || sWord != sCurrentWord)
-                {
-                    ERROR_LOG(L"Gram hash or word source does not match.");
-                    return H_ERROR_UNEXPECTED;
-                }
-            }
-            stIrregularWord.mapStress[iStressPos] = bIsPrimary ? ET_StressType::STRESS_PRIMARY 
-                                                               : ET_StressType::STRESS_SECONDARY;
 
-            bRc = m_spDb->bGetRow();
+            int64_t llDbId {-1};
+            m_spDb->GetData(0, llDbId);
+            if (llLastDbId >= 0 && llLastDbId != llDbId)
+            {
+                m_mmapWordToIrregForm.insert({make_shared<CEString>(sWordSource), move(spIrregularForm)});
+                spIrregularForm.reset();
+                spIrregularForm = make_shared<StIrregularWord>();
+
+                llLastDbId = llDbId;
+            }
+             
+            spIrregularForm->llDbId = llLastDbId = llDbId;
+            m_spDb->GetData(1, spIrregularForm->sGramHash);
+            m_spDb->GetData(2, sWordSource);
+            m_spDb->GetData(3, spIrregularForm->bIsAlternative);
+            m_spDb->GetData(4, iStressPos);
+            m_spDb->GetData(5, bIsPrimary);
+            spIrregularForm->mapStress[iStressPos] = bIsPrimary
+                ? ET_StressType::STRESS_PRIMARY 
+                : ET_StressType::STRESS_SECONDARY;
         }
     }
-    catch (CException& exc)
+    catch (CException& e)
     {
-        CEString sMsg(exc.szGetDescription());
-        CEString sError;
-        try
-        {
-            m_spDb->GetLastError(sError);
-            sMsg += CEString(L", error: ");
-            sMsg += sError;
-        }
-        catch (...)
-        {
-            sMsg = L"Apparent DB error ";
-        }
-
-        ERROR_LOG(L"Error loading irregular forms: " + sMsg);
+        CEString sMsg;
+        eHandleDbException(e, sMsg);
+        ERROR_LOG(sMsg);
+        return H_EXCEPTION;
     }
 
     return H_NO_ERROR;
@@ -1439,39 +1344,49 @@ ET_ReturnCode CAnalytics::eLoadIrregularForms()
 
 ET_ReturnCode CAnalytics::eGetFirstSegment(vector<StWordContext>& vecParses, int64_t llStartAt)
 {
-    if (nullptr == m_spDb)
+    try
     {
-        ERROR_LOG(L"No database access.");
-        return H_ERROR_POINTER;
-    }
+        if (nullptr == m_spDb)
+        {
+            ERROR_LOG(L"No database access.");
+            return H_ERROR_POINTER;
+        }
 
-    m_sCurrentSegment.Erase();
-    m_llCurrentSegmentId = llStartAt;
+        m_sCurrentSegment.Erase();
+        m_llCurrentSegmentId = llStartAt;
 
-    m_spDb->PrepareForSelect(sLineQuery);
-    auto bRc = m_spDb->bGetRow();
-    if (!bRc)
-    {
-        m_spDb->Finalize();
-        ERROR_LOG(L"WARNING: no records.");
-        return H_NO_MORE;
-    }
-
-    int64_t llId{ -1 };
-    while (llId < llStartAt)
-    {
-        auto rc = m_spDb->bGetRow();
-        if (!rc)
+        m_spDb->PrepareForSelect(sLineQuery);
+        auto bRc = m_spDb->bGetRow();
+        if (!bRc)
         {
             m_spDb->Finalize();
             ERROR_LOG(L"WARNING: no records.");
             return H_NO_MORE;
         }
-        m_spDb->GetData(0, llId);   
-    }
 
-    m_llCurrentSegmentId = llId;
-    m_spDb->GetData(2, m_sCurrentSegment);
+        int64_t llId{ -1 };
+        while (llId < llStartAt)
+        {
+            auto rc = m_spDb->bGetRow();
+            if (!rc)
+            {
+                m_spDb->Finalize();
+                ERROR_LOG(L"WARNING: no records.");
+                return H_NO_MORE;
+            }
+            m_spDb->GetData(0, llId);
+        }
+
+        m_llCurrentSegmentId = llId;
+        m_spDb->GetData(2, m_sCurrentSegment);
+    }
+    catch (CException& e)
+    {
+        CEString sMsg;
+        eHandleDbException(e, sMsg);
+        //        sMsg += CEString::sToString(m_spDb->iGetLastError());
+        ERROR_LOG(sMsg);
+    }
 
     auto rc = eGetSegment(vecParses);
 
@@ -1501,9 +1416,9 @@ ET_ReturnCode CAnalytics::eGetSegment(vector<StWordContext>& vecParses)
 
     try
     {
-        int64_t llSegmentId{ -1 };
+        int64_t llSegmentId {-1};
         CEString sSegment;
-        bool bNextSegment{ false };
+        bool bNextSegment {false};
         while (!bNextSegment)
         {
             m_spDb->GetData(0, llSegmentId);        // lit.id
@@ -1527,7 +1442,7 @@ ET_ReturnCode CAnalytics::eGetSegment(vector<StWordContext>& vecParses)
                 continue;
             }
 
-            int iPos{ -1 };
+            int iPos {-1};
             m_spDb->GetData(1, iPos);            //  word_position
             if (iPos < m_iCurrentPos)
             {
@@ -1584,21 +1499,10 @@ ET_ReturnCode CAnalytics::eGetSegment(vector<StWordContext>& vecParses)
         m_llCurrentSegmentId = llSegmentId;
         m_sCurrentSegment = sSegment;
     }
-    catch (CException& exc)
+    catch (CException& e)
     {
-        CEString sMsg(exc.szGetDescription());
-        CEString sError;
-        try
-        {
-            m_spDb->GetLastError(sError);
-            sMsg += CEString(L", error: ");
-            sMsg += sError;
-        }
-        catch (...)
-        {
-            sMsg = L"Apparent DB error ";
-        }
-
+        CEString sMsg;
+        eHandleDbException(e, sMsg);
         ERROR_LOG(L"Error getting line/paragraph context: " + sMsg);
     }
 
@@ -1630,6 +1534,7 @@ ET_ReturnCode CAnalytics::eAssembleParsedSegment(vector<StWordContext>& vecParse
 
                 if (pairWfIdRange.first == pairWfIdRange.second)        // no parse
                 {
+                    const CEString& sWord = m_sCurrentSegment.sGetToken(iAt);
                     stCtx.bIncomplete = true;
                     stCtx.iSeqNum = iCurrentWordPos;
                 }

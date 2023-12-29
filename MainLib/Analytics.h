@@ -32,6 +32,7 @@ namespace Hlib
     {
         int64_t llDbId {-1};
         CEString sGramHash;
+        bool bIsAlternative {false};
         map<int, ET_StressType> mapStress;
 
         void Reset() {
@@ -62,12 +63,10 @@ namespace Hlib
             iPosInLine = -1;
             iLineOffset = -1;
             iLength = -1;
-//            iPosInTactGroup = -1;
             llLineDbId = -1;
             eStressType = WORD_STRESS_TYPE_UNDEFINED;
             llWordInLineDbId = -1;
             llWordToWordFormId = -1;
-//            CWordForm WordForm;
         }
 
         // Needed to be used with STL set
@@ -76,6 +75,16 @@ namespace Hlib
             return iPosInLine < stRhs.iPosInLine;
         }
     };      // StWordParse
+
+/*
+    struct StIrregularWord
+    {
+        int64_t llDbId;
+        bool bIsAlternative;
+        shared_ptr<CEString> spGramHash;
+        shared_ptr<map<int, ET_StressType>> spStressMap;
+    };
+*/
 
     struct StWordContext
     {
@@ -167,12 +176,14 @@ namespace Hlib
         ~CAnalytics();
 
 //        virtual ET_ReturnCode eParseText(const CEString& sTextName, const CEString& sMetadata, const CEString& sText, int64_t& llParsedTextId, bool bIsProse = false);
-        virtual ET_ReturnCode eParseText(const CEString& sTextName, const CEString& sMetadata, const CEString& sText, int64_t llFirstLineNum, bool bIsProse = false);
+        ET_ReturnCode eParseText(const CEString& sTextName, const CEString& sMetadata, const CEString& sText, int64_t llFirstLineNum, bool bIsProse = false);
+        ET_ReturnCode eLoadIrregularForms();
         ET_ReturnCode eGetFirstSegment(vector<StWordContext>&, int64_t llStartAt=0);
         ET_ReturnCode eGetNextSegment(vector<StWordContext>&);
 
     private:
         ET_ReturnCode eInit();
+        ET_ReturnCode eHandleDbException(CException&, CEString& sMsg);
         ET_ReturnCode eParseMetadata(const CEString& sMetadata);
         ET_ReturnCode eRegisterText();
         ET_ReturnCode eParseWord(const CEString& sWord, const CEString& sLine, int iNumInLine, 
@@ -190,7 +201,6 @@ namespace Hlib
         bool bArePhoneticallyIdentical(shared_ptr<CWordForm>, shared_ptr<CWordForm>);
         ET_ReturnCode eAddParsesToTactGroup(int64_t llLineDbId, int iLineNum, int iWord, shared_ptr<StTactGroup>);
 
-        ET_ReturnCode eLoadIrregularForms();
         ET_ReturnCode eGetSegment(vector<StWordContext>&);
         ET_ReturnCode eAssembleParsedSegment(vector<StWordContext>&);
         ET_ReturnCode eAddStressMark(CEString&, int, ET_StressType);
@@ -216,8 +226,15 @@ namespace Hlib
         int m_iWordsInCurrentLine;
         int m_iCurrentPos {-1};
 
-        multimap<CEString, StIrregularWord> m_mmapIrregularWords;
+        struct StCEStringComparator {
+            bool operator()(const shared_ptr<CEString> lhs, const shared_ptr<CEString> rhs) const {
+                return *lhs < *rhs;
+            }
+        };
+        multimap<shared_ptr<CEString>, shared_ptr<StIrregularWord>, StCEStringComparator> m_mmapWordToIrregForm;
+
         multimap<int, int64_t> m_mmapWordPosToFormIds;                              // 1 to many, multiple hypotheses
+        multimap<int, int64_t> m_mmapWordPosToIrregIds;                             // 1 to many, multiple hypotheses
         multimap<int64_t, pair<int, ET_StressType>> m_mmapFormIdToStressPositions;  // 1 to many, e.g. priimary + secondary stress
         map<int64_t, CEString> m_mapFormIdToGramHashes;                             // 1 to 1?
         map<int, CEString> m_mapWordPosToWord;
