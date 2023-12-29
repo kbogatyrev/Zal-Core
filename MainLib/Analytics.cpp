@@ -1483,7 +1483,7 @@ ET_ReturnCode CAnalytics::eGetSegment(vector<StWordContext>& vecParses)
             bool bIsPrimary;
             m_spDb->GetData(7, bIsPrimary);
             ET_StressType eType = bIsPrimary ? ET_StressType::STRESS_PRIMARY : ET_StressType::STRESS_SECONDARY;
-            m_mmapFormIdToStressPositions.insert(pair{ llWordFormId, pair{iStressSyll, eType}});
+            m_mmapFormIdToStressPositions.insert(pair {llWordFormId, pair{iStressSyll, eType}});
 
             auto rc = m_spDb->bGetRow();
             if (!rc)
@@ -1535,7 +1535,24 @@ ET_ReturnCode CAnalytics::eAssembleParsedSegment(vector<StWordContext>& vecParse
                 if (pairWfIdRange.first == pairWfIdRange.second)        // no parse
                 {
                     const CEString& sWord = m_sCurrentSegment.sGetToken(iAt);
-                    stCtx.bIncomplete = true;
+                    auto pairRange = m_mmapWordToIrregForm.equal_range(move(make_shared<CEString>(sWord)));
+                    if (pairRange.first == pairRange.second)
+                    {
+                        stCtx.bIncomplete = true;
+                    }
+                    else
+                    {
+                        auto pairWordToIrregPair = get<0>(pairRange);
+                        auto spIrregularForm = pairWordToIrregPair->second;
+                        stCtx.llIrregularFormId = spIrregularForm->llDbId;
+                        stCtx.sGramHash = spIrregularForm->sGramHash;
+                        stCtx.sWord = sWord;
+
+                        for (auto pairStress : spIrregularForm->mapStress)
+                        {
+                            eAddStressMark(stCtx.sWord, pairStress.first, pairStress.second);
+                        }
+                    }
                     stCtx.iSeqNum = iCurrentWordPos;
                 }
 
@@ -1551,7 +1568,7 @@ ET_ReturnCode CAnalytics::eAssembleParsedSegment(vector<StWordContext>& vecParse
                     for (auto itStress = pairStressRange.first; itStress != pairStressRange.second; ++itStress)
                     {
                         auto pairStress = itStress->second;     // pair: < stress pos, stress type >
-                        eAddStressMark(stCtx.sWord, pairStress.first, pairStress.second);
+                        eAddStressMark(stCtx.sWord, stCtx.sWord.uiGetVowelPos(pairStress.first), pairStress.second);
                     }
 
                     if (m_mapFormIdToGramHashes.find(stCtx.llWordFormId) == m_mapFormIdToGramHashes.end())
@@ -1616,18 +1633,17 @@ ET_ReturnCode CAnalytics::eAddStressMark(CEString& sWord, int iPos, ET_StressTyp
 
     try
     {
-        auto uiVowelPos = sWord.uiGetVowelPos(iPos);
-        if (L'ё' == sWord[uiVowelPos])
+        if (L'ё' == sWord[iPos])
         {
             return H_NO_ERROR;
         }
         if (eType == ET_StressType::STRESS_PRIMARY)
         {
-            sWord.sInsert(uiVowelPos + 1, CEString::g_chrCombiningAcuteAccent);
+            sWord.sInsert(iPos + 1, CEString::g_chrCombiningAcuteAccent);
         }
         else
         {
-            sWord.sInsert(uiVowelPos + 1, CEString::g_chrCombiningGraveAccent);
+            sWord.sInsert(iPos + 1, CEString::g_chrCombiningGraveAccent);
         }
     }
     catch (CException& exc)
