@@ -22,8 +22,10 @@ int main() {
     auto rc = pSingleton->eGetDictionary(spDictionary);
 
 #ifdef WIN32
-    rc = spDictionary->eSetDbPath(L"..\\..\\..\\..\\Zal-Data\\ZalData\\ZalData_Master_Tsvetaeva.db3");
+    rc = spDictionary->eSetDbPath(L"..\\..\\..\\..\\Zal-Data\\ZalData\\ZalData_Test.db3");
     string text_path {"C:\\git-repos\\Zal\\Zal-Data\\ZalData\\Tsvetaeva_UTF-16_BOM.txt"};
+//    string text_path{ "C:\\git-repos\\Zal\\Zal-Data\\ZalData\\Test_10_29.txt" };
+
 #else
     rc = spDictionary->eSetDbPath(L"ZalData_Master_Tsvetaeva.db3");
     string text_path{ "/home/konstantin/.vs/Zal-Core/out/build/linux-debug/Tsvetaeva_UTF-16_BOM.txt" };
@@ -50,6 +52,7 @@ int main() {
 
     wstring cppLine;
     wchar_t pBuf[10000];
+    CEString sFirstLine;
     CEString sLine;
     CEString sText;
     int iAbsLineNum {0};
@@ -57,7 +60,6 @@ int main() {
     int iEmptyCount {0};
     while (!ioIn.eof() && !ioIn.fail())
     {
-        ++iAbsLineNum;
         ioIn.getline(pBuf, 10000);
         if (ioIn.eof() || ioIn.fail())
         {
@@ -95,9 +97,9 @@ int main() {
 
         if (iEmptyCount >= 2)
         {
-//            auto bIsProse{ false };
-            long long llParsedTextId{ 0 };
-            rc = spAnalytics->eParseText(L"Tsvetaeva", L"Author=Tsvetaeva|Book=Collected Works", sText, (long long)iFirstLineNum, llParsedTextId);
+            auto bIsProse{ false };
+//            long long llParsedTextId{ 0 };
+            rc = spAnalytics->eParseText(sFirstLine, L"Author=Tsvetaeva|Book=Collected Works", sText, (long long)iFirstLineNum, bIsProse);
             iFirstLineNum = iAbsLineNum;
             sText.Erase();
         }
@@ -107,6 +109,10 @@ int main() {
             {
                 sText += L"\r\n";
             }
+            if (sText.bIsEmpty())
+            {
+                sFirstLine = sLine;
+            }
             sText += sLine;
         }
 
@@ -114,6 +120,7 @@ int main() {
         {
             wcout << "********************** " << iAbsLineNum << endl;
         }
+        ++iAbsLineNum;
     }
     //    std::cout << L"Bye world!" << std::endl;
 
