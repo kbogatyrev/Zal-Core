@@ -187,7 +187,7 @@ endif()
 add_executable (ZalRunAnalytics)
 
 target_sources (ZalRunAnalytics PRIVATE
-	MainLib/ZalAnalytics.cpp
+	MainLib/RunAnalytics.cpp
 )
 
 target_include_directories (ZalRunAnalytics PUBLIC
