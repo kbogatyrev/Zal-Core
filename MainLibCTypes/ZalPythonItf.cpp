@@ -68,7 +68,7 @@ namespace MainLibForPython {
         __declspec(dllexport) bool GenerateAllForms();
         __declspec(dllexport) void ReportProgress (int iPercentDone, bool bDone, int recordNumber, double dDuration);
         __declspec(dllexport) bool AddLexemeHashes();
-        __declspec(dllexport) long long llParseText(const wchar_t* szTextName, const wchar_t* szMetadata, const wchar_t* szText, bool bIsProse);
+        __declspec(dllexport) long long llParseText(const wchar_t* szMetadata, const wchar_t* szText, bool bIsProse);
     }
 #else
     extern "C"
@@ -81,7 +81,7 @@ namespace MainLibForPython {
         bool GenerateAllForms();
         void ReportProgress(int iPercentDone, bool bDone, int recordNumber, double dDuration);
         bool AddLexemeHashes();
-        long long llParseText(const wchar_t* szTextName, const wchar_t* szMetadata, const wchar_t* szText, bool bIsProse);
+        long long llParseText(const wchar_t* szMetadata, const wchar_t* szText, bool bIsProse);
     }
 #endif
 
@@ -330,7 +330,7 @@ namespace MainLibForPython {
     //  Analytics
     //
 
-    long long llParseText(const wchar_t* szTextName, const wchar_t* szMetadata, const wchar_t* szText, bool bIsProse)
+    long long llParseText(const wchar_t* szMetadata, const wchar_t* szText, bool bIsProse)
     {
         try
         {
@@ -353,7 +353,7 @@ namespace MainLibForPython {
             }
 
             long long llParsedTextId = 0;
-            eRet = g_spAnalytics->eParseText(szTextName, szMetadata, szText, llParsedTextId, bIsProse);
+            eRet = g_spAnalytics->eParseText(szMetadata, szText, llParsedTextId, bIsProse);
             if (H_NO_ERROR != eRet)
             {
                 llParsedTextId = -1;
