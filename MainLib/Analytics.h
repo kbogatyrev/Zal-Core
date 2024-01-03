@@ -176,7 +176,9 @@ namespace Hlib
         ~CAnalytics();
 
 //        virtual ET_ReturnCode eParseText(const CEString& sTextName, const CEString& sMetadata, const CEString& sText, int64_t& llParsedTextId, bool bIsProse = false);
-        ET_ReturnCode eParseText(const CEString& sTextName, const CEString& sMetadata, const CEString& sText, int64_t llFirstLineNum, bool bIsProse = false);
+        void SetAuthor(const CEString sAuthor);
+        void SetBookTitle(const CEString sBookTitle);
+        ET_ReturnCode eParseText(const CEString& sMetadata, const CEString& sText, int64_t llFirstLineNum, bool bIsProse = false);
         ET_ReturnCode eLoadIrregularForms();
         ET_ReturnCode eGetFirstSegment(vector<StWordContext>&, int64_t llStartAt=0);
         ET_ReturnCode eGetNextSegment(vector<StWordContext>&);
@@ -210,6 +212,8 @@ namespace Hlib
         shared_ptr<CSqlite> m_spDb;
         shared_ptr<CParser> m_spParser;
         unique_ptr<CTranscriber> m_spTranscriber;
+        CEString m_sAuthor;
+        CEString m_sBookTitle;
         CEString m_sTextName;
         CEString m_sTextTitle;
         CEString m_sTextMetaData;

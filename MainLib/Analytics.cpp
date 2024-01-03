@@ -56,11 +56,20 @@ ET_ReturnCode CAnalytics::eHandleDbException(CException& e, CEString& sMsg)
     return H_NO_ERROR;
 }
 
-ET_ReturnCode CAnalytics::eParseText(const CEString& sTextName, const CEString& sMetadata, const CEString& sText, [[maybe_unused]]int64_t llFirstLineNum, bool bIsProse)
+void CAnalytics::SetAuthor(const CEString sAuthor)
+{
+    m_sAuthor = sAuthor;
+}
+
+void CAnalytics::SetBookTitle(const CEString sBookTitle)
+{
+    m_sBookTitle = sBookTitle;
+}
+
+ET_ReturnCode CAnalytics::eParseText(const const CEString& sMetadata, const CEString& sText, [[maybe_unused]]int64_t llFirstLineNum, bool bIsProse)
 {
     ET_ReturnCode eRet = H_NO_ERROR;
 
-    m_sTextName = sTextName;
     m_sTextMetaData = sMetadata;
     m_sText = sText;                // used to split text into lines
 
@@ -127,7 +136,7 @@ ET_ReturnCode CAnalytics::eParseText(const CEString& sTextName, const CEString& 
     }
 
     for (int iLine = 0; iLine < iNLines; ++iLine)
-        {
+    {
         int iTextOffset = const_cast<CEString&>(sText).uiGetFieldOffset(iLine);
         
         CEString sLine = const_cast<CEString&>(sText).sGetField(iLine);     // use to split line into words
@@ -235,8 +244,8 @@ ET_ReturnCode CAnalytics::eParseMetadata(const CEString& sConstMetadata)
         sKeyValPair.SetBreakChars(L"=");
         if (sKeyValPair.uiNFields() < 2)
         {
-            CEString sMsg(L"Bad key/value pair: ");
-            ERROR_LOG(sMsg + sKeyValPair);
+//            CEString sMsg(L"Bad key/value pair: ");
+//            ERROR_LOG(sMsg + sKeyValPair);
             continue;
         }
 
@@ -244,8 +253,14 @@ ET_ReturnCode CAnalytics::eParseMetadata(const CEString& sConstMetadata)
         sKey.Trim(L" ");
         auto sValue = sKeyValPair.sGetField(1);
         sValue.Trim(L" ");
-
-        m_vecMetadataKeyValPairs.push_back(make_pair(sKey, sValue));
+        if (L"Title" == sKey)
+        {
+            m_sTextName = sValue;
+        }
+        else
+        {
+            m_vecMetadataKeyValPairs.push_back(make_pair(sKey, sValue));
+        }
     }
 
     return H_NO_ERROR;
@@ -255,6 +270,13 @@ ET_ReturnCode CAnalytics::eParseMetadata(const CEString& sConstMetadata)
 ET_ReturnCode CAnalytics::eRegisterText()
 {
     ET_ReturnCode eRet = H_NO_ERROR;
+
+    eRet = eParseMetadata(m_sTextMetaData);
+    if (eRet != H_NO_ERROR)
+    {
+        ERROR_LOG(L"Unable to parse text metadata.");
+        return eRet;
+    }
 
     if (m_sTextName.bIsEmpty() || m_sTextMetaData.bIsEmpty())
     {
@@ -303,13 +325,6 @@ ET_ReturnCode CAnalytics::eRegisterText()
         CEString sMsg;
         eHandleDbException(e, sMsg);
         ERROR_LOG(sMsg);
-    }
-
-    eRet = eParseMetadata(m_sTextMetaData);
-    if (eRet != H_NO_ERROR)
-    {
-        ERROR_LOG(L"Unable to parse text metadata.");
-        return eRet;
     }
 
     //
