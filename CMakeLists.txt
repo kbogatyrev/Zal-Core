@@ -2,10 +2,35 @@ cmake_minimum_required (VERSION 3.16)
 
 project (Zal-Core VERSION 5.0.0)
 
+include(FetchContent)
+
+FetchContent_Declare(
+  tomplusplus
+  GIT_REPOSITORY https://github.com/marzer/tomlplusplus.git
+  GIT_TAG        30172438cee64926dc41fdd9c11fb3ba5b2ba9de	# v3.4.0
+  SOURCE_DIR "${PROJECT_SOURCE_DIR}/ThirdParty/TomPlusPlus"
+)
+FetchContent_MakeAvailable(tomplusplus)
+
+FetchContent_Declare(
+  sha1
+  GIT_REPOSITORY https://github.com/vog/sha1.git
+  GIT_TAG        3f8a4aa									 # 1.4
+  SOURCE_DIR "${PROJECT_SOURCE_DIR}/ThirdParty/Sha1"
+)
+FetchContent_MakeAvailable(sha1)
+
+FetchContent_Declare(
+  spdlog
+  GIT_REPOSITORY https://github.com/gabime/spdlog.git
+  GIT_TAG        7e635fc									 # 1.12.0
+  SOURCE_DIR "${PROJECT_SOURCE_DIR}/ThirdParty/spdlog"
+)
+FetchContent_MakeAvailable(spdlog)
+
 #
 #	Main library
 #
-
 if (MSVC)
 	if (CMAKE_BUILD_TYPE MATCHES "Debug")
 		message (STATUS "Windows debug mode")
@@ -67,6 +92,7 @@ target_include_directories (ZalMainLib PUBLIC
 	HLib
 	ThirdParty/Sqlite
 	ThirdParty/sha1
+	ThirdParty/TomPlusPlus
 )
 
 target_sources (ZalMainLib PRIVATE
