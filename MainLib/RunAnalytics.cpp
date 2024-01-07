@@ -4,6 +4,8 @@
 #include <locale>
 #include <codecvt>
 
+#include <toml.hpp>
+
 #include "Enums.h"
 #include "EString.h"
 #include "Singleton.h"
@@ -248,7 +250,7 @@ ET_ReturnCode CAnalyticsRunner::eParseText()
     rc = m_spAnalytics->eParseText(m_sMetadata, m_sText, 0, false);
     if (rc != H_NO_ERROR)
     {
-        ERROR_LOG(L"Text arse failed.");
+        ERROR_LOG(L"Text parse failed.");
     }
     return rc;
     m_sText.Erase();
@@ -260,18 +262,54 @@ ET_ReturnCode CAnalyticsRunner::eParseText()
 //  --------------------------------------------------------------------------------------------
 //
 
-int main() {
+int main(int argc, char *argv[]) {
 
     [[maybe_unused]] ET_ReturnCode rc = H_NO_ERROR;
 
+    if (argc < 2)
+    {
+        ERROR_LOG(L"Argument expected: \'ZalRunAnalytics analytics.toml\'");
+        return H_ERROR_INVALID_ARG;
+    }
+
+    toml::table config;
+
+    try
+    {
+        string path = argv[1];
+        config = toml::parse_file(path);
+    }
+    catch (const toml::parse_error& err)
+    {
+        CEString sMsg(L"Unable to parse config.");
+        sMsg += Hlib::CEString::sFromUtf8(err.description().data());
+        ERROR_LOG(sMsg)
+        return H_ERROR_UNEXPECTED;
+    }
+
+
+    auto utf8Author = config["metadata"]["author"].as_string()->get();
+    auto utf8Book = config["metadata"]["book"].as_string()->get();
+
     CAnalyticsRunner Runner;
-    Runner.eInit(L"C:\\git-repos\\Zal\\Zal-Data\\ZalData\\ZalData_Master_Tsvetaeva.db3", 
-                 L"C:\\git-repos\\Zal\\Source-Texts\\Tsvetaeva_UTF-16_BOM.txt",
-                 L"Марина Цветаева", 
-                 L"Стихотворения и поэмы");
+#ifdef WIN32
+    auto utf8DbPath = config["paths"]["db_path_windows"].as_string()->get();
+    auto utf8TextPath = config["paths"]["text_path_windows"].as_string()->get();
 
+    Runner.eInit(Hlib::CEString::sFromUtf8(utf8DbPath),
+                 Hlib::CEString::sFromUtf8(utf8TextPath),
+                 Hlib::CEString::sFromUtf8(utf8Author),
+                 Hlib::CEString::sFromUtf8(utf8Book));
+#else
+    auto utf8DbPath = config["paths"]["db_path_linux"];
+    auto utf8TextPath = config["paths"]["text_path_linux"];
+    Runner.eInit(L"C:\\git-repos\\Zal\\Zal-Data\\ZalData\\ZalData_Master_Tsvetaeva.db3",
+        L"C:\\git-repos\\Zal\\Source-Texts\\Tsvetaeva_UTF-16_BOM.txt",
+        L"Марина Цветаева",
+        L"Стихотворения и поэмы");
+#endif
 
-//#ifdef WIN32
+    //#ifdef WIN32
 //    rc = spDictionary->eSetDbPath(L"..\\..\\..\\..\\Zal-Data\\ZalData\\ZalData_Master_Tsvetaeva.db3");
 //    string text_path {"C:\\git-repos\\Zal\\Zal-Data\\ZalData\\Tsvetaeva_UTF-16_BOM.txt"};
 //    string text_path{ "C:\\git-repos\\Zal\\Zal-Data\\ZalData\\Test_10_29.txt" };
