@@ -66,7 +66,7 @@ void CAnalytics::SetBookTitle(const CEString sBookTitle)
     m_sBookTitle = sBookTitle;
 }
 
-ET_ReturnCode CAnalytics::eParseText(const const CEString& sMetadata, const CEString& sText, [[maybe_unused]]int64_t llFirstLineNum, bool bIsProse)
+ET_ReturnCode CAnalytics::eParseText(const CEString& sMetadata, const CEString& sText, [[maybe_unused]]int64_t llFirstLineNum, bool bIsProse)
 {
     ET_ReturnCode eRet = H_NO_ERROR;
 
@@ -1549,11 +1549,12 @@ ET_ReturnCode CAnalytics::eAssembleParsedSegment(vector<StWordContext>& vecParse
 
                 if (pairWfIdRange.first == pairWfIdRange.second)        // no parse
                 {
-                    const CEString& sWord = m_sCurrentSegment.sGetToken(iAt);
+                    const CEString& sWord = CEString::sToLower(m_sCurrentSegment.sGetToken(iAt));
                     auto pairRange = m_mmapWordToIrregForm.equal_range(move(make_shared<CEString>(sWord)));
                     if (pairRange.first == pairRange.second)
                     {
                         stCtx.bIncomplete = true;
+                        stCtx.sWord = m_sCurrentSegment.sGetToken(iAt);
                     }
                     else
                     {
@@ -1561,24 +1562,26 @@ ET_ReturnCode CAnalytics::eAssembleParsedSegment(vector<StWordContext>& vecParse
                         auto spIrregularForm = pairWordToIrregPair->second;
                         stCtx.llIrregularFormId = spIrregularForm->llDbId;
                         stCtx.sGramHash = spIrregularForm->sGramHash;
-                        stCtx.sWord = sWord;
+//                        stCtx.sWord = sWord;
+                        stCtx.sWord = m_sCurrentSegment.sGetToken(iAt);
 
                         for (auto pairStress : spIrregularForm->mapStress)
                         {
                             eAddStressMark(stCtx.sWord, pairStress.first, pairStress.second);
                         }
                     }
-                    stCtx.iSeqNum = iCurrentWordPos;
+//                    stCtx.iSeqNum = iCurrentWordPos;
                 }
 
                 for (auto itWfId = pairWfIdRange.first; itWfId != pairWfIdRange.second; ++itWfId)
                 {
                     stCtx.bIgnore = false;
                     stCtx.bBreak = false;
-                    stCtx.iSeqNum = iCurrentWordPos;
+//                    stCtx.iSeqNum = iCurrentWordPos;
                     stCtx.llWordFormId = itWfId->second;
-                    stCtx.sWord = m_mapWordPosToWord[iCurrentWordPos];
-                    stCtx.llSegmentId = m_llCurrentSegmentId;
+//                    stCtx.sWord = m_mapWordPosToWord[iCurrentWordPos];
+                    stCtx.sWord = m_sCurrentSegment.sGetToken(iAt);
+//                    stCtx.llSegmentId = m_llCurrentSegmentId;
                     auto pairStressRange = m_mmapFormIdToStressPositions.equal_range(stCtx.llWordFormId);
                     for (auto itStress = pairStressRange.first; itStress != pairStressRange.second; ++itStress)
                     {
@@ -1597,6 +1600,8 @@ ET_ReturnCode CAnalytics::eAssembleParsedSegment(vector<StWordContext>& vecParse
                         stCtx.sGramHash = m_mapFormIdToGramHashes[stCtx.llWordFormId];
                     }
                 }
+                stCtx.llSegmentId = m_llCurrentSegmentId;
+                stCtx.iSeqNum = iCurrentWordPos;
                 mapWordContexts.insert(pair{iCurrentWordPos++, stCtx});
 
                 break;
@@ -1632,6 +1637,10 @@ ET_ReturnCode CAnalytics::eAssembleParsedSegment(vector<StWordContext>& vecParse
     {
         vecParses.push_back(pairWordCtx.second);
     }
+
+    StWordContext stBreak;
+    stBreak.bBreak = true;
+    vecParses.push_back(stBreak);
 
     m_mmapWordPosToFormIds.clear();
     m_mmapFormIdToStressPositions.clear();
