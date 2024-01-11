@@ -91,7 +91,7 @@ add_library (ZalMainLib)
 target_include_directories (ZalMainLib PUBLIC
 	HLib
 	ThirdParty/Sqlite
-	ThirdParty/sha1
+	ThirdParty/Sha1
 	ThirdParty/TomPlusPlus
 )
 
