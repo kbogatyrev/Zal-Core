@@ -16,11 +16,10 @@ using namespace Hlib;
 
 class CAnalyticsRunner
 {
-    const CEString sMetadataTemplate{ L"Author=#AUTHOR#|Book=#BOOK#|Title=#TITLE#|Chapter=#CHAPTER#|Dedication=#DEDICATION#|Date=#DATE#|Page=#PAGE#" };
+//    const CEString sMetadataTemplate{ L"author=#AUTHOR#|book=#BOOK#|title=#TITLE#|chapter=#CHAPTER#|dedication=#DEDICATION#|date=#DATE#|page=#PAGE#" };
 
 public:
-    ET_ReturnCode eInit(const CEString& sDbPath, const CEString& sSourceTextPath, 
-                        const CEString& sAuthor, const CEString& sBookTitle);
+    ET_ReturnCode eInit(const CEString& sDbPath, const CEString& sSourceTextPath);
     CEString sGetTextPath();
     ET_ReturnCode eCheckMetadata(CEString& sLine);
     ET_ReturnCode eAssembleMetadatString();
@@ -58,7 +57,7 @@ private:
     shared_ptr<CAnalytics> m_spAnalytics;
 };
 
-ET_ReturnCode CAnalyticsRunner::eInit(const CEString& sDbPath, const CEString& sSourceTextPath, const CEString& sAuthor, const CEString& sBookTitle)
+ET_ReturnCode CAnalyticsRunner::eInit(const CEString& sDbPath, const CEString& sSourceTextPath)
 {
     auto pSingleton = Hlib::Singleton::pGetInstance();
     shared_ptr<CDictionary> spDictionary;
@@ -66,12 +65,8 @@ ET_ReturnCode CAnalyticsRunner::eInit(const CEString& sDbPath, const CEString& s
 
 #ifdef WIN32
     rc = spDictionary->eSetDbPath(sDbPath);
-//    string text_path{ "C:\\git-repos\\Zal\\Source-Texts\\Tsvetaeva_UTF-16_BOM.txt" };
-    //    string text_path{ "C:\\git-repos\\Zal\\Zal-Data\\ZalData\\Test_10_29.txt" };
-
 #else
     rc = spDictionary->eSetDbPath(sDbPath);
-    string text_path{ "/home/konstantin/.vs/Zal-Core/out/build/linux-debug/Tsvetaeva_UTF-16_BOM.txt" };
 #endif
 
     m_sSourceTextPath = sSourceTextPath;
@@ -82,9 +77,6 @@ ET_ReturnCode CAnalyticsRunner::eInit(const CEString& sDbPath, const CEString& s
         ERROR_LOG(L"Error getting analytics module.");
         return H_ERROR_GENERAL;
     }
-
-    m_sAuthor = sAuthor;
-    m_sBook = sBookTitle;
 
     return H_NO_ERROR;
 }
@@ -138,7 +130,7 @@ ET_ReturnCode CAnalyticsRunner::eCheckMetadata(CEString& sLine)
         break;
 
     case TEXT_METADATA_TITLE:
-        if (!m_sTitle.bIsEmpty() && TEXT_METADATA_UNDEFINED == m_eLastTag)
+        if (!m_sTitle.bIsEmpty() && !m_sText.bIsEmpty())
         {
             auto rc = eParseText();
             if (rc != H_NO_ERROR)
@@ -147,12 +139,13 @@ ET_ReturnCode CAnalyticsRunner::eCheckMetadata(CEString& sLine)
                 ERROR_LOG(sMsg);
                 break;
             }
+            m_sText.Erase();
         }
         m_sTitle = sValue;
         break;
 
     case TEXT_METADATA_CHAPTER:
-        if (TEXT_METADATA_UNDEFINED == m_eLastTag)
+        if (!m_sText.bIsEmpty())
         {
             auto rc = eParseText();
             if (rc != H_NO_ERROR)
@@ -162,11 +155,12 @@ ET_ReturnCode CAnalyticsRunner::eCheckMetadata(CEString& sLine)
                 break;
             }
         }
+        m_sText.Erase();
         m_sChapter = sValue;
         break;
 
     case TEXT_METADATA_DEDICATION:
-        if (m_eLastTag != TEXT_METADATA_TITLE && m_eLastTag != TEXT_METADATA_CHAPTER)
+        if (m_sTitle.bIsEmpty() && m_sChapter.bIsEmpty())
         {
             CEString sMsg(L"Dedication tag with unknown title or chapter: ");
             sMsg += sStartTag;
@@ -211,7 +205,7 @@ ET_ReturnCode CAnalyticsRunner::eAssembleMetadatString()
     }
 
     static const CEString sMetadataTemplate{ 
-        L"Author=#AUTHOR#|Book=#BOOK#|Title=#TITLE#|Chapter=#CHAPTER#|Dedication=#DEDICATION#|Date=#DATE#|Page=#PAGE#" 
+        L"author=#AUTHOR#|book=#BOOK#|title=#TITLE#|chapter=#CHAPTER#|dedication=#DEDICATION#|date=#DATE#|page=#PAGE#" 
     };
     m_sMetadata = sMetadataTemplate;
     m_sMetadata.sReplace(L"#AUTHOR#", m_sAuthor);
@@ -246,7 +240,7 @@ ET_ReturnCode CAnalyticsRunner::eParseText()
     {
         ERROR_LOG(L"Unable to assemble metadata string.");
     }
-    return rc;
+
     rc = m_spAnalytics->eParseText(m_sMetadata, m_sText, 0, false);
     if (rc != H_NO_ERROR)
     {
@@ -287,7 +281,6 @@ int main(int argc, char *argv[]) {
         return H_ERROR_UNEXPECTED;
     }
 
-
     auto utf8Author = config["metadata"]["author"].as_string()->get();
     auto utf8Book = config["metadata"]["book"].as_string()->get();
 
@@ -295,32 +288,12 @@ int main(int argc, char *argv[]) {
 #ifdef WIN32
     auto utf8DbPath = config["paths"]["db_path_windows"].as_string()->get();
     auto utf8TextPath = config["paths"]["text_path_windows"].as_string()->get();
-
-    Runner.eInit(Hlib::CEString::sFromUtf8(utf8DbPath),
-                 Hlib::CEString::sFromUtf8(utf8TextPath),
-                 Hlib::CEString::sFromUtf8(utf8Author),
-                 Hlib::CEString::sFromUtf8(utf8Book));
+    Runner.eInit(Hlib::CEString::sFromUtf8(utf8DbPath), Hlib::CEString::sFromUtf8(utf8TextPath));
 #else
-    auto utf8DbPath = config["paths"]["db_path_linux"];
-    auto utf8TextPath = config["paths"]["text_path_linux"];
-    Runner.eInit(L"C:\\git-repos\\Zal\\Zal-Data\\ZalData\\ZalData_Master_Tsvetaeva.db3",
-        L"C:\\git-repos\\Zal\\Source-Texts\\Tsvetaeva_UTF-16_BOM.txt",
-        L"Марина Цветаева",
-        L"Стихотворения и поэмы");
+    auto utf8DbPath = config["paths"]["db_path_linux"].as_string()->get();
+    auto utf8TextPath = config["paths"]["text_path_linux"].as_string()->get();
+    Runner.eInit(Hlib::CEString::sFromUtf8(utf8DbPath), Hlib::CEString::sFromUtf8(utf8TextPath));
 #endif
-
-    //#ifdef WIN32
-//    rc = spDictionary->eSetDbPath(L"..\\..\\..\\..\\Zal-Data\\ZalData\\ZalData_Master_Tsvetaeva.db3");
-//    string text_path {"C:\\git-repos\\Zal\\Zal-Data\\ZalData\\Tsvetaeva_UTF-16_BOM.txt"};
-//    string text_path{ "C:\\git-repos\\Zal\\Zal-Data\\ZalData\\Test_10_29.txt" };
-//#else
-//    rc = spDictionary->eSetDbPath(L"ZalData_Master_Tsvetaeva.db3");
-//    string text_path{ "/home/konstantin/.vs/Zal-Core/out/build/linux-debug/Tsvetaeva_UTF-16_BOM.txt" };
-//#endif
-
-//#else
-//    spDictionary->eSetDbPath(L"/home/konstantin/zal/ZalData_demo.db3");
-//#endif
 
     wifstream ioIn(Runner.sGetTextPath().stl_sToUtf8(), ios::binary);
     ioIn.imbue(std::locale(ioIn.getloc(), new std::codecvt_utf16<wchar_t, 0x10ffff, std::consume_header>));

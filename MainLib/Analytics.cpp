@@ -224,7 +224,7 @@ ET_ReturnCode CAnalytics::eParseText(const CEString& sMetadata, const CEString& 
 
 }       // eParseText()
 
-ET_ReturnCode CAnalytics::eParseMetadata(const CEString& sConstMetadata)
+ET_ReturnCode CAnalytics::eParseMetadata(const CEString& sConstMetadata, ArrMetadataValues& arrValues)
 {
     CEString sMetadata(sConstMetadata);
     sMetadata.ResetSeparators();
@@ -244,99 +244,54 @@ ET_ReturnCode CAnalytics::eParseMetadata(const CEString& sConstMetadata)
         sKeyValPair.SetBreakChars(L"=");
         if (sKeyValPair.uiNFields() < 2)
         {
-//            CEString sMsg(L"Bad key/value pair: ");
-//            ERROR_LOG(sMsg + sKeyValPair);
-            continue;
+            continue;       // empty values are allowed
         }
 
-        auto sKey = sKeyValPair.sGetField(0);
-        sKey.Trim(L" ");
-        auto sValue = sKeyValPair.sGetField(1);
-        sValue.Trim(L" ");
-        if (L"Title" == sKey)
+        auto&& sKey = sKeyValPair.sGetField(0);
+        auto&& sValue = sKeyValPair.sGetField(1);
+        if (m_mapKeyToColumn.find(sKey) == m_mapKeyToColumn.end())
         {
-            m_sTextName = sValue;
+            CEString sMsg(L"Unknown metadata key ");
+            sMsg += sKey;
+            ERROR_LOG(sMsg);
+            return H_ERROR_UNEXPECTED;
         }
-        else
-        {
-            m_vecMetadataKeyValPairs.push_back(make_pair(sKey, sValue));
-        }
+
+        auto iCol = m_mapKeyToColumn[sKey];
+        arrValues.at(iCol) = move(sValue);
+
+//        auto sKey = sKeyValPair.sGetField(0);
+//        sKey.Trim(L" ");
+//        auto sValue = sKeyValPair.sGetField(1);
+//        sValue.Trim(L" ");
+//        m_vecMetadataKeyValPairs.push_back(make_pair(sKey, sValue));
     }
-
     return H_NO_ERROR;
 }
 
-//  CREATE TABLE text(id INTEGER PRIMARY KEY ASC, name TEXT, metadata TEXT, contents TEXT);
+//  CREATE TABLE text(id INTEGER PRIMARY KEY ASC, contents TEXT);
 ET_ReturnCode CAnalytics::eRegisterText()
 {
     ET_ReturnCode eRet = H_NO_ERROR;
 
-    eRet = eParseMetadata(m_sTextMetaData);
+    ArrMetadataValues arrValues;
+    eRet = eParseMetadata(m_sTextMetaData, arrValues);
     if (eRet != H_NO_ERROR)
     {
         ERROR_LOG(L"Unable to parse text metadata.");
         return eRet;
     }
 
-    if (m_sTextName.bIsEmpty() || m_sTextMetaData.bIsEmpty())
+    if (m_sTextMetaData.bIsEmpty())
     {
         ERROR_LOG(L"No text or text descriptor.");
         return H_ERROR_UNEXPECTED;
     }
 
-    CEString sQuery = L"SELECT id FROM text WHERE name = '#NAME#';";
-    sQuery = sQuery.sReplace(L"#NAME#", m_sTextName);
-
-    vector<int64_t> vecTextIds;
     try
     {
-        m_spDb->PrepareForSelect(sQuery);
-        while (m_spDb->bGetRow())
-        {
-            int64_t llTextId = -1;
-            m_spDb->GetData(0, llTextId);
-            if (llTextId < 0)
-            {
-                ERROR_LOG(L"Illegal text id.");
-                continue;
-            }
-            vecTextIds.push_back(llTextId);
-        }
-        m_spDb->Finalize();
-
-        if (vecTextIds.size() > 1)
-        {
-            ERROR_LOG(L"Warning: multiple DB entries for the same text.");
-        }
-
-        for (int64_t llId : vecTextIds)
-        {
-            eRet = eClearTextData(llId);
-            sQuery = L"DELETE FROM text_metadata WHERE text_id = ";
-            sQuery += CEString::sToString(llId);
-            m_spDb->Delete(sQuery);
-            sQuery = L"DELETE FROM text WHERE id = ";
-            sQuery += CEString::sToString(llId);
-            m_spDb->Delete(sQuery);
-        }
-    }
-    catch (CException& e)
-    {
-        CEString sMsg;
-        eHandleDbException(e, sMsg);
-        ERROR_LOG(sMsg);
-    }
-
-    //
-    // Create DB entry for the text
-    //
-    try
-    {
-        m_spDb->PrepareForInsert(L"text", 2);
-
-        m_spDb->Bind(1, m_sTextName);
-        m_spDb->Bind(2, m_sText);
-
+        m_spDb->PrepareForInsert(L"text", 1);
+        m_spDb->Bind(1, m_sText);
         m_spDb->InsertRow();
         m_spDb->Finalize();
 
@@ -352,36 +307,29 @@ ET_ReturnCode CAnalytics::eRegisterText()
         return H_ERROR_DB;
     }
 
-    //  CREATE TABLE text_metadata(id INTEGER PRIMARY KEY ASC, text_id INTEGER, category TEXT, content text, FOREIGN KEY(text_id) REFERENCES text(id))
+    //                                                            0                1           2          3           4             5
+    //  CREATE TABLE text_metadata (id INTEGER PRIMARY KEY ASC, text_id INTEGER, author TEXT, book TEXT, page TEXT, title TEXT, dedication TEXT, 
+    //    6              7                   8               9           
+    // chapter TEXT, footnote_ref TEXT, footnote_text TEXT, date TEXT, FOREIGN KEY (text_id) REFERENCES text(id));
 
-    for (auto keyValPair : m_vecMetadataKeyValPairs)
+    try
     {
-        //
-        // Create DB entry for each key/value pair
-        //
-        try
+        m_spDb->PrepareForInsert(L"text_metadata", 10);
+        m_spDb->Bind(1, (int64_t)m_llTextDbId);
+        for (int iColumn = 1; iColumn < (int)arrValues.size(); ++iColumn)
         {
-            m_spDb->PrepareForInsert(L"text_metadata", 3);
-
-            m_spDb->Bind(1, (int64_t)m_llTextDbId);
-            m_spDb->Bind(2, keyValPair.first);
-            m_spDb->Bind(3, keyValPair.second);
-
-            m_spDb->InsertRow();
-            m_spDb->Finalize();
-
-//            m_llTextDbId = m_spDb->llGetLastKey();
+            m_spDb->Bind(iColumn+1, arrValues[iColumn]);
         }
-        catch (CException& e)
-        {
-            CEString sMsg;
-            eHandleDbException(e, sMsg);
-            ERROR_LOG(sMsg);
-            return H_ERROR_DB;
-        }
+        m_spDb->InsertRow();
+        m_spDb->Finalize();
     }
-
-    m_vecMetadataKeyValPairs.clear();
+    catch (CException& e)
+    {
+        CEString sMsg;
+        eHandleDbException(e, sMsg);
+        ERROR_LOG(sMsg);
+        return H_ERROR_DB;
+    }
 
     return eRet;
 
@@ -742,7 +690,7 @@ ET_ReturnCode CAnalytics::eSaveWord(int64_t llLineDbId, int iWord, int iWordsInL
             return H_ERROR_POINTER;
         }
 
-        if (m_sTextName.bIsEmpty() || m_sTextMetaData.bIsEmpty())
+        if (m_sTextMetaData.bIsEmpty())
         {
             ERROR_LOG(L"No text or text descriptor.");
             return H_ERROR_UNEXPECTED;
@@ -1283,11 +1231,11 @@ ET_ReturnCode CAnalytics::eClearTextData(int64_t llTextId)
 //  Web interface, manual editing
 //
 
-//                                     0               1             2        3           4             5             6                    7                 8
-static CEString sLineQuery {L"SELECT lit.id, wil.word_position, lit.source, wf.id, sd.gram_hash, wil.word_text, stress.position, stress.is_primary, stress.is_variant \
-                              FROM lines_in_text AS lit INNER JOIN words_in_line AS wil ON wil.line_id = lit.id \
-                              INNER JOIN word_to_wordform AS wtw ON wtw.word_in_line_id = wil.id INNER JOIN wordforms AS wf ON wf.id = wtw.wordform_id \
-                              INNER JOIN stem_data AS sd ON sd.id = wf.stem_data_id INNER JOIN stress_data AS stress ON stress.form_id = wtw.wordform_id;"};
+//                                       0         1             2              3         4           5             6               7                 8              9
+static CEString sLineQuery { L"SELECT tmd.title, lit.id, wil.word_position, lit.source, wf.id, sd.gram_hash, wil.word_text, stress.position, stress.is_primary, stress.is_variant \
+                             FROM lines_in_text AS lit INNER JOIN words_in_line AS wil ON wil.line_id = lit.id INNER JOIN word_to_wordform AS wtw ON wtw.word_in_line_id = wil.id \
+                             INNER JOIN wordforms AS wf ON wf.id = wtw.wordform_id INNER JOIN stem_data AS sd ON sd.id = wf.stem_data_id INNER JOIN stress_data AS stress \
+                             ON stress.form_id = wtw.wordform_id INNER JOIN text as t ON lit.text_id = t.id INNER JOIN text_metadata as tmd ON t.id = tmd.text_id; " };
 
 //                                               0         1           2             3             4             5
 static CEString sIrregularFormsQuery{ L"SELECT f.id, f.gram_hash, f.wordform, f.is_alternative, s.position, s.is_primary \
@@ -1359,6 +1307,7 @@ ET_ReturnCode CAnalytics::eLoadIrregularForms()
 
 ET_ReturnCode CAnalytics::eGetFirstSegment(vector<StWordContext>& vecParses, int64_t llStartAt)
 {
+    int iSegmentsSkipped = 0;
     try
     {
         if (nullptr == m_spDb)
@@ -1379,8 +1328,7 @@ ET_ReturnCode CAnalytics::eGetFirstSegment(vector<StWordContext>& vecParses, int
             return H_NO_MORE;
         }
 
-        int64_t llId{ -1 };
-        while (llId < llStartAt)
+        while (iSegmentsSkipped < llStartAt)
         {
             auto rc = m_spDb->bGetRow();
             if (!rc)
@@ -1389,11 +1337,11 @@ ET_ReturnCode CAnalytics::eGetFirstSegment(vector<StWordContext>& vecParses, int
                 ERROR_LOG(L"WARNING: no records.");
                 return H_NO_MORE;
             }
-            m_spDb->GetData(0, llId);
+            ++iSegmentsSkipped;
         }
 
-        m_llCurrentSegmentId = llId;
-        m_spDb->GetData(2, m_sCurrentSegment);
+        m_spDb->GetData(1, m_llCurrentSegmentId);
+        m_spDb->GetData(3, m_sCurrentSegment);
     }
     catch (CException& e)
     {
@@ -1431,12 +1379,15 @@ ET_ReturnCode CAnalytics::eGetSegment(vector<StWordContext>& vecParses)
 
     try
     {
+        CEString sTitle;
         int64_t llSegmentId {-1};
         CEString sSegment;
         bool bNextSegment {false};
         while (!bNextSegment)
         {
-            m_spDb->GetData(0, llSegmentId);        // lit.id
+            m_spDb->GetData(0, sTitle);
+
+            m_spDb->GetData(1, llSegmentId);        // lit.id
             if (llSegmentId < m_llCurrentSegmentId)
             {
                 ERROR_LOG(L"Illegal segment ID.");
@@ -1451,14 +1402,14 @@ ET_ReturnCode CAnalytics::eGetSegment(vector<StWordContext>& vecParses)
             if (llSegmentId > m_llCurrentSegmentId)
             {
                 // Last word in line
-                m_spDb->GetData(2, sSegment);
+                m_spDb->GetData(3, sSegment);
                 m_iCurrentPos = -1;
                 bNextSegment = true;    // exit loop
                 continue;
             }
 
             int iPos {-1};
-            m_spDb->GetData(1, iPos);            //  word_position
+            m_spDb->GetData(2, iPos);            //  word_position
             if (iPos < m_iCurrentPos)
             {
                 ERROR_LOG(L"Word numbering error.");
@@ -1471,7 +1422,7 @@ ET_ReturnCode CAnalytics::eGetSegment(vector<StWordContext>& vecParses)
             }
 
             int64_t llWordFormId = -1;
-            m_spDb->GetData(3, llWordFormId);
+            m_spDb->GetData(4, llWordFormId);
             m_mmapWordPosToFormIds.insert(pair{iPos, llWordFormId});
 //            if (llWordFormId != m_llCurrentFormId)
 //            {
@@ -1480,7 +1431,7 @@ ET_ReturnCode CAnalytics::eGetSegment(vector<StWordContext>& vecParses)
 //            }
 
             CEString sHash;
-            m_spDb->GetData(4, sHash);
+            m_spDb->GetData(5, sHash);
             if (m_mapFormIdToGramHashes.find(llWordFormId) != m_mapFormIdToGramHashes.end())
             {
                 CEString sMsg(L"Multiple gram hashes for a single wordform ID, word ID = ");
@@ -1490,13 +1441,13 @@ ET_ReturnCode CAnalytics::eGetSegment(vector<StWordContext>& vecParses)
             m_mapFormIdToGramHashes[llWordFormId] = sHash;
 
             CEString sWord;
-            m_spDb->GetData(5, sWord);
+            m_spDb->GetData(6, sWord);
             m_mapWordPosToWord[iPos] = sWord;
 
             int iStressSyll{-1};
-            m_spDb->GetData(6, iStressSyll);
+            m_spDb->GetData(7, iStressSyll);
             bool bIsPrimary;
-            m_spDb->GetData(7, bIsPrimary);
+            m_spDb->GetData(8, bIsPrimary);
             ET_StressType eType = bIsPrimary ? ET_StressType::STRESS_PRIMARY : ET_StressType::STRESS_SECONDARY;
             m_mmapFormIdToStressPositions.insert(pair {llWordFormId, pair{iStressSyll, eType}});
 
@@ -1513,6 +1464,7 @@ ET_ReturnCode CAnalytics::eGetSegment(vector<StWordContext>& vecParses)
         eAssembleParsedSegment(vecParses);
         m_llCurrentSegmentId = llSegmentId;
         m_sCurrentSegment = sSegment;
+        m_sCurrentTitle = sTitle;
     }
     catch (CException& e)
     {

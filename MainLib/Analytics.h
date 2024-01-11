@@ -3,6 +3,7 @@
 
 #include <set>
 #include <vector>
+#include <array>
 #include <map>
 #include <memory>
 
@@ -170,6 +171,8 @@ namespace Hlib
 
     class CAnalytics
     {
+    using ArrMetadataValues= array<CEString, Hlib::TEXT_METADATA_COUNT>;
+
     public:
         CAnalytics();
         CAnalytics(shared_ptr<CSqlite>, shared_ptr<CParser>);
@@ -186,7 +189,7 @@ namespace Hlib
     private:
         ET_ReturnCode eInit();
         ET_ReturnCode eHandleDbException(CException&, CEString& sMsg);
-        ET_ReturnCode eParseMetadata(const CEString& sMetadata);
+        ET_ReturnCode eParseMetadata(const CEString&, ArrMetadataValues&);
         ET_ReturnCode eRegisterText();
         ET_ReturnCode eParseWord(const CEString& sWord, const CEString& sLine, int iNumInLine, 
                                  int iWordsInLine, int64_t llLineDbKey, vector<shared_ptr<StWordParse>>& vecParses);
@@ -221,9 +224,9 @@ namespace Hlib
         int64_t m_llTextDbId;
 
         multimap<int, InvariantParses> m_mmapLinePosToHomophones;
-        vector<pair<CEString, CEString>> m_vecMetadataKeyValPairs;
         vector<shared_ptr<StTactGroup>> m_vecTactGroupListHeads;
         int64_t m_llCurrentSegmentId{-1};
+        CEString m_sCurrentTitle;
         CEString m_sCurrentSegment;
         vector<StToken> m_vecCurrentSourceTokens;
         vector<CEString> m_vecCurrentSourceWords;
@@ -243,6 +246,18 @@ namespace Hlib
         map<int64_t, CEString> m_mapFormIdToGramHashes;                             // 1 to 1?
         map<int, CEString> m_mapWordPosToWord;
 
+        map<CEString, int> m_mapKeyToColumn
+        {
+            { L"author",        1 },
+            { L"book",          2 },
+            { L"page",          3 },
+            { L"title",         4 },
+            { L"dedication",    5 },
+            { L"chapter",       6 },
+            { L"footnote_ref",  7 },
+            { L"footnone_text", 8 },
+            { L"date",          9 }
+        };
     };      //  class CAnalytics
 
 }   // namespace Hlib
