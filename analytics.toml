@@ -1,0 +1,16 @@
+#
+# TOML config file for the stad-alone Zal text parser
+# TODO: verify Linux paths
+#
+
+title = "Run stand-alone text parser"
+
+[paths]
+db_path_windows = 'C:\git-repos\Zal\Zal-Data\ZalData\ZalData_Master_Tsvetaeva.db3'
+db_path_linux = '/home/konstantin/Zal-Web/data/ZalData_Master_Tsvetaeva.db3'
+text_path_windows = 'C:\git-repos\Zal\Source-Texts\Tsvetaeva_UTF-16_BOM.txt'
+text_path_linux = '/home/konstantin/.vs/Zal-Core/out/build/linux-debug/Tsvetaeva_UTF-16_BOM.txt'
+
+[metadata]
+author = 'Марина Цветаева'
+book = 'Стихотворения и поэмы'
