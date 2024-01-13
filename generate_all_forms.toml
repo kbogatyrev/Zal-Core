@@ -1,0 +1,10 @@
+#
+# TOML config file for the stad-alone Zal text parser
+# TODO: verify Linux paths
+#
+
+title = "Zal wordform generator"
+
+[paths]
+db_path_windows = 'C:\git-repos\Zal\Zal-Data\ZalData\ZalData_Master_full.db3'
+db_path_linux = '/home/konstantin/zal/ZalData_demo.db3'
