@@ -63,12 +63,7 @@ ET_ReturnCode CAnalyticsRunner::eInit(const CEString& sDbPath, const CEString& s
     shared_ptr<CDictionary> spDictionary;
     auto rc = pSingleton->eGetDictionary(spDictionary);
 
-#ifdef WIN32
     rc = spDictionary->eSetDbPath(sDbPath);
-#else
-    rc = spDictionary->eSetDbPath(sDbPath);
-#endif
-
     m_sSourceTextPath = sSourceTextPath;
 
     rc = spDictionary->eGetAnalytics(m_spAnalytics);
@@ -285,6 +280,7 @@ int main(int argc, char *argv[]) {
     auto utf8Book = config["metadata"]["book"].as_string()->get();
 
     CAnalyticsRunner Runner;
+
 #ifdef WIN32
     auto utf8DbPath = config["paths"]["db_path_windows"].as_string()->get();
     auto utf8TextPath = config["paths"]["text_path_windows"].as_string()->get();
