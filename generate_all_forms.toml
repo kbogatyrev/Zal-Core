@@ -1,6 +1,5 @@
 #
-# TOML config file for the stad-alone Zal text parser
-# TODO: verify Linux paths
+# TOML config file for the stand-alone Zal text parser
 #
 
 title = "Zal wordform generator"
