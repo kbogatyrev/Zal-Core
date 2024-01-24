@@ -100,7 +100,6 @@ target_sources (ZalMainLib PRIVATE
 	MainLib/Analytics.cpp
 	MainLib/Dictionary.h
 	MainLib/Dictionary.cpp
-#	MainLib/dllmain.cpp
 	MainLib/Endings.h
 	MainLib/Endings.cpp
 	MainLib/FormBuilderAdjComparative.h
@@ -175,7 +174,7 @@ target_include_directories (ZalPythonItf PUBLIC
 target_sources (ZalPythonItf PRIVATE
 #	Zal-CPP/MainLibCTypes/dllmain.cpp
 	MainLibCTypes/ZalPythonItf.cpp
-)
+ "RunAnalytics/RunAnalytics.h")
  
 target_link_directories (ZalPythonItf PRIVATE
 if (CMAKE_BUILD_TYPE MATCHES "Debug")
@@ -190,11 +189,15 @@ target_link_libraries (ZalPythonItf
 
 #-----------------------------------------------------------------
 
+#
+#    Executables
+#
+
 add_executable (ZalGenerateAllForms)
 
 target_sources (ZalGenerateAllForms PRIVATE
 	MainLib/GenerateAllForms.cpp
-)
+ "RunAnalytics/RunAnalytics.h")
 
 target_include_directories (ZalGenerateAllForms PUBLIC
 	HLib
@@ -213,11 +216,12 @@ endif()
 add_executable (ZalRunAnalytics)
 
 target_sources (ZalRunAnalytics PRIVATE
-	MainLib/RunAnalytics.cpp
-)
+	RunAnalytics/RunAnalytics.cpp
+	RunAnalytics/RunAnalytics.h)
 
 target_include_directories (ZalRunAnalytics PUBLIC
 	HLib
+	MainLib
 	ThirdParty/Sqlite
 	ThirdParty/sha1
 )
@@ -226,6 +230,27 @@ if (MSVC)
 	target_link_libraries(ZalRunAnalytics ZalMainLib)
 else()
 	target_link_libraries(ZalRunAnalytics ZalMainLib pthread dl)
+endif()
+
+#-------------------------------------------------------------------
+
+add_executable (ZalRunPhonotactics)
+
+target_sources (ZalRunPhonotactics PRIVATE
+	RunPhonotactics/RunPhonotactics.cpp
+	RunPhonotactics/RunPhonotactics.h)
+
+target_include_directories (ZalRunPhonotactics PUBLIC
+	HLib
+	MainLib
+	ThirdParty/Sqlite
+	ThirdParty/sha1
+)
+
+if (MSVC)
+	target_link_libraries(ZalRunPhonotactics ZalMainLib)
+else()
+	target_link_libraries(ZalRunPhonotactics ZalMainLib pthread dl)
 endif()
 
 # ---------------------------------------------------------------
@@ -238,7 +263,7 @@ add_executable (ZalStringTest)
 
 target_sources (ZalStringTest PRIVATE
 	HLib/StringTest.cpp
-)
+ "RunAnalytics/RunAnalytics.h")
 
 # ---------------------------------------------------------------
 
@@ -252,7 +277,7 @@ target_include_directories (ZalLeakTest PUBLIC
 target_sources (ZalLeakTest PRIVATE
 	"MainLib/LeakTest.cpp"
 
-)
+ "RunAnalytics/RunAnalytics.h")
 
 if (MSVC)
 	target_link_libraries(ZalLeakTest ZalMainLib)
