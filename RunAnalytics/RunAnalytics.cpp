@@ -6,56 +6,12 @@
 
 #include <toml.hpp>
 
-#include "Enums.h"
-#include "EString.h"
 #include "Singleton.h"
 #include "Dictionary.h"
-#include "Analytics.h"
+//#include "Analytics.h"
+#include "RunAnalytics.h"
 
 using namespace Hlib;
-
-class CAnalyticsRunner
-{
-//    const CEString sMetadataTemplate{ L"author=#AUTHOR#|book=#BOOK#|title=#TITLE#|chapter=#CHAPTER#|dedication=#DEDICATION#|date=#DATE#|page=#PAGE#" };
-
-public:
-    ET_ReturnCode eInit(const CEString& sDbPath, const CEString& sSourceTextPath);
-    CEString sGetTextPath();
-    ET_ReturnCode eCheckMetadata(CEString& sLine);
-    ET_ReturnCode eAssembleMetadatString();
-    void AddLine(const CEString&);
-    ET_ReturnCode eParseText();
-
-private:
-    CEString m_sSourceTextPath;
-
-    CEString m_sAuthor;
-    CEString m_sBook;
-    CEString m_sPage;
-    CEString m_sTitle;
-    CEString m_sChapter;
-    CEString m_sFootnoteRef;
-    CEString m_sFootnoteText;
-    CEString m_sDate;
-    CEString m_sDedication;
-
-    CEString m_sText;
-    CEString m_sMetadata;
-
-    ET_TextMetadata m_eLastTag {TEXT_METADATA_UNDEFINED};
-
-    map<CEString, ET_TextMetadata> m_mapTagToMetadataType{
-        { L"author", TEXT_METADATA_AUTHOR },
-        { L"book", TEXT_METADATA_BOOK },
-        { L"page", TEXT_METADATA_PAGE },
-        { L"title", TEXT_METADATA_TITLE },
-        { L"chapter", TEXT_METADATA_CHAPTER },
-        { L"date", TEXT_METADATA_DATE },
-        { L"dedication", TEXT_METADATA_DEDICATION }
-    };
-
-    shared_ptr<CAnalytics> m_spAnalytics;
-};
 
 ET_ReturnCode CAnalyticsRunner::eInit(const CEString& sDbPath, const CEString& sSourceTextPath)
 {
@@ -81,7 +37,7 @@ CEString CAnalyticsRunner::sGetTextPath()
     return m_sSourceTextPath;
 }
 
-ET_ReturnCode CAnalyticsRunner::eCheckMetadata(CEString& sLine)
+ET_ReturnCode CAnalyticsRunner::eAnalyze(CEString& sLine)
 {
     bool bRet = sLine.bRegexMatch(L"^<(\\w+?)\\s+(.+?)\\/(\\w+)>");
     if (!bRet)
@@ -336,7 +292,7 @@ int main(int argc, char *argv[]) {
             continue;
         }
 
-        auto rc = Runner.eCheckMetadata(sLine);
+        auto rc = Runner.eAnalyze(sLine);
         if (H_TRUE == rc)
         {
             continue;
