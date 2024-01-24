@@ -1024,7 +1024,7 @@ ET_ReturnCode CAnalytics::eSaveTactGroup(shared_ptr<StTactGroup> spTg)
         return H_ERROR_POINTER;
     }
 
-    m_spDb->PrepareForInsert(L"tact_group", 10);
+    m_spDb->PrepareForInsert(L"tact_group", 11);
 
     m_spDb->Bind(1, (int64_t)spTg->llLineId);
     m_spDb->Bind(2, spTg->iFirstWordNum);
@@ -1033,10 +1033,11 @@ ET_ReturnCode CAnalytics::eSaveTactGroup(shared_ptr<StTactGroup> spTg)
     m_spDb->Bind(5, spTg->sSource);
     //            m_spDb->Bind(6, wordParse.WordForm.sGramHash());
     m_spDb->Bind(6, spTg->sTranscription);
-    m_spDb->Bind(7, spTg->iNumOfSyllables);
-    m_spDb->Bind(8, spTg->iStressedSyllable);
-    m_spDb->Bind(9, spTg->iReverseStressedSyllable);
-    m_spDb->Bind(10, spTg->iSecondaryStressedSyllable);
+    m_spDb->Bind(7, spTg->sPhonemicSequence);
+    m_spDb->Bind(8, spTg->iNumOfSyllables);
+    m_spDb->Bind(9, spTg->iStressedSyllable);
+    m_spDb->Bind(10, spTg->iReverseStressedSyllable);
+    m_spDb->Bind(11, spTg->iSecondaryStressedSyllable);
 
     m_spDb->InsertRow();
     m_spDb->Finalize();

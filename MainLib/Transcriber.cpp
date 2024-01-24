@@ -18,6 +18,15 @@ CTranscriber::CTranscriber(shared_ptr<CSqlite> pCSqlite) : m_pDb(pCSqlite)
         return;
     }
 
+    auto eRet = eInit();
+    if (eRet != H_NO_ERROR)
+    {
+        ERROR_LOG(L"Unable to initialize transcriber.");
+    }
+}
+
+ET_ReturnCode CTranscriber::eInit()
+{
     auto eRet = eLoadTranscriptionRules();
     if (H_NO_ERROR != eRet)
     {
@@ -28,6 +37,13 @@ CTranscriber::CTranscriber(shared_ptr<CSqlite> pCSqlite) : m_pDb(pCSqlite)
     {
         ERROR_LOG(L"No transcription rules.");
     }
+
+    for (auto& pairStrToSound : m_mapStringToSound)
+    {
+        m_mapSoundToString[pairStrToSound.second] = pairStrToSound.first;
+    }
+
+    return H_NO_ERROR;
 }
 
 ET_ReturnCode CTranscriber::eSplitSource(CEString& sSource, vector<CEString>& vecTarget)
@@ -507,23 +523,47 @@ ET_ReturnCode CTranscriber::eTranscribeTactGroup(shared_ptr<StTactGroup> pstTact
     }
 
 //    stTactGroup.sTranscription.Erase();
+//    pstTactGroup->sPhonemicSequence.Erase();
     for (auto& eSound : m_vecTranscription)
     {
-        auto it = m_mapSoundToTranscription.find(eSound);
-        if (it != m_mapSoundToTranscription.end())
+
+        auto itTranscr = m_mapSoundToTranscription.find(eSound);
+        if (itTranscr != m_mapSoundToTranscription.end())
         {
-            pstTactGroup->sTranscription += it->second;
+            pstTactGroup->sTranscription += itTranscr->second;
         }
         else
         {
             pstTactGroup->sTranscription += L'?';
         }
+
+        pstTactGroup->sPhonemicSequence += itTranscr->second + L"|" + CEString(to_wstring(eSound).c_str()) + L" ";
     }
 
     auto eRet = eAddStressMark(pstTactGroup);
 
     return eRet;
+
+}       // eTranscribeTactGroup()
+
+/*
+ET_ReturnCode CTranscriber::eIdentSoundPair(const CEString& sPhonemicSequence, int iPos, pair<CEString, CEString> pairSounds)
+{
+    CEString sLhs, sRhs;
+
+    // split phonemic sequence by delimiter
+    // convert to sounds
+    // return
+
+
+//    if (-1 == iPos)
+//    {
+//        sLhs = L"BOUNDARY_SYNTAGM";
+//        if (m_mapSoundToString.find(sTranscription[iPos]))
+//    }
+    return H_NO_ERROR;
 }
+*/
 
 ET_ReturnCode CTranscriber::eHandleVowel(shared_ptr<StTactGroup> pstTg, int& iPos)
 {

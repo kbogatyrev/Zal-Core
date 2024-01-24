@@ -129,6 +129,7 @@ namespace Hlib
         int iSecondaryStressedSyllable;
         CEString sSource;
         CEString sTranscription;
+        CEString sPhonemicSequence;
         vector<InvariantParses> m_vecParses;
         vector<shared_ptr<StTactGroup>> m_vecNext;
 
@@ -149,6 +150,7 @@ namespace Hlib
             iSecondaryStressedSyllable = 0;
             sSource.Erase();
             sTranscription.Erase();
+            sPhonemicSequence.Erase();
         }
 
         int iWordNumFromTextPos(int iTextPos)

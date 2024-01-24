@@ -5,11 +5,13 @@
 #include <set>
 #include <map>
 #include <unordered_map>
+#include <utility>
 #include <memory>
 #include <variant>
 
 #include "Enums.h"
 #include "EString.h"
+#include "WordForm.h"
 #include "SqliteWrapper.h"
 
 namespace Hlib
@@ -66,11 +68,13 @@ namespace Hlib
 
     public:
         CTranscriber(shared_ptr<CSqlite>);
-        ET_ReturnCode eLoadTranscriptionRules();
-        ET_ReturnCode eTranscribe();
         ET_ReturnCode eTranscribeTactGroup(shared_ptr<StTactGroup>);
+        ET_ReturnCode eIdentSoundPair(const CEString& sTranscription, int iPos, pair<CEString, CEString> pairSounds);
 
     private:
+        ET_ReturnCode eInit();
+        ET_ReturnCode eLoadTranscriptionRules();
+//        ET_ReturnCode CTranscriber::ePrepPhoneticTables();
         ET_ReturnCode eSplitSource(CEString& sSource, vector<CEString>& vecOutput);
         ET_ReturnCode eParseContexts(CEString& sSource, vector<PhonemicContextAtom>& vecTarget);
         ET_ReturnCode eParseBoundaries(CEString& sSource, vector<ET_Boundary>& vecTarget);
@@ -320,7 +324,10 @@ namespace Hlib
             { L"G_FRICATIVE_SOFT", ET_Sound::G_FRICATIVE_SOFT }
         };
 
-        unordered_map<ET_Sound, CEString> m_mapSoundToTranscription = 
+        // Iverse of the above, created on the fly.
+        map<ET_Sound, CEString> m_mapSoundToString;
+            
+        unordered_map<ET_Sound, CEString> m_mapSoundToTranscription =
         {
             { ET_Sound::STRESSED_A, CEString(L"а")},
             { ET_Sound::STRESSED_O, CEString(L"о") },
