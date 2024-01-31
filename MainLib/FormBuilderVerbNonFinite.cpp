@@ -362,6 +362,7 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPresentAdverbial()
         try
         {
             auto spWf = make_shared<CWordForm>(m_pInflection);
+            spWf->Copy(*it->first);
             m_pInflection->AddWordForm(spWf);
         }
         catch (CException& ex)
