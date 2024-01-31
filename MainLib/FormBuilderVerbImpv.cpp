@@ -560,21 +560,22 @@ ET_ReturnCode CFormBuilderImperative::eBuildIrregularForms()
             }
 
             auto spSgWf = make_shared<CWordForm>(m_pInflection);
-            spSgWf->Copy(*spSgWf);
+            spSgWf->Copy(*pSgWf);
             m_pInflection->AddWordForm(spSgWf);
 
             auto spPlWf = make_shared<CWordForm>(m_pInflection);
-            spPlWf->Copy(*spSgWf);
+            spPlWf->Copy(*pSgWf);
             spPlWf->SetNumber(NUM_PL);
 
-            auto sWordForm = spPlWf->sWordForm();
+            auto sWordForm = spSgWf->sWordForm();
             if (REFL_YES == m_pLexeme->eIsReflexive())
             {
                 sWordForm.sRemoveCharsFromEnd(2);
             }
-            else
+            sWordForm += L"те";
+            if (REFL_YES == m_pLexeme->eIsReflexive())
             {
-                sWordForm += L"те";
+                sWordForm += L"сь";
             }
             spPlWf->SetWordForm(sWordForm);
             m_pInflection->AddWordForm(spPlWf);
