@@ -18,7 +18,9 @@ Singleton* Singleton::pGetInstance()
 }
 
 Singleton::Singleton()
-{}
+{
+    m_itCurrentCreatedForm = m_vecCreatedForms.end();
+}
 
 ET_ReturnCode Singleton::eGetDictionary(shared_ptr<CDictionary>& spDictionary)
 {
@@ -111,7 +113,7 @@ ET_ReturnCode Singleton::eGetInflection(int64_t iHandle, CInflection*& spInflect
     return H_NO_ERROR;
 }
 
-ET_ReturnCode Singleton::RemoveInflection(int64_t iHandle)
+ET_ReturnCode Singleton::eRemoveInflection(int64_t iHandle)
 {
     if (iHandle < 0)
     {
@@ -157,7 +159,7 @@ ET_ReturnCode Singleton::eGetWordForm(int64_t iHandle, CWordForm*& pWordForm)
     return H_NO_ERROR;
 }
 
-ET_ReturnCode Singleton::RemoveWordForm(int64_t iHandle)
+ET_ReturnCode Singleton::eRemoveWordForm(int64_t iHandle)
 {
     if (iHandle < 0)
     {
@@ -175,6 +177,45 @@ ET_ReturnCode Singleton::RemoveWordForm(int64_t iHandle)
     m_mapWordForms.erase(itWordForm);
 
     return H_NO_ERROR;
+}
+
+ET_ReturnCode Singleton::eStoreCreatedWordForm(shared_ptr<CWordForm> spWordForm)
+{
+    m_vecCreatedForms.push_back(spWordForm);
+    return H_NO_ERROR;
+}
+
+int Singleton::iNCreatedForms()
+{
+    return (int)m_vecCreatedForms.size();
+}
+
+ET_ReturnCode Singleton::eGetFirstCreatedWordForm(shared_ptr<CWordForm>& spWordForm)
+{
+    m_itCurrentCreatedForm = m_vecCreatedForms.begin();
+    if (m_vecCreatedForms.end() == m_itCurrentCreatedForm)
+    {
+        spWordForm = nullptr;
+        return H_FALSE;
+    }
+    spWordForm = *m_itCurrentCreatedForm;
+    return H_NO_ERROR;
+}
+
+ET_ReturnCode Singleton::eGetNextCreatedWordForm(shared_ptr<CWordForm>& spWordForm)
+{
+    if (m_vecCreatedForms.end() == ++m_itCurrentCreatedForm)
+    {
+        spWordForm = nullptr;
+        return H_FALSE;
+    }
+    spWordForm = *m_itCurrentCreatedForm;
+    return H_NO_ERROR;
+}
+
+void Singleton::ClearCreatedForms()
+{
+    m_vecCreatedForms.clear();
 }
 
 int64_t Singleton::iAddLexemeEnumerator(shared_ptr<CLexemeEnumerator> spLexemeEnumerator)
@@ -203,7 +244,7 @@ ET_ReturnCode Singleton::eGetLexemeEnumerator(int64_t iHandle, shared_ptr<CLexem
     return H_NO_ERROR;
 }
 
-ET_ReturnCode Singleton::RemoveLexemeEnumerator(int64_t iHandle)
+ET_ReturnCode Singleton::eRemoveLexemeEnumerator(int64_t iHandle)
 {
     if (iHandle < 0)
     {
@@ -249,7 +290,7 @@ ET_ReturnCode Singleton::eGetInflectionEnumerator(int64_t iHandle, shared_ptr<CI
     return H_NO_ERROR;
 }
 
-ET_ReturnCode Singleton::RemoveInflectionEnumerator(int64_t iHandle)
+ET_ReturnCode Singleton::eRemoveInflectionEnumerator(int64_t iHandle)
 {
     if (iHandle < 0)
     {

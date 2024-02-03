@@ -680,7 +680,7 @@ ET_ReturnCode CFormBuilderPersonal::eBuildIrregularForms (ET_Number eNumber, ET_
 
 void CFormBuilderPersonal::CreateIrregular1SgStem(const CEString& s1SgForm)
 {
-    StLexemeProperties stProps = m_pLexeme->stGetPropertiesForWriteAccess();
+    StLexemeProperties& stProps = m_pLexeme->stGetPropertiesForWriteAccess();
     if (s1SgForm.uiLength() < 2)
     {
         assert(0);
@@ -694,7 +694,7 @@ void CFormBuilderPersonal::CreateIrregular1SgStem(const CEString& s1SgForm)
 
 void CFormBuilderPersonal::CreateIrregular3SgStem(const CEString& s3SgForm)
 {
-    StLexemeProperties stProps = m_pLexeme->stGetPropertiesForWriteAccess();
+    StLexemeProperties& stProps = m_pLexeme->stGetPropertiesForWriteAccess();
     if (s3SgForm.uiLength() < 3)
     {
         assert(0);

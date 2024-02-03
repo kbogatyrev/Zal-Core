@@ -17,7 +17,7 @@ namespace Hlib
     class CLexeme;
     class CInflection;
 
-    class CWordForm
+    class CWordForm 
     {
         friend class CHasher;
         friend class CInflection;
@@ -27,6 +27,7 @@ namespace Hlib
         CWordForm(CInflection*);
         CWordForm(const CEString& sHash, CInflection*);
         CWordForm(const CWordForm&);
+        ~CWordForm();
 
         const CWordForm& operator= (const CWordForm&);
 
@@ -417,7 +418,8 @@ namespace Hlib
         }
 
     private:
-        shared_ptr<CInflection> m_spInflection;
+//        shared_ptr<CInflection> m_spInflection;
+        CInflection* m_spInflection;
         long long m_llLexemeId;
         long long m_llInflectionId;
 

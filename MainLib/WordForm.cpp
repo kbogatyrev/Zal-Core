@@ -114,6 +114,9 @@ CWordForm::CWordForm(const CWordForm& source)
     Copy(source);
 }
 
+CWordForm::~CWordForm()
+{}
+
 const CWordForm& CWordForm::operator=(const CWordForm& rhs)
 {
     Copy(rhs);
