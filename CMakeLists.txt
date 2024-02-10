@@ -2,6 +2,8 @@ cmake_minimum_required (VERSION 3.16)
 
 project (Zal-Core VERSION 5.0.0)
 
+set(CMAKE_CXX_STANDARD 17)
+
 include(FetchContent)
 
 FetchContent_Declare(
@@ -78,7 +80,7 @@ if (MSVC)
 	endif()
 else()
 	set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-	set(CMAKE_CXX_STANDARD 17)
+#	set(CMAKE_CXX_STANDARD 17)
     add_compile_options(-Wall -Wextra -pedantic -Werror)
 endif()
 
@@ -146,15 +148,17 @@ target_sources (ZalMainLib PRIVATE
 	MainLib/WordForm.cpp
 	ThirdParty/Sqlite/sqlite3.c)
 
-if (CMAKE_BUILD_TYPE MATCHES "Debug")
-	add_custom_command(TARGET ZalMainLib POST_BUILD
-		COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ZalMainLib> ../../../../Zal-Windows/TestApp/bin/debug
-	)
-else()
-	add_custom_command(TARGET ZalMainLib POST_BUILD
-		COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ZalMainLib> ../../../../Zal-Windows/TestApp/bin/release
-	)
-endif()
+	if(MSVC)
+		if (CMAKE_BUILD_TYPE MATCHES "Debug")
+			add_custom_command(TARGET ZalMainLib POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ZalMainLib> ../../../../Zal-Windows/TestApp/bin/debug
+		)
+		else()
+			add_custom_command(TARGET ZalMainLib POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ZalMainLib> ../../../../Zal-Windows/TestApp/bin/release
+		)
+		endif()
+	endif()
 
 # ---------------------------------------------------------------
 
@@ -262,8 +266,8 @@ endif()
 add_executable (ZalStringTest)
 
 target_sources (ZalStringTest PRIVATE
-	HLib/StringTest.cpp
- "RunAnalytics/RunAnalytics.h")
+	HLib/StringTest.cpp)
+# "RunAnalytics/RunAnalytics.h")
 
 # ---------------------------------------------------------------
 
@@ -275,9 +279,8 @@ target_include_directories (ZalLeakTest PUBLIC
 	ThirdParty/sha1
 )
 target_sources (ZalLeakTest PRIVATE
-	"MainLib/LeakTest.cpp"
-
- "RunAnalytics/RunAnalytics.h")
+	"MainLib/LeakTest.cpp")
+# "RunAnalytics/RunAnalytics.h")
 
 if (MSVC)
 	target_link_libraries(ZalLeakTest ZalMainLib)
