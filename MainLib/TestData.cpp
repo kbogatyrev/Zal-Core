@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "TestData.h"
 #include "Verifier.h"
 

@@ -3,8 +3,6 @@
 
 #include "Enums.h"
 #include "EString.h"
-
-//#include "ILexeme.h"
 #include "LexemeProperties.h"
 
 using namespace std;

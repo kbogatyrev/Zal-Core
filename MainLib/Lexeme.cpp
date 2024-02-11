@@ -235,7 +235,6 @@ void CLexeme::Init()
 
 void CLexeme::SetDictionary(shared_ptr<CDictionary> spDict)
 {
-    // Note: IDictionary is an interface, not a base class
     m_spDictionary = spDict.get();
 }
 

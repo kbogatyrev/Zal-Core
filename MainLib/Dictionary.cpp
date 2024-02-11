@@ -206,6 +206,7 @@ ET_ReturnCode CDictionary::eCreateLexemeForEdit(shared_ptr<CLexeme>& spLexeme)
     {
         return H_ERROR_POINTER;
     }
+    spLexeme->AddInflection(make_shared<CInflection>(spLexeme.get()));
 
     return H_NO_ERROR;
 }
@@ -597,7 +598,7 @@ ET_ReturnCode CDictionary::eGetAnalytics(shared_ptr<CAnalytics>& spAnalytics)
 {
     if (nullptr == m_spDb)
     {
-        ERROR_LOG(L"Error retrieving IAnalytics interface.");
+        ERROR_LOG(L"Error retrieving analytics instance.");
         return H_ERROR_POINTER;
     }
 
