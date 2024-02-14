@@ -1323,21 +1323,14 @@ ET_ReturnCode CDictionary::eReadDescriptorData(shared_ptr<CLexeme> spLexeme, uin
                                                                39                            40                             41
                                             descriptor.irregular_forms_lead_comment, descriptor.restricted_contexts, descriptor.contexts, descriptor.cognate, 
                                                                       42                                 43                        44                   45
-                                            descriptor.trailing_comment
-                                                             46
-                                            
-                                            , inflection.id, inflection.is_primary, inflection.inflection_type, inflection.accent_type1, 
-                                                               46                   47                  48                      49                          50
-                                            inflection.accent_type2, inflection.short_form_restrictions, inflection.past_part_restrictions, inflection.no_short_form, 
-                                                            51                           52                                   53                             54
-                                            no_past_part, fleeting_vowel, stem_augment, is_edited);
-                                                            55                      56               
+                                            descriptor.trailing_comment, no_aspect_pair);
+                                                            46                   47               
 */
 
             m_spDb->GetData(0, stProperties.sSourceForm, uiQueryHandle);                         //  0 source
             uint64_t uiHeadwordId = 0;
             m_spDb->GetData(1, uiHeadwordId, uiQueryHandle);
-            stProperties.llHeadwordId = uiHeadwordId;                                           //  1 id [headword]
+            stProperties.llHeadwordId = uiHeadwordId;                                            //  1 id [headword]
             m_spDb->GetData(2, stProperties.sHeadwordComment, uiQueryHandle);                    //  2 comment
             m_spDb->GetData(3, stProperties.sHeadwordVariantComment, uiQueryHandle);             //  3 variant_comment
             m_spDb->GetData(4, stProperties.sPluralOf, uiQueryHandle);                           //  4 plural_of
@@ -1404,7 +1397,7 @@ ET_ReturnCode CDictionary::eReadDescriptorData(shared_ptr<CLexeme> spLexeme, uin
             m_spDb->GetData(46, stProperties.sTrailingComment, uiQueryHandle);                   // 46 trailing_comment
             if (bIsSpryazhSm)
             {
-                m_spDb->GetData(58, stProperties.bSpryazhSmNoAspectPair, uiQueryHandle);         // 58 no_aspect_pair (optional)
+                m_spDb->GetData(47, stProperties.bSpryazhSmNoAspectPair, uiQueryHandle);         // 47 no_aspect_pair (optional)
             }
 
             CEString sStressQuery(L"SELECT stress_position, is_primary FROM stress WHERE is_variant = \"");
