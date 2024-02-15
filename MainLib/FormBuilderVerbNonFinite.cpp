@@ -87,7 +87,7 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildInfinitive()
         }
         try
         {
-            auto spWf = make_shared<CWordForm>(m_pInflection);
+            auto spWf = make_shared<CWordForm>(*it->first);
             m_pInflection->AddWordForm(spWf);
         }
         catch (CException& ex)

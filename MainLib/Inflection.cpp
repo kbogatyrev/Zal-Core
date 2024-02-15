@@ -1204,7 +1204,7 @@ ET_ReturnCode CInflection::eGetIrregularForms(CEString sHash, map<CWordForm*, bo
     mapResult[spWf.get()] = bIsOptional;
 
     // Continue for other irregular forms for this hash 
-    // (which, in all likelyhood do not exist)
+    // (which, in all likelihood do not exist)
     do
     {
         rc = eGetNextIrregularForm(spWf, bIsOptional);
