@@ -66,6 +66,7 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildInfinitive()
 
     bool bNoRegularForms = false;
 
+/*
     //
     // Irregular infinitive?
     //
@@ -101,6 +102,7 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildInfinitive()
     {
         return mapIrreg.empty() ? H_ERROR_UNEXPECTED : H_NO_ERROR;
     }
+*/
 
     try
     {
