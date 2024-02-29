@@ -108,7 +108,7 @@ ET_ReturnCode CFormBuilderAspectPair::eBuild()
                     return eRet;
                 }
 
-                if (ET_ExtraData::Vowel == m_eExtraData)
+                if (ET_ExtraData::Vowel == eExtraData)
                 {
                     eRet = eApplyNsvVowelModification(bIsVariant);
                 }

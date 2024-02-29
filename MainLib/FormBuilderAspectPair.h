@@ -42,7 +42,7 @@ namespace Hlib
 	public:
         CFormBuilderAspectPair(CLexeme* pLexeme, CInflection* pInflection) : m_pLexeme(pLexeme), 
                                m_pInflection(pInflection), m_p1stPersonWordForm(nullptr), m_pInfWordForm(nullptr),
-            m_eExtraData(ET_ExtraData::None), m_bBuilt(false), m_bError(false)
+            m_eExtraData(ET_ExtraData::None), m_eAltExtraData(ET_ExtraData::None), m_bBuilt(false), m_bError(false)
 		{}
 
         ET_ReturnCode eBuild();
