@@ -76,7 +76,7 @@ ET_ReturnCode CFormBuilderAspectPair::eBuild()
                 m_bBuilt = true;
             }
 
-            return eRet;
+            continue;
         }
 
         switch (iType)
