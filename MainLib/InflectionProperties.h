@@ -23,6 +23,10 @@ namespace Hlib
         bool bNoPassivePastParticiple { false };
         bool bFleetingVowel { false };
         int iStemAugment { -1 };
+        bool bSecondGenitive{ false };
+        bool bSecondPrepositional{ false };
+        bool bSecondPrepositionalOptional{ false };
+        CEString sP2Preposition;
 
         map<int, bool> mapCommonDeviations;     // Number in circle --> is optional
     };

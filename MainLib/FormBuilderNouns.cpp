@@ -566,12 +566,12 @@ ET_ReturnCode CFormBuilderNouns::eBuild()
             continue;
         }
 
-        if (CASE_PART == gramIterator.m_eCase && !m_pLexeme->bSecondGenitive())
+        if (CASE_PART == gramIterator.m_eCase && !m_pInflection->bSecondGenitive())
         {
             continue;
         }
 
-        if (CASE_LOC == gramIterator.m_eCase && !m_pLexeme->bSecondPrepositional())
+        if (CASE_LOC == gramIterator.m_eCase && !m_pInflection->bSecondPrepositional())
         {
             continue;
         }

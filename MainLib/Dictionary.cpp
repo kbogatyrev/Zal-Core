@@ -1,7 +1,6 @@
 #define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
 #define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
 
-
 #include <ctime>
 #include <cassert>
 #include <algorithm>
@@ -110,7 +109,6 @@ static CEString sQueryBaseDescriptor
                                descriptor.assumed_forms, \
                                descriptor.yo_alternation, \
                                descriptor.o_alternation, \
-                               descriptor.second_genitive, \
                                descriptor.is_impersonal, \
                                descriptor.is_iterative, \
                                descriptor.has_aspect_pair, \
@@ -135,7 +133,9 @@ static CEString sQueryBaseInflection
                                inflection.no_short_form, \
                                inflection.no_past_part, \
                                inflection.fleeting_vowel, \
-                               inflection.stem_augment ");
+                               inflection.stem_augment, \
+                               inflection.second_genitive, \
+                               inflection.comment");
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 CDictionary::CDictionary()
@@ -672,10 +672,10 @@ ET_ReturnCode CDictionary::eImportTestData(CEString& sPath, PROGRESS_CALLBACK_CL
         return H_ERROR_POINTER;
     }
 
-    CEString sQuery = L"DELETE FROM test_data_stress";
-    m_spDb->Delete(sQuery);
-    sQuery = L"DELETE FROM test_data";
-    m_spDb->Delete(sQuery);
+//    CEString sQuery = L"DELETE FROM test_data_stress";
+//    m_spDb->Delete(sQuery);
+//    sQuery = L"DELETE FROM test_data";
+//    m_spDb->Delete(sQuery);
 
     bool bRet = true;
 
@@ -1317,14 +1317,12 @@ ET_ReturnCode CDictionary::eReadDescriptorData(shared_ptr<CLexeme> spLexeme, uin
                                                                  27                             28                         29                      30
                                             descriptor.no_long_forms, descriptor.assumed_forms, descriptor.yo_alternation, descriptor.o_alternation, 
                                                              31                         32                        33                         34  
-                                            descriptor.second_genitive, descriptor.is_impersonal, descriptor.is_iterative, descriptor.has_aspect_pair, 
-                                                             35                          36                        37                      38
-                                            descriptor.has_difficult_forms, descriptor.has_missing_forms, descriptor.has_irregular_forms, 
+                                            descriptor.is_impersonal, descriptor.is_iterative, descriptor.has_aspect_pair, descriptor.has_difficult_forms, 
+                                                             35                      36                        37                         38 
+                                            descriptor.has_missing_forms, descriptor.has_irregular_forms, descriptor.irregular_forms_lead_comment, 
                                                                39                            40                             41
-                                            descriptor.irregular_forms_lead_comment, descriptor.restricted_contexts, descriptor.contexts, descriptor.cognate, 
-                                                                      42                                 43                        44                   45
-                                            descriptor.trailing_comment, no_aspect_pair);
-                                                            46                   47               
+                                            descriptor.restricted_contexts, descriptor.contexts, descriptor.cognate, descriptor.trailing_comment, no_aspect_pair);
+                                                                      42                43                    44                       45                46
 */
 
             m_spDb->GetData(0, stProperties.sSourceForm, uiQueryHandle);                         //  0 source
@@ -1383,21 +1381,20 @@ ET_ReturnCode CDictionary::eReadDescriptorData(shared_ptr<CLexeme> spLexeme, uin
             m_spDb->GetData(32, stProperties.bAssumedForms, uiQueryHandle);                      // 32 assumed_forms
             m_spDb->GetData(33, stProperties.bYoAlternation, uiQueryHandle);                     // 33 yo_alternation
             m_spDb->GetData(34, stProperties.bOAlternation, uiQueryHandle);                      // 34 o_alternation
-            m_spDb->GetData(35, stProperties.bSecondGenitive, uiQueryHandle);                    // 35 second_genitive
-            m_spDb->GetData(36, stProperties.bIsImpersonal, uiQueryHandle);                      // 36 is_impersonal
-            m_spDb->GetData(37, stProperties.bIsIterative, uiQueryHandle);                       // 37 is_iterative
-            m_spDb->GetData(38, stProperties.bHasAspectPair, uiQueryHandle);                     // 38 has_aspect_pair
-            m_spDb->GetData(39, stProperties.bHasDifficultForms, uiQueryHandle);                 // 39 has_difficult_forms
-            m_spDb->GetData(40, stProperties.bHasMissingForms, uiQueryHandle);                   // 40 has_missing_forms
-            m_spDb->GetData(41, stProperties.bHasIrregularForms, uiQueryHandle);                 // 41 has_irregular_forms
-            m_spDb->GetData(42, stProperties.sIrregularFormsLeadComment, uiQueryHandle);         // 42 irregular_forms_lead_comment
-            m_spDb->GetData(43, stProperties.sRestrictedContexts, uiQueryHandle);                // 43 restricted_contexts
-            m_spDb->GetData(44, stProperties.sContexts, uiQueryHandle);                          // 44 contexts
-            m_spDb->GetData(45, stProperties.sCognate, uiQueryHandle);                           // 45 cognate
-            m_spDb->GetData(46, stProperties.sTrailingComment, uiQueryHandle);                   // 46 trailing_comment
+            m_spDb->GetData(35, stProperties.bIsImpersonal, uiQueryHandle);                      // 35 is_impersonal
+            m_spDb->GetData(36, stProperties.bIsIterative, uiQueryHandle);                       // 36 is_iterative
+            m_spDb->GetData(37, stProperties.bHasAspectPair, uiQueryHandle);                     // 37 has_aspect_pair
+            m_spDb->GetData(38, stProperties.bHasDifficultForms, uiQueryHandle);                 // 38 has_difficult_forms
+            m_spDb->GetData(39, stProperties.bHasMissingForms, uiQueryHandle);                   // 39 has_missing_forms
+            m_spDb->GetData(40, stProperties.bHasIrregularForms, uiQueryHandle);                 // 40 has_irregular_forms
+            m_spDb->GetData(41, stProperties.sIrregularFormsLeadComment, uiQueryHandle);         // 41 irregular_forms_lead_comment
+            m_spDb->GetData(42, stProperties.sRestrictedContexts, uiQueryHandle);                // 42 restricted_contexts
+            m_spDb->GetData(43, stProperties.sContexts, uiQueryHandle);                          // 43 contexts
+            m_spDb->GetData(44, stProperties.sCognate, uiQueryHandle);                           // 44 cognate
+            m_spDb->GetData(45, stProperties.sTrailingComment, uiQueryHandle);                   // 45 trailing_comment
             if (bIsSpryazhSm)
             {
-                m_spDb->GetData(47, stProperties.bSpryazhSmNoAspectPair, uiQueryHandle);         // 47 no_aspect_pair (optional)
+                m_spDb->GetData(47, stProperties.bSpryazhSmNoAspectPair, uiQueryHandle);         // 46 no_aspect_pair (optional)
             }
 
             CEString sStressQuery(L"SELECT stress_position, is_primary FROM stress WHERE is_variant = \"");
@@ -1461,6 +1458,7 @@ ET_ReturnCode CDictionary::eReadDescriptorData(shared_ptr<CLexeme> spLexeme, uin
             }
             m_spDb->Finalize(uiHomonymsHandle);
 
+/*
             if (POS_NOUN == stProperties.ePartOfSpeech)
             {
                 rc = eGetP2Data(stProperties.llDescriptorId, stProperties);
@@ -1470,6 +1468,7 @@ ET_ReturnCode CDictionary::eReadDescriptorData(shared_ptr<CLexeme> spLexeme, uin
                     return rc;
                 }
             }
+*/
 
             if (POS_VERB == stProperties.ePartOfSpeech)
             {
@@ -1535,8 +1534,10 @@ ET_ReturnCode CDictionary::eReadInflectionData(shared_ptr<CLexeme>spLexeme, uint
                                                             0                       1                       2                           3
                                                inflection.accent_type2, inflection.short_form_restrictions, inflection.past_part_restrictions,
                                                               4                               5                                    6
-                                               inflection.no_short_form, inflection.no_past_part, inflection.fleeting_vowel, inflection.stem_augment ");
+                                               inflection.no_short_form, inflection.no_past_part, inflection.fleeting_vowel, inflection.stem_augment 
                                                                7                           8                      9                         10
+                                               inflection.second_genitive, inflection.comment);
+                                                               11                       12
     */
     try
     {
@@ -1568,8 +1569,42 @@ ET_ReturnCode CDictionary::eReadInflectionData(shared_ptr<CLexeme>spLexeme, uint
             }
             m_spDb->GetData(8, stProperties.bNoPassivePastParticiple, uiQueryHandle);            //  8 no_past_part
             m_spDb->GetData(9, stProperties.bFleetingVowel, uiQueryHandle);                      //  9 fleeting_vowel
-
             m_spDb->GetData(10, stProperties.iStemAugment, uiQueryHandle);                       // 10 stem_augment
+            m_spDb->GetData(11, stProperties.bSecondGenitive, uiQueryHandle);                    // 11 second_genitive
+
+            try
+            {
+                CEString sQuery(L"SELECT is_optional, preposition FROM second_locative WHERE inflection_id = ");
+                sQuery += CEString::sToString(stProperties.llInflectionId);
+                sQuery += L";";
+
+                uint64_t uiHandle = m_spDb->uiPrepareForSelect(sQuery);
+
+                stProperties.bSecondPrepositional = false;
+
+                if (m_spDb->bGetRow(uiHandle))
+                {
+                    stProperties.bSecondPrepositional = true;
+                    m_spDb->GetData(0, stProperties.bSecondPrepositionalOptional, uiHandle);
+                    m_spDb->GetData(1, stProperties.sP2Preposition, uiHandle);
+                }
+
+                if (m_spDb->bGetRow(uiHandle))
+                {
+                    assert(0);
+                    CEString sMsg(L"More than one P2 record for ");
+                    sMsg += spLexeme->sSourceForm();
+                    ERROR_LOG(sMsg);
+                    //        return E_FAIL;
+                }
+
+                m_spDb->Finalize(uiHandle);
+            }
+            catch (CException& ex)
+            {
+                HandleDbException(ex);
+                return H_ERROR_DB;
+            }
 
             CEString sDeviationQuery(L"SELECT deviation_type, is_optional FROM common_deviation WHERE inflection_id = ");
             sDeviationQuery += CEString::sToString(stProperties.llInflectionId);
@@ -1602,6 +1637,7 @@ ET_ReturnCode CDictionary::eReadInflectionData(shared_ptr<CLexeme>spLexeme, uint
 
 }    //  eReadInflectionData()
 
+/*
 ET_ReturnCode CDictionary::eGetP2Data(int64_t llLexemeId, StLexemeProperties& stProperties)
 {
     if (nullptr == m_spDb)
@@ -1648,6 +1684,7 @@ ET_ReturnCode CDictionary::eGetP2Data(int64_t llLexemeId, StLexemeProperties& st
     return H_NO_ERROR;
 
 }   // eGetP2Data (...)
+*/
 
 //static CEString sHeadwordInsertQuery(L"INSERT source, plural_of, comment, usage, variant, variant_comment, see_ref, back_ref ");
 //static CEString sHomonyms(L"INSERT headword_id, homonym_number, is_variant");
@@ -1712,24 +1749,27 @@ ET_ReturnCode CDictionary::eDeleteLexeme(CLexeme* spLexeme)
             m_spDb->Exec(sDeleteStmt);
         }
 
-        CEString sSelectIrregularStmt = L"SELECT id FROM irregular_forms WHERE descriptor_id = " + 
-        CEString::sToString(stProperties.llDescriptorId) + L";";
-        m_spDb->PrepareForSelect(sSelectIrregularStmt);
-        vector<int> vecIrregularFormIds;
-        while (m_spDb->bGetRow())
+        for (auto llInflectionId : vecInflectionIds)
         {
-            int iIrregularFormId = -1;
-            m_spDb->GetData(0, iIrregularFormId);
-            vecIrregularFormIds.push_back(iIrregularFormId);
-        }
-        m_spDb->Finalize();
+            CEString sSelectIrregularStmt = L"SELECT id FROM irregular_forms WHERE inflection_id = " +
+                CEString::sToString(llInflectionId) + L";";
+            m_spDb->PrepareForSelect(sSelectIrregularStmt);
+            vector<int> vecIrregularFormIds;
+            while (m_spDb->bGetRow())
+            {
+                int iIrregularFormId = -1;
+                m_spDb->GetData(0, iIrregularFormId);
+                vecIrregularFormIds.push_back(iIrregularFormId);
+            }
+            m_spDb->Finalize();
 
-        for (auto sId : vecIrregularFormIds)
-        {
-            CEString sDeleteStmt = L"DELETE FROM irregular_stress WHERE id = ";
-            sDeleteStmt += CEString::sToString(sId);
-            sDeleteStmt += L";";
-            m_spDb->Exec(sDeleteStmt);
+            for (auto sId : vecIrregularFormIds)
+            {
+                CEString sDeleteStmt = L"DELETE FROM irregular_stress WHERE id = ";
+                sDeleteStmt += CEString::sToString(sId);
+                sDeleteStmt += L";";
+                m_spDb->Exec(sDeleteStmt);
+            }
         }
 
         CEString sDeleteDescriptorQuery(L"DELETE FROM descriptor WHERE id = " + CEString::sToString(stProperties.llDescriptorId));
@@ -2127,6 +2167,7 @@ ET_ReturnCode CDictionary::eSaveAspectPairInfo(CLexeme* spLexeme)
 
 }       //  eSaveAspectPairInfo()
 
+/*
 ET_ReturnCode CDictionary::eSaveP2Info(CLexeme* spLexeme)
 {
 //    ET_ReturnCode eRet = H_NO_ERROR;
@@ -2164,6 +2205,7 @@ ET_ReturnCode CDictionary::eSaveP2Info(CLexeme* spLexeme)
 
     return H_NO_ERROR;
 }
+*/
 
 ET_ReturnCode CDictionary::eSaveCommonDeviation(CInflection* spInflection)
 {
@@ -2356,19 +2398,18 @@ ET_ReturnCode CDictionary::eUpdateDescriptorInfo(CLexeme* spLexeme)
         m_spDb->Bind(21, stProperties.bAssumedForms, llUpdateHandle);            // 21 assumed_forms
         m_spDb->Bind(22, stProperties.bYoAlternation, llUpdateHandle);           // 22 yo_alternation
         m_spDb->Bind(23, stProperties.bOAlternation, llUpdateHandle);            // 23 o_alternation
-        m_spDb->Bind(24, stProperties.bSecondGenitive, llUpdateHandle);          // 24 second_genitive
-        m_spDb->Bind(25, stProperties.bIsImpersonal, llUpdateHandle);            // 25 is_impersonal
-        m_spDb->Bind(26, stProperties.bIsIterative, llUpdateHandle);             // 26 is_iterative
-        m_spDb->Bind(27, stProperties.bHasAspectPair, llUpdateHandle);           // 27 has_aspect_pair
-        m_spDb->Bind(28, stProperties.bHasDifficultForms, llUpdateHandle);       // 28 has_difficult_forms
-        m_spDb->Bind(29, stProperties.bHasMissingForms, llUpdateHandle);         // 29 has_missing_forms
-        m_spDb->Bind(30, stProperties.bHasIrregularForms, llUpdateHandle);       // 30 has_irregular_forms
-        m_spDb->Bind(31, stProperties.sIrregularFormsLeadComment, llUpdateHandle);    //  31 irregular_forms_lead_comment
-        m_spDb->Bind(32, stProperties.sRestrictedContexts, llUpdateHandle);      // 32 restricted_contexts
-        m_spDb->Bind(33, stProperties.sContexts, llUpdateHandle);                // 33 contexts
-        m_spDb->Bind(34, stProperties.sCognate, llUpdateHandle);                 // 34 cognate
-        m_spDb->Bind(35, stProperties.sTrailingComment, llUpdateHandle);         // 35 trailing_comment
-        m_spDb->Bind(36, true, llUpdateHandle);                                  // 36 is_edited
+        m_spDb->Bind(24, stProperties.bIsImpersonal, llUpdateHandle);            // 24 is_impersonal
+        m_spDb->Bind(25, stProperties.bIsIterative, llUpdateHandle);             // 25 is_iterative
+        m_spDb->Bind(26, stProperties.bHasAspectPair, llUpdateHandle);           // 26 has_aspect_pair
+        m_spDb->Bind(27, stProperties.bHasDifficultForms, llUpdateHandle);       // 27 has_difficult_forms
+        m_spDb->Bind(28, stProperties.bHasMissingForms, llUpdateHandle);         // 28 has_missing_forms
+        m_spDb->Bind(29, stProperties.bHasIrregularForms, llUpdateHandle);       // 29 has_irregular_forms
+        m_spDb->Bind(30, stProperties.sIrregularFormsLeadComment, llUpdateHandle);    //  30 irregular_forms_lead_comment
+        m_spDb->Bind(31, stProperties.sRestrictedContexts, llUpdateHandle);      // 31 restricted_contexts
+        m_spDb->Bind(32, stProperties.sContexts, llUpdateHandle);                // 32 contexts
+        m_spDb->Bind(33, stProperties.sCognate, llUpdateHandle);                 // 33 cognate
+        m_spDb->Bind(34, stProperties.sTrailingComment, llUpdateHandle);         // 34 trailing_comment
+        m_spDb->Bind(35, true, llUpdateHandle);                                  // 35 is_edited
 
         m_spDb->InsertRow(llUpdateHandle);
         m_spDb->Finalize(llUpdateHandle);
@@ -2421,15 +2462,15 @@ ET_ReturnCode CDictionary::eSaveDescriptorInfo(CLexeme* spLexeme)
             //                  6                 7                8                   9                   10                      11
                         L"inflection_type", L"comment", L"alt_main_symbol_comment", L"alt_inflection_comment", L"verb_stem_alternation", L"part_past_pass_zhd",
             //                  12                13               14                        15                   16                              17           
-                        L"section", L"no_comparative", L"no_long_forms", L"assumed_forms", L"yo_alternation", L"o_alternation", L"second_genitive",
-            //                  18          19                 20                21                 22               23                24
+                        L"section", L"no_comparative", L"no_long_forms", L"assumed_forms", L"yo_alternation", L"o_alternation", 
+            //                  18          19                 20                21                 22               23         
                         L"is_impersonal", L"is_iterative", L"has_aspect_pair", L"has_difficult_forms", L"has_missing_forms", L"has_irregular_forms",
-            //                  25              26                  27                     28                    29                  30
+            //                  24              25                 26                     27                    28                  29
                         L"irregular_forms_lead_comment", L"restricted_contexts", L"contexts", L"cognate", L"trailing_comment", L"is_edited" };
-            //                  31                                32                  33           34          35                   36   
+            //                  30                                31                  32           33            34                   35   
 
         sqlite3_stmt* pStmt = nullptr;
-        m_spDb->uiPrepareForInsert(L"descriptor", 36, pStmt, true);
+        m_spDb->uiPrepareForInsert(L"descriptor", 35, pStmt, true);
         auto llInsertHandle = (unsigned long long)pStmt;
 
         int64_t iHeadwordId = stProperties.llHeadwordId;
@@ -2458,19 +2499,18 @@ ET_ReturnCode CDictionary::eSaveDescriptorInfo(CLexeme* spLexeme)
         m_spDb->Bind(21, stProperties.bAssumedForms, llInsertHandle);            // 21 assumed_forms
         m_spDb->Bind(22, stProperties.bYoAlternation, llInsertHandle);           // 22 yo_alternation
         m_spDb->Bind(23, stProperties.bOAlternation, llInsertHandle);            // 23 o_alternation
-        m_spDb->Bind(24, stProperties.bSecondGenitive, llInsertHandle);          // 24 second_genitive
-        m_spDb->Bind(25, stProperties.bIsImpersonal, llInsertHandle);            // 25 is_impersonal
-        m_spDb->Bind(26, stProperties.bIsIterative, llInsertHandle);             // 26 is_iterative
-        m_spDb->Bind(27, stProperties.bHasAspectPair, llInsertHandle);           // 27 has_aspect_pair
-        m_spDb->Bind(28, stProperties.bHasDifficultForms, llInsertHandle);       // 28 has_difficult_forms
-        m_spDb->Bind(29, stProperties.bHasMissingForms, llInsertHandle);         // 29 has_missing_forms
-        m_spDb->Bind(30, stProperties.bHasIrregularForms, llInsertHandle);       // 30 has_irregular_forms
-        m_spDb->Bind(31, stProperties.sIrregularFormsLeadComment, llInsertHandle);    //  31 irregular_forms_lead_comment
-        m_spDb->Bind(32, stProperties.sRestrictedContexts, llInsertHandle);      // 32 restricted_contexts
-        m_spDb->Bind(33, stProperties.sContexts, llInsertHandle);                // 33 contexts
-        m_spDb->Bind(34, stProperties.sCognate, llInsertHandle);                 // 34 cognate
-        m_spDb->Bind(35, stProperties.sTrailingComment, llInsertHandle);         // 35 trailing_comment
-        m_spDb->Bind(36, true, llInsertHandle);                                  // 36 is_edited
+        m_spDb->Bind(24, stProperties.bIsImpersonal, llInsertHandle);            // 24 is_impersonal
+        m_spDb->Bind(25, stProperties.bIsIterative, llInsertHandle);             // 25 is_iterative
+        m_spDb->Bind(26, stProperties.bHasAspectPair, llInsertHandle);           // 26 has_aspect_pair
+        m_spDb->Bind(27, stProperties.bHasDifficultForms, llInsertHandle);       // 27 has_difficult_forms
+        m_spDb->Bind(28, stProperties.bHasMissingForms, llInsertHandle);         // 28 has_missing_forms
+        m_spDb->Bind(29, stProperties.bHasIrregularForms, llInsertHandle);       // 29 has_irregular_forms
+        m_spDb->Bind(30, stProperties.sIrregularFormsLeadComment, llInsertHandle);    //  30 irregular_forms_lead_comment
+        m_spDb->Bind(31, stProperties.sRestrictedContexts, llInsertHandle);      // 31 restricted_contexts
+        m_spDb->Bind(32, stProperties.sContexts, llInsertHandle);                // 32 contexts
+        m_spDb->Bind(33, stProperties.sCognate, llInsertHandle);                 // 33 cognate
+        m_spDb->Bind(34, stProperties.sTrailingComment, llInsertHandle);         // 34 trailing_comment
+        m_spDb->Bind(35, true, llInsertHandle);                                  // 35 is_edited
 
         m_spDb->InsertRow(llInsertHandle);
         m_spDb->Finalize(llInsertHandle);

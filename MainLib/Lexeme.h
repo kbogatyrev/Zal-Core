@@ -466,45 +466,45 @@ namespace Hlib
 //            m_stProperties.bOAlternation = bValue;
 //        }
         
-        bool bSecondGenitive()
-        {
-            return m_stProperties.bSecondGenitive;
-        }
+        //bool bSecondGenitive()
+        //{
+        //    return m_stProperties.bSecondGenitive;
+        //}
 
-        void SetSecondGenitive(bool bValue)
-        {
-            m_stProperties.bSecondGenitive = bValue;
-        }
-        
-        bool bSecondPrepositional()
-        {
-            return m_stProperties.bSecondPrepositional;
-        }
+        //void SetSecondGenitive(bool bValue)
+        //{
+        //    m_stProperties.bSecondGenitive = bValue;
+        //}
+        //
+        //bool bSecondPrepositional()
+        //{
+        //    return m_stProperties.bSecondPrepositional;
+        //}
 
-        void SetSecondPrepositional(bool bValue)
-        {
-            m_stProperties.bSecondPrepositional = bValue;
-        }
-        
-        bool bSecondPrepositionalOptional()
-        {
-            return m_stProperties.bSecondPrepositionalOptional;
-        }
+        //void SetSecondPrepositional(bool bValue)
+        //{
+        //    m_stProperties.bSecondPrepositional = bValue;
+        //}
+        //
+        //bool bSecondPrepositionalOptional()
+        //{
+        //    return m_stProperties.bSecondPrepositionalOptional;
+        //}
 
-        void SetSecondPrepositionalOptional(bool bValue)
-        {
-            m_stProperties.bSecondPrepositionalOptional = bValue;
-        }
-        
-        CEString sP2Preposition()
-        {
-            return m_stProperties.sP2Preposition;
-        }
+        //void SetSecondPrepositionalOptional(bool bValue)
+        //{
+        //    m_stProperties.bSecondPrepositionalOptional = bValue;
+        //}
+        //
+        //CEString sP2Preposition()
+        //{
+        //    return m_stProperties.sP2Preposition;
+        //}
 
-        void SetP2Preposition(const CEString& sValue)
-        {
-            m_stProperties.sP2Preposition = sValue;
-        }
+        //void SetP2Preposition(const CEString& sValue)
+        //{
+        //    m_stProperties.sP2Preposition = sValue;
+        //}
         
         bool bImpersonal()
         {

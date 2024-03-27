@@ -121,7 +121,7 @@ private:
     ET_ReturnCode eReadFromDb(int64_t llLexemeId);
     ET_ReturnCode eReadFromDb(const CEString& sStem);
 
-    ET_ReturnCode eGetP2Data(int64_t llLexemeId, StLexemeProperties& properties);
+//    ET_ReturnCode eGetP2Data(int64_t llLexemeId, StLexemeProperties& properties);
     ET_ReturnCode eGetWordIdFromLemexeId(int64_t llLexemeId, int64_t& llWordId);
 
     ET_ReturnCode eMarkLexemeAsEdited(shared_ptr<CLexeme> pLexeme);

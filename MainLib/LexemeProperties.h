@@ -57,10 +57,10 @@ namespace Hlib
         bool bAssumedForms { false };
         bool bYoAlternation { false };
         bool bOAlternation { false };
-        bool bSecondGenitive { false };
-        bool bSecondPrepositional { false };
-        bool bSecondPrepositionalOptional { false };
-        CEString sP2Preposition;
+//        bool bSecondGenitive { false };
+//        bool bSecondPrepositional { false };
+//        bool bSecondPrepositionalOptional { false };
+//        CEString sP2Preposition;
         bool bIsImpersonal { false };
         bool bIsIterative { false };
         bool bHasAspectPair { false };

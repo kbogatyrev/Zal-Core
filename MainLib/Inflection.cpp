@@ -350,7 +350,6 @@ uint64_t CInflection::uiTotalWordForms()
     return m_mmWordForms.size();
 }
 
-
 ET_ReturnCode CInflection::eFormExists(const CEString& sFH)
 {
     //    if (m_mmWordForms.end() != m_mmWordForms.find(sFH))
@@ -379,7 +378,7 @@ ET_ReturnCode CInflection::eFormExists(const CEString& sFH)
 
     if (L"Noun_Sg_Part" == sFH)
     {
-        if (m_pLexeme->bSecondGenitive())
+        if (bSecondGenitive())
         {
             return H_TRUE;
         }
@@ -391,7 +390,7 @@ ET_ReturnCode CInflection::eFormExists(const CEString& sFH)
 
     if (L"Noun_Sg_P2" == sFH)
     {
-        if (m_pLexeme->bSecondPrepositional())
+        if (bSecondPrepositional())
         {
             return H_TRUE;
         }
@@ -404,8 +403,7 @@ ET_ReturnCode CInflection::eFormExists(const CEString& sFH)
 
     if (L"Noun_Sg_P2_Prepositions" == sFH)
     {
-        auto& stLexemeProperties = m_pLexeme->stGetProperties();
-        if (stLexemeProperties.sP2Preposition.bIsEmpty())
+        if (m_stProperties.sP2Preposition.bIsEmpty())
         {
             return H_FALSE;
         }
@@ -618,7 +616,7 @@ ET_ReturnCode CInflection::eLoadMissingForms()
 
     m_vecMissingForms.clear();
 
-    CEString sQuery(L"SELECT content FROM missing_forms WHERE descriptor_id = ");
+    CEString sQuery(L"SELECT gram_hash FROM missing_forms WHERE inflection_id = ");
     sQuery += CEString::sToString(m_pLexeme->stGetProperties().llDescriptorId);
     sQuery += L";";
 
@@ -677,8 +675,8 @@ ET_ReturnCode CInflection::eLoadIrregularForms()
 
     // NB: irregular forms are a property of the lexeme, i.e. descriptor
     CEString sQuery
-        (L"SELECT id, gram_hash, wordform, is_alternative, lead_comment, trailing_comment, is_edited FROM irregular_forms WHERE descriptor_id = ");
-    sQuery += CEString::sToString(m_pLexeme->stGetProperties().llDescriptorId);
+        (L"SELECT id, gram_hash, wordform, is_alternative, lead_comment, trailing_comment, is_edited FROM irregular_forms WHERE inflection_id = ");
+    sQuery += CEString::sToString(m_stProperties.llInflectionId);
     sQuery += L";";
 
     shared_ptr<CSqlite> spDb;
@@ -809,7 +807,7 @@ ET_ReturnCode CInflection::eLoadDifficultForms()
 
     m_vecDifficultForms.clear();
 
-    CEString sQuery(L"SELECT content FROM difficult_forms WHERE descriptor_id = ");
+    CEString sQuery(L"SELECT gram_hash FROM difficult_forms WHERE inflection_id = ");
     sQuery += CEString::sToString(m_pLexeme->stGetProperties().llDescriptorId);
     sQuery += L";";
 
@@ -1850,8 +1848,8 @@ ET_ReturnCode CInflection::eDeleteIrregularForm(const CEString& sFormHash)
     {
         try
         {
-            CEString sSelectIrregularForms(L"SELECT id FROM irregular_forms WHERE descriptor_id=\"");
-            sSelectIrregularForms += CEString::sToString(m_pLexeme->stGetProperties().llDescriptorId);
+            CEString sSelectIrregularForms(L"SELECT id FROM irregular_forms WHERE inflection_id=\"");
+            sSelectIrregularForms += CEString::sToString(m_stProperties.llInflectionId);
             sSelectIrregularForms += L"\" AND gram_hash = \"";
             sSelectIrregularForms += sFormHash;
             sSelectIrregularForms += L"\"";
@@ -1941,8 +1939,8 @@ ET_ReturnCode CInflection::eDeleteIrregularForm(const CEString& sFormHash)
 
 ET_ReturnCode CInflection::eSaveIrregularForm(const CEString& sFormHash, shared_ptr<CWordForm>& spWordForm)
 {
-    CEString sSelectIrregularForms(L"SELECT id FROM irregular_forms WHERE descriptor_id=\"");
-    sSelectIrregularForms += CEString::sToString(m_pLexeme->stGetProperties().llDescriptorId);
+    CEString sSelectIrregularForms(L"SELECT id FROM irregular_forms WHERE inflection_id=\"");
+    sSelectIrregularForms += CEString::sToString(m_stProperties.llInflectionId);
     sSelectIrregularForms += L"\" AND gram_hash = \"";
     sSelectIrregularForms += sFormHash;
     sSelectIrregularForms += L"\"";
@@ -2064,14 +2062,14 @@ ET_ReturnCode CInflection::eSaveIrregularForms(const CEString& sGramHash)
     {
         //        pDb->BeginTransaction();
 
-        CEString sStressDelQuery(L"DELETE FROM irregular_stress WHERE form_id IN (SELECT id FROM irregular_forms WHERE descriptor_id = ");
-        sStressDelQuery += CEString::sToString(m_pLexeme->stGetProperties().llDescriptorId);
+        CEString sStressDelQuery(L"DELETE FROM irregular_stress WHERE form_id IN (SELECT id FROM irregular_forms WHERE inflection_id = ");
+        sStressDelQuery += CEString::sToString(m_stProperties.llInflectionId);
         sStressDelQuery += L" AND gram_hash = '";
         sStressDelQuery += sGramHash + L"')";
         spDb->Delete(sStressDelQuery);
 
-        CEString sDelQuery(L"DELETE FROM irregular_forms WHERE descriptor_id = ");
-        sDelQuery += CEString::sToString(m_pLexeme->stGetProperties().llDescriptorId);
+        CEString sDelQuery(L"DELETE FROM irregular_forms WHERE inflection_id = ");
+        sDelQuery += CEString::sToString(m_stProperties.llInflectionId);
         sDelQuery += L" AND gram_hash = '";
         sDelQuery += sGramHash + L"'";
         spDb->Delete(sDelQuery);
