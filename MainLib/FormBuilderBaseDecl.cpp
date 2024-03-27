@@ -36,7 +36,7 @@ ET_ReturnCode CFormBuilderDecl::eFleetingVowelCheck (ET_Number eNumber,         
         {
             if (L"мн." != m_pLexeme->sMainSymbol() && !m_pLexeme->bIsPluralOf())
             {
-                rc = eFleetingVowelRemove (eGender, eSubparadigm, sEnding, sStem);
+                rc = eFleetingVowelRemove (eGender, eStressType, eSubparadigm, sEnding, sStem);
                 return rc;
             }
         }
@@ -45,7 +45,7 @@ ET_ReturnCode CFormBuilderDecl::eFleetingVowelCheck (ET_Number eNumber,         
     if (m_pLexeme->ePartOfSpeech() == POS_PRONOUN_ADJ || m_pLexeme->ePartOfSpeech() == POS_NUM_ADJ || 
         ((m_pLexeme->ePartOfSpeech() == POS_ADJ || m_pLexeme->ePartOfSpeech() == POS_NOUN) && L"мс" == m_pLexeme->sInflectionType()))
     {
-        rc = eFleetingVowelRemove (eGender, eSubparadigm, sEnding, sStem);
+        rc = eFleetingVowelRemove (eGender, eStressType, eSubparadigm, sEnding, sStem);
         return rc;
     }
 
@@ -89,7 +89,7 @@ ET_ReturnCode CFormBuilderDecl::eFleetingVowelCheck (ET_Number eNumber,         
 
     if (SUBPARADIGM_SHORT_ADJ == eSubparadigm && m_pLexeme->bNoLongForms())
     {
-        rc = eFleetingVowelRemove (eGender, eSubparadigm, sEnding, sStem);
+        rc = eFleetingVowelRemove (eGender, eStressType, eSubparadigm, sEnding, sStem);
         return rc;
     }
 
@@ -343,6 +343,7 @@ ET_ReturnCode CFormBuilderDecl::eFleetingVowelAdd (ET_Number eNumber,           
 }   //  h_FleetingVowelAdd (...)
 
 ET_ReturnCode CFormBuilderDecl::eFleetingVowelRemove (ET_Gender eGender,               // in
+                                                      ET_StressLocation eStressType,   // in
                                                       ET_Subparadigm eSubparadigm,     // in
                                                       const CEString& sEnding,         // in
                                                       CEString& sStem)                 // out
@@ -373,6 +374,40 @@ ET_ReturnCode CFormBuilderDecl::eFleetingVowelRemove (ET_Gender eGender,        
             ERROR_LOG (L"Unexpected gender for null ending.");
             return H_ERROR_UNEXPECTED;
         }
+
+        if (m_pInflection->bHasCommonDeviation(2) && (ET_StressLocation::STRESS_LOCATION_STEM == eStressType))
+        {
+            unsigned int uiLastVowel = sStem.uiFindLastOf(CEString::g_szRusVowels);
+            if (ecNotFound == uiLastVowel)
+            {
+                assert(0);
+                ERROR_LOG(L"Unable to find stem-final vowel.");
+                return H_ERROR_UNEXPECTED;
+            }
+
+            if (sStem.uiLength() < 3)
+            {
+                assert(0);
+                ERROR_LOG(L"Unable to find stem-final vowel.");
+                return H_ERROR_UNEXPECTED;
+            }
+
+            unsigned int uiLastConsonant = sStem.uiLength() - 1;
+            if (!CEString::bIn(sStem[uiLastConsonant - 2], CEString::g_szRusConsonants))
+            {
+                assert(0);
+                ERROR_LOG(L"Expect a consonant before fleeting vowel.");
+                return H_ERROR_UNEXPECTED;
+            }
+
+            if (CEString::bIn(sStem[uiLastConsonant - 2], L"шжчщ"))
+            {
+                sStem[uiLastVowel] = L'е';    // рожОк (N Sg) --> рОжек (G Pl)
+                return H_NO_ERROR;
+            }
+
+        }
+
         return H_NO_ERROR;
     }
 

@@ -61,6 +61,7 @@ protected:
                                      CEString& sStem);                // out
 
     ET_ReturnCode eFleetingVowelRemove (ET_Gender eGender,             // in
+                                        ET_StressLocation eStressType, // in
                                         ET_Subparadigm eSubparadigm,   // in
                                         const CEString& sEnding,       // in
                                         CEString& sStem);              // out
