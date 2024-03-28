@@ -617,7 +617,8 @@ ET_ReturnCode CInflection::eLoadMissingForms()
     m_vecMissingForms.clear();
 
     CEString sQuery(L"SELECT gram_hash FROM missing_forms WHERE inflection_id = ");
-    sQuery += CEString::sToString(m_pLexeme->stGetProperties().llDescriptorId);
+//    sQuery += CEString::sToString(m_pLexeme->stGetProperties().llDescriptorId);
+    sQuery += CEString::sToString(m_stProperties.llInflectionId);
     sQuery += L";";
 
     shared_ptr<CSqlite> spDb;
@@ -808,7 +809,7 @@ ET_ReturnCode CInflection::eLoadDifficultForms()
     m_vecDifficultForms.clear();
 
     CEString sQuery(L"SELECT gram_hash FROM difficult_forms WHERE inflection_id = ");
-    sQuery += CEString::sToString(m_pLexeme->stGetProperties().llDescriptorId);
+    sQuery += CEString::sToString(m_stProperties.llInflectionId);
     sQuery += L";";
 
     shared_ptr<CSqlite> spDb;
