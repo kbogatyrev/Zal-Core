@@ -222,6 +222,16 @@ namespace Hlib
             m_stProperties.bSecondGenitive = bValue;
         }
 
+        CEString sComment()
+        {
+            return m_stProperties.sComment;
+        }
+
+        void SetComment(const CEString& sValue)
+        {
+            m_stProperties.sComment = sValue;
+        }
+
         bool bSecondPrepositional()
         {
             return m_stProperties.bSecondPrepositional;
@@ -348,7 +358,7 @@ namespace Hlib
         ET_ReturnCode eSaveWordFormsToDb();
         ET_ReturnCode eSaveIrregularFormsToDb();  // for spryazh sm entries
         ET_ReturnCode eLoadIrregularForms();
-        ET_ReturnCode eSaveIrregularForms(long long llDescriptorDbKey);
+        ET_ReturnCode eSaveIrregularForms();
         ET_ReturnCode eLoadDifficultForms();
 
     private:

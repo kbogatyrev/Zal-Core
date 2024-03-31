@@ -1754,11 +1754,11 @@ int CInflection::iFormCount(CEString sHash)
     return (int)m_mmWordForms.count(sHash);
 }
 
-ET_ReturnCode CInflection::eSaveIrregularForms(long long llDescriptorDbKey)
+ET_ReturnCode CInflection::eSaveIrregularForms()
 {
     ET_ReturnCode rc = H_NO_ERROR;
 
-    if (! m_pLexeme->stGetProperties().bHasIrregularForms)
+    if (!m_pLexeme->stGetProperties().bHasIrregularForms)
     {
         return H_FALSE;
     }
@@ -1779,7 +1779,7 @@ ET_ReturnCode CInflection::eSaveIrregularForms(long long llDescriptorDbKey)
 
         for (auto& pairIf : m_mmapIrregularForms)
         {
-            spDb->Bind(1, (int64_t)llDescriptorDbKey, llInsertHandle);
+            spDb->Bind(1, (int64_t)m_stProperties.llInflectionId, llInsertHandle);
             spDb->Bind(2, pairIf.second.spWordForm->sGramHash(), llInsertHandle);
             spDb->Bind(3, pairIf.second.spWordForm->sWordForm(), llInsertHandle);
             spDb->Bind(4, pairIf.second.bIsOptional, llInsertHandle);
@@ -1954,7 +1954,7 @@ ET_ReturnCode CInflection::eSaveIrregularForm(const CEString& sFormHash, shared_
     {
         bool bIgnoreOnConflict = true;
         spDbHandle->PrepareForInsert(L"irregular_forms", 7, bIgnoreOnConflict);
-        spDbHandle->Bind(1, (int64_t)m_pLexeme->stGetProperties().llDescriptorId);
+        spDbHandle->Bind(1, (int64_t)m_stProperties.llInflectionId);
         spDbHandle->Bind(2, sFormHash);
         spDbHandle->Bind(3, spWordForm->sWordForm());
         spDbHandle->Bind(4, spWordForm->bIsVariant());
@@ -2082,7 +2082,7 @@ ET_ReturnCode CInflection::eSaveIrregularForms(const CEString& sGramHash)
         auto pairFormsForHash = m_mmapIrregularForms.equal_range(sGramHash);
         for (auto& it = pairFormsForHash.first; it != pairFormsForHash.second; ++it)
         {
-            spDb->Bind(1, (int64_t)m_pLexeme->stGetProperties().llDescriptorId, llFormInsertHandle);
+            spDb->Bind(1, (int64_t)m_stProperties.llInflectionId, llFormInsertHandle);
             spDb->Bind(2, sGramHash, llFormInsertHandle);
             spDb->Bind(3, it->second.spWordForm->m_sWordForm, llFormInsertHandle);
             spDb->Bind(4, it->second.bIsOptional, llFormInsertHandle);

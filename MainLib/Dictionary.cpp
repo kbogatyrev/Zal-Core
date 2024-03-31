@@ -1571,6 +1571,7 @@ ET_ReturnCode CDictionary::eReadInflectionData(shared_ptr<CLexeme>spLexeme, uint
             m_spDb->GetData(9, stProperties.bFleetingVowel, uiQueryHandle);                      //  9 fleeting_vowel
             m_spDb->GetData(10, stProperties.iStemAugment, uiQueryHandle);                       // 10 stem_augment
             m_spDb->GetData(11, stProperties.bSecondGenitive, uiQueryHandle);                    // 11 second_genitive
+            m_spDb->GetData(12, stProperties.sComment, uiQueryHandle);                           // 12 comment
 
             try
             {

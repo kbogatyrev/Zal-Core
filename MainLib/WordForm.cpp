@@ -415,7 +415,7 @@ ET_ReturnCode CWordForm::eSaveIrregularForm()
     try
     {
         spDbHandle->PrepareForInsert(L"irregular_forms", 7);
-        spDbHandle->Bind(1, (int64_t)stProps.llDescriptorId);
+        spDbHandle->Bind(1, (int64_t)m_llInflectionId);
         spDbHandle->Bind(2, sGramHash());
         spDbHandle->Bind(3, m_sWordForm);
         spDbHandle->Bind(4, false);
@@ -648,7 +648,7 @@ bool CWordForm::bSaveIrregularForm() // currently intended for spryazh. sm verbs
         spDbHandle->uiPrepareForInsert(L"irregular_forms_spryazh_sm", 7, pStmt, false);
         auto ullInsertHandle = (unsigned long long)pStmt;
 
-        spDbHandle->Bind(1, (int64_t)stLexemeProperties.llDescriptorId, ullInsertHandle);
+        spDbHandle->Bind(1, (int64_t)m_llInflectionId, ullInsertHandle);
         spDbHandle->Bind(2, sGramHash(), ullInsertHandle);
         spDbHandle->Bind(3, m_sWordForm, ullInsertHandle);
         spDbHandle->Bind(4, false, ullInsertHandle);      // is_alternative

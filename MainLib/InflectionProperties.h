@@ -24,6 +24,7 @@ namespace Hlib
         bool bFleetingVowel { false };
         int iStemAugment { -1 };
         bool bSecondGenitive{ false };
+        CEString sComment;
         bool bSecondPrepositional{ false };
         bool bSecondPrepositionalOptional{ false };
         CEString sP2Preposition;
