@@ -1671,7 +1671,7 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPresPassPartFromSourceForm(CWordForm*
     int iGroup = -1;       // GDRL, p.86
 
     auto mapStress = p1Pl->mapGetStressPositions();
-    if (uiLength > 2 && sWordform.bEndsWith(L"ем") &&
+    if (uiLength > 2 && sWordform.bEndsWith(L"ем") &&                       // у глаголов с 1 мн. наст. на гласную + безударное "ем"
         mapStress.find(uiLength-2) == mapStress.end() &&
         CEString::bIn(sWordform[uiLength-3], CEString::g_szRusVowels))
     {
@@ -1680,6 +1680,10 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPresPassPartFromSourceForm(CWordForm*
             (12 == m_pInflection->iType() && AT_A == m_pInflection->eAccentType1()) ||
             (6 == m_pInflection->iType() && AT_A == m_pInflection->eAccentType1() &&
                 m_pLexeme->sSourceForm().bEndsWith(L"ять")) || 13 == m_pInflection->iType());
+        iGroup = 1;
+    }
+    else if (13 == m_pInflection->iType())
+    { 
         iGroup = 1;
     }
     else if (4 == m_pInflection->iType())
