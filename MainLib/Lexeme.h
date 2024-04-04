@@ -752,6 +752,11 @@ namespace Hlib
             return m_stProperties.sSpryazhSmRefSource;
         }
 
+        CEString sSpryazhSmComment()
+        {
+            return m_stProperties.sSpryazhSmComment;
+        }
+
         ET_Subparadigm eSubparadigm()
         {
             return m_stProperties.eSubparadigm;

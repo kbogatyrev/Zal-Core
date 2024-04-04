@@ -83,8 +83,6 @@ namespace Hlib
 
         bool bNoLongForms { false };
         bool bSecondPart { false };
-        int iSpryazhSmRefPrefixLength { -1 };
-        bool bSpryazhSmNoAspectPair { false };
 
         //
         // Verb stems & infinitive:
@@ -98,6 +96,10 @@ namespace Hlib
         // Spryazh sm. 
         CEString sSpryazhSmRefSource;
         CEString sSpryazhSmPrefix;
+        CEString sSpryazhSmRefHomonyms;
+        CEString sSpryazhSmComment;
+        int iSpryazhSmRefPrefixLength{ -1 };
+        bool bSpryazhSmNoAspectPair{ false };
     };
 
 }       //  namespace Hlib

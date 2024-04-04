@@ -2372,6 +2372,8 @@ CEString CInflection::sParadigmHash()
         sSource += 32 + iPos;
     }
 
+    sSource += CEString::sToString(m_pLexeme->llHeadwordId());
+
     sSource += m_pLexeme->stGetProperties().sMainSymbol;
     sSource += m_pLexeme->stGetProperties().sInflectionType;
     sSource += m_pLexeme->stGetProperties().sAltMainSymbol;
@@ -2389,13 +2391,13 @@ CEString CInflection::sParadigmHash()
     sSource += m_pLexeme->stGetProperties().sComment;
     sSource += m_pLexeme->stGetProperties().sTrailingComment;
 
-    sSource += m_stProperties.bFleetingVowel ? '1' : '0';
-    sSource += m_pLexeme->stGetProperties().bNoComparative ? '1' : '0';
-    sSource += m_pLexeme->stGetProperties().bNoLongForms ? '1' : '0';
-    sSource += m_pLexeme->stGetProperties().bYoAlternation ? '1' : '0';
-    sSource += m_pLexeme->stGetProperties().bOAlternation ? '1' : '0';
+    sSource += m_stProperties.bFleetingVowel ? L'1' : L'0';
+    sSource += m_pLexeme->stGetProperties().bNoComparative ? L'1' : L'0';
+    sSource += m_pLexeme->stGetProperties().bNoLongForms ? L'1' : L'0';
+    sSource += m_pLexeme->stGetProperties().bYoAlternation ? L'1' : L'0';
+    sSource += m_pLexeme->stGetProperties().bOAlternation ? L'1' : L'0';
     sSource += 32 + m_pLexeme->stGetProperties().ePartOfSpeech;
-    sSource += m_pLexeme->stGetProperties().bPartPastPassZhd ? '1' : '0';
+    sSource += m_pLexeme->stGetProperties().bPartPastPassZhd ? L'1' : L'0';
     sSource += 32 + m_pLexeme->stGetProperties().iSection;
     sSource += 32 + m_stProperties.iStemAugment;
     for (auto& pairCd : m_stProperties.mapCommonDeviations)
@@ -2404,8 +2406,11 @@ CEString CInflection::sParadigmHash()
         sSource += pairCd.second ? '1' : '0';
     }
 
-    //    CMD5 md5;
-    //    return md5.sHash(sSource);
+    sSource += m_pLexeme->stGetProperties().sSpryazhSmRefSource;
+    sSource += m_pLexeme->stGetProperties().sSpryazhSmPrefix;
+    sSource += m_pLexeme->stGetProperties().sSpryazhSmRefHomonyms;
+    sSource += 33 + m_pLexeme->stGetProperties().iSpryazhSmRefPrefixLength; // NB can be -1
+    sSource += (m_pLexeme->stGetProperties().bSpryazhSmNoAspectPair) ? L'1' : L'0';
 
     SHA1 hash;
     hash.update(sSource.stl_sToUtf8());

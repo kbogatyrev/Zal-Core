@@ -453,7 +453,7 @@ ET_ReturnCode CDictionary::eGetLexemesByInitialForm(const CEString& sSource)
     m_spDb->Finalize(uiQueryHandle);
 
     CEString sSpryazhSmQuery(sQueryBaseDescriptor);
-    sSpryazhSmQuery += L", no_aspect_pair ";
+    sSpryazhSmQuery += L", spryazh_sm_headwords.no_aspect_pair, spryazh_sm_headwords.comment ";
     sSpryazhSmQuery += L"FROM headword INNER JOIN spryazh_sm_headwords ON headword.id = spryazh_sm_headwords.headword_id ";
     sSpryazhSmQuery += L"INNER JOIN descriptor ON spryazh_sm_headwords.ref_descriptor_id = descriptor.id ";
     sSpryazhSmQuery += L"WHERE headword.source = \"";
@@ -1394,7 +1394,8 @@ ET_ReturnCode CDictionary::eReadDescriptorData(shared_ptr<CLexeme> spLexeme, uin
             m_spDb->GetData(45, stProperties.sTrailingComment, uiQueryHandle);                   // 45 trailing_comment
             if (bIsSpryazhSm)
             {
-                m_spDb->GetData(47, stProperties.bSpryazhSmNoAspectPair, uiQueryHandle);         // 46 no_aspect_pair (optional)
+                m_spDb->GetData(46, stProperties.bSpryazhSmNoAspectPair, uiQueryHandle);         // 46 no_aspect_pair (optional)
+                m_spDb->GetData(47, stProperties.sSpryazhSmComment, uiQueryHandle);              // 47 comment
             }
 
             CEString sStressQuery(L"SELECT stress_position, is_primary FROM stress WHERE is_variant = \"");

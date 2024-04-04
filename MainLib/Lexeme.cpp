@@ -587,23 +587,41 @@ ET_ReturnCode CLexeme::eInitializeFromProperties()
 ET_ReturnCode CLexeme::eHandleSpryazhSmEntry()
 {
     uint64_t uiQueryHandle = 0;
-    CEString sQuery(L"SELECT source FROM headword AS hw INNER JOIN descriptor AS d ON hw.id = d.word_id WHERE d.id = ");
+    CEString sQuery(L"SELECT hw.source, hw.id FROM headword AS hw INNER JOIN descriptor AS d ON hw.id = d.word_id WHERE d.id = ");
     sQuery += CEString::sToString(m_stProperties.llDescriptorId);
     sQuery += L";";
 
     CEString sRefSource;
+    CEString sHeadWordId;
     auto spDb = m_spDictionary->spGetDb();
     uiQueryHandle = spDb->uiPrepareForSelect(sQuery);
     while (spDb->bGetRow(uiQueryHandle))
     {
         spDb->GetData(0, sRefSource, uiQueryHandle);
+        spDb->GetData(1, sHeadWordId, uiQueryHandle);
     }
 
     spDb->Finalize(uiQueryHandle);
 
-    sRefSource.SetVowels(CEString::g_szRusVowels);
+    CEString sHomonymsQuery(L"SELECT homonym_number FROM homonyms WHERE headword_id = ");
+    sHomonymsQuery += sHeadWordId;
+    sHomonymsQuery += L";";
+    uiQueryHandle = spDb->uiPrepareForSelect(sHomonymsQuery);
+    CEString sHomonyms;
+    while (spDb->bGetRow(uiQueryHandle))
+    {
+        CEString sNum;
+        spDb->GetData(0, sHomonyms, uiQueryHandle);
+        if (!sHomonyms.bIsEmpty())
+        {
+            sHomonyms += L"-";
+        }
+    }
 
+    sRefSource.SetVowels(CEString::g_szRusVowels);
     m_stProperties.sSpryazhSmRefSource = sRefSource;
+    m_stProperties.sSpryazhSmRefHomonyms = sHomonyms;
+
     m_stProperties.iSpryazhSmRefPrefixLength = (int)sRefSource.uiLength();
     m_stProperties.sSpryazhSmPrefix = m_stProperties.sSourceForm;
     for (int iAt1 = sRefSource.uiLength() - 1, iAt2 = m_stProperties.sSourceForm.uiLength() - 1; 
