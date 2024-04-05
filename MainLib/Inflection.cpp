@@ -473,6 +473,11 @@ ET_ReturnCode CInflection::eFormExists(const CEString& sFH)
         //        }
     }
 
+    if (L"Inf" == sFormHash && 17 == m_pLexeme->iSection() && m_pLexeme->stGetProperties().sMainSymbol == L"нсв")
+    {
+        return H_FALSE;
+    }
+
     if (m_stProperties.bShortFormsIncomplete && L"AdjS_M" == sFormHash)
     {
         return H_FALSE;

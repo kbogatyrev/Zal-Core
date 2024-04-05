@@ -103,6 +103,13 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildInfinitive()
         return mapIrreg.empty() ? H_ERROR_UNEXPECTED : H_NO_ERROR;
     }
 */
+    if (m_pLexeme->bHasMissingForms())
+    {
+        if (m_pLexeme->bHasMissingForms() && m_pInflection->eFormExists(L"Inf") != H_TRUE)
+        {
+            return H_NO_MORE;
+        }
+    }
 
     try
     {
@@ -159,7 +166,7 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildInfinitive()
             const StLexemeProperties& stLexemeProperties = m_pLexeme->stGetProperties();
             if (stLexemeProperties.vecSourceStressPos.size() != 1)
             {
-                CEString sMsg(L"Multiple primary stress positions in infnitive; lexeme = ");
+                CEString sMsg(L"Multiple or no primary stress positions in infnitive; lexeme = ");
                 sMsg += m_pLexeme->sSourceForm();
                 ERROR_LOG(sMsg);
             }
