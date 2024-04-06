@@ -530,26 +530,30 @@ ET_ReturnCode CFormBuilderAspectPair::eBuildTypeIc(CEString& sOutput)
         return H_ERROR_POINTER;
     }
 
-    CEString sEnding(m_p1stPersonWordForm->sEnding());
-    if (sEnding.bEndsWith(L"сь"))
+//    CEString sEnding(m_p1stPersonWordForm->sEnding());
+//    if (sEnding.bEndsWith(L"сь"))
+    auto sWordForm {m_p1stPersonWordForm->sWordForm()};
+    if (sWordForm.bEndsWith(L"сь"))
     {
-        sEnding.sRemoveCharsFromEnd(2);
+        sWordForm.sRemoveCharsFromEnd(2);
     }
 
-    if (sEnding.bEndsWith(L"у"))
+    if (sWordForm.bEndsWith(L"у"))
     {
-        if (m_p1stPersonWordForm->sStem().bEndsWithOneOf(CEString(CEString::g_szRusHushers) + CEString(L"кгх")))
+        sWordForm.sRemoveCharsFromEnd(1);
+        if (sWordForm.bEndsWithOneOf(CEString(CEString::g_szRusHushers) + CEString(L"кгх")))
         {
-            sOutput = m_p1stPersonWordForm->sStem() + L"ивать";
+            sOutput = sWordForm + L"ивать";
         }
         else
         {
-            sOutput = m_p1stPersonWordForm->sStem() + L"ывать";
+            sOutput = sWordForm + L"ывать";
         }
     }
-    else if (sEnding.bEndsWith(L"ю"))
+    else if (sWordForm.bEndsWith(L"ю"))
     {
-        sOutput = m_p1stPersonWordForm->sStem() + L"ивать";
+        sWordForm.sRemoveCharsFromEnd(1);
+        sOutput = sWordForm + L"ивать";
     }
 
     return H_NO_ERROR;
@@ -956,20 +960,20 @@ ET_ReturnCode CFormBuilderAspectPair::eSvToNsvTypeII(bool bIsVariant)
             return H_ERROR_POINTER;
         }
 
-        CEString sEnding(m_p1stPersonWordForm->sEnding());
-        if (sEnding.bEndsWith(L"сь"))
+        CEString sWordForm(m_p1stPersonWordForm->sWordForm());
+        if (sWordForm.bEndsWith(L"сь"))
         {
-            sEnding.sRemoveCharsFromEnd(2);
+            sWordForm.sRemoveCharsFromEnd(2);
         }
 
-        if (sEnding.bEndsWith(L"у"))
+        if (sWordForm.bEndsWith(L"у"))
         {
-            sOutput = m_p1stPersonWordForm->sStem() + L"ать";
+            sOutput = sWordForm.sRemoveCharsFromEnd(1) + L"ать";
         }
         else
         {
-            assert(sEnding == L"ю");
-            sOutput = m_p1stPersonWordForm->sStem() + L"ять";
+            assert(sWordForm.bEndsWith(L"ю"));
+            sOutput = sWordForm.sRemoveCharsFromEnd(1) + L"ять";
         }
     }
 
