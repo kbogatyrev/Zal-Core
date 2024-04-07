@@ -330,6 +330,11 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPresentActiveParticiple()
 
 }   //  eBuildPresentActiveParticiple()
 
+/*
+    Имеется только у глаголов несовершенного вида, причем только в типах 1, 2, 4-7, 10, 12, 13, 16. Образуется от основы
+    3 мн. наст. добавлением -я (после шипящих -а). Ударение как в 1 ед. наст. Исключение: в типе 13 деепричастие образуется от
+    основы инфинитива (с ударением инфинитива) (давАть - давАя).
+*/
 ET_ReturnCode CFormBuilderNonFinite::eBuildPresentAdverbial()
 {
     assert(m_pLexeme);   // we assume base class ctor took care of this
@@ -426,8 +431,6 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPresentAdverbial()
 
 }   //  eBuildPresentAdverbial()
 
-ET_ReturnCode CFormBuilderNonFinite::ePresAdvGeneral(ET_Subparadigm eSubparadigm) // may be used as a past adv hence the argument
-{
 /*
     Деепричастие настоящего времени
     Имеется только у глаголов несовершенного вида, причем только в типах 1, 2, 4—7, 10, 12, 13, 16. 
@@ -435,7 +438,8 @@ ET_ReturnCode CFormBuilderNonFinite::ePresAdvGeneral(ET_Subparadigm eSubparadigm
     Исключение: в типе 13 деепричастие образуется от основы инфинитива (с ударением инфинитива) 
     (дава́ть — дава́я).
 */
-
+ET_ReturnCode CFormBuilderNonFinite::ePresAdvGeneral(ET_Subparadigm eSubparadigm) // may be used as a past adv hence the argument
+{
     assert(m_pLexeme);   // we assume base class ctor took care of this
 
     ET_ReturnCode rc = H_NO_ERROR;
@@ -636,8 +640,6 @@ ET_ReturnCode CFormBuilderNonFinite::ePresAdvGeneral(ET_Subparadigm eSubparadigm
 
 }   //  ePresAdvGeneral()
 
-ET_ReturnCode CFormBuilderNonFinite::eBuildPastAdverbial()
-{
 /*
     Деепричастие прошедшего времени.
     Имеется у глаголов обоих видов. Однако достаточно употребительны только деепричастия от глаголов совершенного вида; 
@@ -653,7 +655,8 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastAdverbial()
     Другой особый случай образуют глаголы с пометой ⑨; см. стр. 83.    
  
  */
-
+ET_ReturnCode CFormBuilderNonFinite::eBuildPastAdverbial()
+{
     assert(m_pLexeme);   // we assume base class ctor took care of this
 
     ET_ReturnCode rc = H_NO_ERROR;
@@ -953,7 +956,6 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastAdverbial()
             spWordForm->SetAspect(m_pLexeme->eAspect());
             spWordForm->SetReflexivity(m_pLexeme->eIsReflexive());
             spWordForm->SetInflectionId(m_pInflection->llInflectionId());
-
             spWordForm->SetStem(m_pLexeme->sInfStem());
 
             if (nullptr == m_spEndings)
@@ -1014,6 +1016,23 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastAdverbial()
 
 }   //  eBuildPastAdverbial()
 
+/*
+    Имеется только у переходных глаголов несовершенного вида, причем только в следуюших морфологических группах:
+    1) у глаголов с 1 мн.наст.на гласную + безударное ем (т.е.у глаголов с основной частью индекса 1a, 2а, 12а и глаголов 
+    на -ять с основной частью индекса ба), а также у глаголов типа 13; 
+    2) у глаголов типа 4; 
+    3) у отдельных глаголов типа 5, а также типов 6 (на -ать), 6°, 7. При этом, однако, только причастия первой группы 
+    (например, читаемый, рисуемый, бреемый, маемый, даваемый, сеемый) достаточно употребительны. Причастия второй группы 
+    (например, пОмнимый, сердИмый, чИстимый) в современном языке обычно образуются с затруднением, употребляются очень 
+    редко и имеют возвышенно - архаический оттенок; лишь немногие из причастий данной группы достаточно употребительны и лишены 
+    этого оттенка (например, стрОимый, хранИмый, любИмый), ср. замечание на стр. 102. Причастия третьей группы (например, 
+    гонИмый, ведОмый) представляют собой изолированные формы и имеют такой же возвышенно - архаический оттенок, ср. замечания 
+    на стр. 105, 111, 116.
+    Данное причастие образуется добавлением -ый к форме 1 мн.наст. (но если эта форма оканчивается на согласную + ём -
+    заменой -ём на -омый). Ударение в I спряжении такое же, как в этой форме, во 11 - как в 1 ед.наст. Исключение: в типе 13
+    это причастие образуется от основы инфинитива (и с тем же ударением) (давАть - давАемый). Склонение - как у прилагательных
+    с индексом 1а (имеются полные и краткие формы), например, хранИмый, кф хранИм, хранИма, хранИмо, хранИмы.
+*/
 ET_ReturnCode CFormBuilderNonFinite::eBuildPresentPassiveParticiple()
 {
     assert(m_pLexeme);   // we assume base class ctor took care of this
@@ -1101,6 +1120,11 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPresentPassiveParticiple()
 
 }   //  eBuildPresentPassPart()
 
+/*
+    Имеется только у глаголов несовершенного вида. Образуется заменой конечного -т в форме 3 мн. наст. на -щий. Ударение в I 
+    спряжении как в 3 ед., во II спряжении как в 1 ед. Склонение - как у прилагательных с индексом 4а; кратких форм у собственно
+    причастий (не перешедших в прилагательные) нет.
+*/
 ET_ReturnCode CFormBuilderNonFinite::eBuildPastActiveParticiple()
 {
     assert(m_pLexeme);   // we assume base class ctor took care of this
@@ -1250,6 +1274,9 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastActiveParticiple()
 
 }   //  h_BuildPastActiveParticiple()
 
+/*
+    TLDR: Введение, стр. 86
+*/
 ET_ReturnCode CFormBuilderNonFinite::eBuildPastPassiveParticiple()
 {
     assert(m_pLexeme);   // we assume base class ctor took care of this
