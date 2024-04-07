@@ -334,6 +334,11 @@ ET_ReturnCode CFormBuilderNouns::eHandleAccEnding (ET_Number eNumber, ET_Case& e
 
     if (NUM_SG == eNumber)
     {
+        if (m_pLexeme->sTrailingComment() == L"В. ед.=И. ед.")
+        {
+            eCase = CASE_NOM;
+            return H_NO_ERROR;
+        }
         if (GENDER_M == m_pLexeme->eInflectionTypeToGender())
         {
             ANIM_YES == m_pLexeme->eInflectionTypeToAnimacy()
