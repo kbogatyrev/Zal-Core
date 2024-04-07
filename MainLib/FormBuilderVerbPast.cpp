@@ -92,7 +92,6 @@ ET_ReturnCode CFormBuilderPast::eCreateFormTemplate (const CEString& sStem,
         return H_ERROR_POINTER;
     }
 
-//    spWordForm->m_pLexeme = m_pLexeme;
     spWordForm->SetInflection(m_pInflection);
     spWordForm->SetPos(POS_VERB);
     spWordForm->SetSubparadigm(SUBPARADIGM_PAST_TENSE);
@@ -104,10 +103,7 @@ ET_ReturnCode CFormBuilderPast::eCreateFormTemplate (const CEString& sStem,
     spWordForm->SetGender(eGender);
     spWordForm->SetNumber(eNumber);
     spWordForm->SetEndingDataId(llEndingKey);
-//    spWordForm->m_llLexemeId = m_pLexeme->llLexemeId();
     spWordForm->SetInflectionId(m_pLexeme->llLexemeId());
-
-//    rc = eAssignSecondaryStress (spWordForm);
 
     return H_NO_ERROR;
 
@@ -239,9 +235,8 @@ ET_ReturnCode CFormBuilderPast::eBuild()
                     CASE_UNDEFINED,
                     m_pLexeme->eIsReflexive());
 
-//                if (m_pLexeme->bHasMissingForms() || m_pLexeme->bImpersonal())
                 if (m_pLexeme->bImpersonal())
-                    {
+                {
                     if (m_pInflection->eFormExists(hasher.sGramHash()) != H_TRUE)
                     {
                         continue;
@@ -325,14 +320,11 @@ ET_ReturnCode CFormBuilderPast::eBuild()
                         if (itStressPos != vecStress.begin())
                         {
                             auto spWfVariant = make_shared<CWordForm>();
-//                            CloneWordForm (spWordForm, spWfVariant);
-//                            spWfVariant->m_mapStress.clear();
-                            spWfVariant->eCloneFrom(spWordForm.get());
-                            spWfVariant->ClearStress();
+                            rc = eCreateFormTemplate(sStem, sEnding, eNumber, eGender, llEndingKey, spWfVariant);
                             spWordForm = spWfVariant;
                         }
                         rc = eAssemble(spWordForm.get(), *itStressPos, sStem, sEnding);
-                        if (rc != H_NO_ERROR)
+                        if (rc != H_NO_ERROR && rc != H_NO_MORE)
                         {
                             return rc;
                         }
