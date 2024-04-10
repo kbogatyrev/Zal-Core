@@ -334,7 +334,7 @@ ET_ReturnCode CFormBuilderNouns::eHandleAccEnding (ET_Number eNumber, ET_Case& e
 
     if (NUM_SG == eNumber)
     {
-        if (m_pLexeme->sTrailingComment() == L"В. ед.=И. ед.")
+        if (m_pLexeme->sTrailingComment().bStartsWith(L"В. ед.=И. ед."))
         {
             eCase = CASE_NOM;
             return H_NO_ERROR;
@@ -353,7 +353,6 @@ ET_ReturnCode CFormBuilderNouns::eHandleAccEnding (ET_Number eNumber, ET_Case& e
                     ? eAltCase = CASE_GEN
                     : eAltCase = CASE_NOM;
             }
-
         }
         if (GENDER_N == m_pLexeme->eInflectionTypeToGender())
         {
