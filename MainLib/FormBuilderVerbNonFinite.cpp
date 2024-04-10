@@ -64,7 +64,7 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildInfinitive()
 
     ET_ReturnCode rc = H_NO_ERROR;
 
-    bool bNoRegularForms = false;
+//    bool bNoRegularForms = false;
 
 /*
     //

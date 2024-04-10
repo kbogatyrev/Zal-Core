@@ -462,7 +462,7 @@ ET_ReturnCode CFormBuilderPast::eRetractStressToPreverb (CWordForm* pWordForm, b
             }
             
             if ((m_pInflection->eAccentType2() == AT_C2) &&     // rare; currently only запереться
-                (*itStressSyll).first == pWordForm->sWordForm().uiGetNumOfSyllables() - 1)
+                (*itStressSyll).first == (int)pWordForm->sWordForm().uiGetNumOfSyllables() - 1)
             {
                 return H_NO_ERROR;
             }

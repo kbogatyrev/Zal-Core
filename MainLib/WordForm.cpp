@@ -366,7 +366,7 @@ ET_ReturnCode CWordForm::eSaveIrregularForm()
         return H_ERROR_DB;
     }
 
-    const StLexemeProperties& stProps = pLexeme()->stGetProperties();
+//    const StLexemeProperties& stProps = pLexeme()->stGetProperties();
 
     if (m_llDbKey >= 0)
     {
@@ -633,7 +633,7 @@ bool CWordForm::bSaveIrregularForm() // currently intended for spryazh. sm verbs
 {
 //    long long llStemDataId = -1;
     shared_ptr<CSqlite> spDbHandle;
-    const StLexemeProperties& stLexemeProperties = pLexeme()->stGetProperties();
+//    const StLexemeProperties& stLexemeProperties = pLexeme()->stGetProperties();
 
     try
     {
