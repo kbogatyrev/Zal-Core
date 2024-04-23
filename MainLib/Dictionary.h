@@ -58,7 +58,8 @@ public:
     ET_ReturnCode eCopyEntryForEdit(const shared_ptr<CInflection> spSource, shared_ptr<CInflection>& spCopy);
     ET_ReturnCode eGetLexemeById(long long Id, shared_ptr<CLexeme>& spLexeme);
     ET_ReturnCode eGetLexemesByHash(const CEString& sMd5);
-    ET_ReturnCode eGetLexemesByInitialForm(const CEString&);
+    ET_ReturnCode eSeeRefLookup(const CEString& sSource, CEString& sSeeRef);
+    ET_ReturnCode eGetLexemesByInitialForm(CEString&);
     ET_ReturnCode eGenerateAllForms();
     ET_ReturnCode eCountLexemes(int64_t& iLexemes);
 

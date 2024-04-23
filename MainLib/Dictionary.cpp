@@ -409,9 +409,53 @@ ET_ReturnCode CDictionary::eGetLexemesByHash(const CEString& sMd5)
 
 }   //  eGetLexemesByHash (...)
 
-ET_ReturnCode CDictionary::eGetLexemesByInitialForm(const CEString& sSource)
+ET_ReturnCode CDictionary::eSeeRefLookup(const CEString& sSource, CEString& sSeeRef)
 {
     ET_ReturnCode rc = H_NO_ERROR;
+
+    try {
+        CEString sQuery(L"SELECT see_ref FROM headword WHERE source = '#SOURCE#' AND variant = '' AND see_ref <> ''");
+        sQuery.sReplace(L"#SOURCE#", sSource);
+        uint64_t uiQueryHandle = 0;
+        rc = eQueryDb(sQuery, uiQueryHandle);
+        if (H_NO_ERROR != rc)
+        {
+            return rc;
+        }
+        auto bRet = m_spDb->bGetRow(uiQueryHandle);
+        if (!bRet)
+        {
+            return H_ERROR_UNEXPECTED;
+        }
+
+        m_spDb->GetData(0, sSeeRef, uiQueryHandle);
+        m_spDb->Finalize(uiQueryHandle);
+    }
+    catch (CException& ex)
+    {
+        HandleDbException(ex);
+        rc = H_ERROR_DB;
+    }
+
+    auto uiPos = sSeeRef.uiFindFirstOf(L"/\\");
+    while (uiPos != ecNotFound) {
+        sSeeRef = sSeeRef.sSubstr(0, uiPos) + sSeeRef.sSubstr(uiPos + 1);
+        uiPos = sSeeRef.uiFindFirstOf(L"/\\");
+    }
+
+    return rc;
+}
+
+ET_ReturnCode CDictionary::eGetLexemesByInitialForm(CEString& sSource)
+{
+    CEString sSeeRef;
+    auto rc = eSeeRefLookup(sSource, sSeeRef);
+    if (rc == H_NO_ERROR && sSource.uiLength() > 0)
+    {
+        sSource = move(sSeeRef);
+    }
+
+    rc = H_NO_ERROR;
     CEString sQuery(sQueryBaseDescriptor);
     sQuery += L" FROM headword INNER JOIN descriptor ON descriptor.word_id = headword.id ";
     sQuery += L"WHERE headword.source = \"";
