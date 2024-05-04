@@ -22,13 +22,13 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(sha1)
 
-FetchContent_Declare(
-  spdlog
-  GIT_REPOSITORY https://github.com/gabime/spdlog.git
-  GIT_TAG        7e635fc									 # 1.12.0
-  SOURCE_DIR "${PROJECT_SOURCE_DIR}/ThirdParty/spdlog"
-)
-FetchContent_MakeAvailable(spdlog)
+#FetchContent_Declare(
+#  spdlog
+#  GIT_REPOSITORY https://github.com/gabime/spdlog.git
+#  GIT_TAG        7e635fc									 # 1.12.0
+#  SOURCE_DIR "${PROJECT_SOURCE_DIR}/ThirdParty/spdlog"
+#)
+#FetchContent_MakeAvailable(spdlog)
 
 #
 #	Main library
@@ -81,7 +81,8 @@ if (MSVC)
 else()
 	set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 #	set(CMAKE_CXX_STANDARD 17)
-    add_compile_options(-Wall -Wextra -pedantic -Werror)
+#    add_compile_options(-Wall -Wextra -pedantic -Werror)
+    add_compile_options(-Wall -Wextra -pedantic)
 endif()
 
 #if (MSVC)
@@ -200,11 +201,12 @@ target_link_libraries (ZalPythonItf
 add_executable (ZalGenerateAllForms)
 
 target_sources (ZalGenerateAllForms PRIVATE
-	MainLib/GenerateAllForms.cpp
- "RunAnalytics/RunAnalytics.h")
+	GenerateAllForms/GenerateAllForms.cpp
+)
 
 target_include_directories (ZalGenerateAllForms PUBLIC
 	HLib
+	MainLib
 	ThirdParty/Sqlite
 	ThirdParty/sha1
 )
@@ -234,6 +236,27 @@ if (MSVC)
 	target_link_libraries(ZalRunAnalytics ZalMainLib)
 else()
 	target_link_libraries(ZalRunAnalytics ZalMainLib pthread dl)
+endif()
+
+#-------------------------------------------------------------------
+
+add_executable (ZalRunMetrics)
+
+target_sources (ZalRunMetrics PRIVATE
+	RunMetrics/RunMetrics.cpp
+	RunMetrics/RunMetrics.h)
+
+target_include_directories (ZalRunMetrics PUBLIC
+	HLib
+	MainLib
+	ThirdParty/Sqlite
+	ThirdParty/sha1
+)
+
+if (MSVC)
+	target_link_libraries(ZalRunMetrics ZalMainLib)
+else()
+	target_link_libraries(ZalRunMetrics ZalMainLib pthread dl)
 endif()
 
 #-------------------------------------------------------------------
