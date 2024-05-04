@@ -92,7 +92,7 @@ void CLexeme::Init()
     vector<CEString> vecMainSymbol = { L"м", L"мо", L"ж", L"жо", L"с", L"со", L"мо-жо", L"мн.",
      L"мн. неод.", L"мн. одуш.", L"мн. _от_", L"п", L"мс", L"мс-п", L"числ.", L"числ.-п", 
      L"св", L"нсв", L"св-нсв", L"н", L"предл.", L"союз", L"предик.", L"вводн.", L"сравн.", 
-     L"част.", L"межд." };
+     L"част.", L"межд." , L"предикативное мс"};
 
     try
     {
@@ -181,9 +181,10 @@ void CLexeme::Init()
             case MS_PREDL:
             case MS_SOJUZ:
             case MS_VVODN:
-            case MS_PREDIK:
+            case MS_PREDIC:
             case MS_MEZHD:
             case MS_SRAVN:
+            case MS_PREDIC_MS:
             {
                 m_mapMainSymbolToAnimacy[sMs] = ANIM_UNDEFINED;
                 m_mapMainSymbolToGender[sMs] = GENDER_UNDEFINED;
@@ -552,7 +553,7 @@ ET_ReturnCode CLexeme::eInitializeFromProperties()
         m_stProperties.ePartOfSpeech = POS_CONJUNCTION;
         break;
 
-    case MS_PREDIK:
+    case MS_PREDIC:
         m_stProperties.ePartOfSpeech = POS_PREDIC;
         break;
 

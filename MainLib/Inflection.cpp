@@ -1051,7 +1051,8 @@ ET_ReturnCode CInflection::eGenerateParadigm()
             }
         }
             
-        if (POS_PRONOUN == stLexemeProperties.ePartOfSpeech || POS_NUM == stLexemeProperties.ePartOfSpeech)
+        if (POS_PRONOUN == stLexemeProperties.ePartOfSpeech || POS_NUM == stLexemeProperties.ePartOfSpeech 
+            || POS_PRONOUN_PREDIC == stLexemeProperties.ePartOfSpeech)
         {
             shared_ptr<CWordForm> spWordForm;
             bool bOptional = false;
@@ -1069,7 +1070,7 @@ ET_ReturnCode CInflection::eGenerateParadigm()
             stLexemeProperties.ePartOfSpeech = POS_NULL;
         }
 
-        if (POS_PRONOUN_PREDIC == stLexemeProperties.ePartOfSpeech || POS_ADV == stLexemeProperties.ePartOfSpeech
+        if (POS_ADV == stLexemeProperties.ePartOfSpeech
             || POS_COMPAR == stLexemeProperties.ePartOfSpeech || POS_PREDIC == stLexemeProperties.ePartOfSpeech
             || POS_PREPOSITION == stLexemeProperties.ePartOfSpeech || POS_CONJUNCTION == stLexemeProperties.ePartOfSpeech
             || POS_PARTICLE == stLexemeProperties.ePartOfSpeech || POS_INTERJ == stLexemeProperties.ePartOfSpeech

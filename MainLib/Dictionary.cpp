@@ -1547,6 +1547,12 @@ ET_ReturnCode CDictionary::eReadDescriptorData(shared_ptr<CLexeme> spLexeme, uin
                     m_spDb->Finalize(uiAspectPairHandle);
                 }
             }
+
+//            if (!stProperties.sComment.bIsEmpty())
+//            { 
+//                auto rc = eCheckForExtraForms(stProperties.sComment);
+//            }
+
         }   // if (m_spDb->b_GetRow())
         else
         {
@@ -2685,6 +2691,36 @@ ET_ReturnCode CDictionary::eMarkLexemeAsEdited(shared_ptr<CLexeme> spLexeme)
     return H_NO_ERROR;
 
 }       //  eMarkLexemeAsEdited()
+
+// Additional comments that may appear after "имеется"
+/*
+multimap<CEString, ET_Subparadigm> mapContinuations {
+    { L"прич. страд. наст.",
+    L"прич. страд.",
+    L"страд.",
+    L"деепр." 
+};
+*/
+
+/*
+ET_ReturnCode CDictionary::eCheckForExtraForms(const CEString& sComment)
+{
+    auto uiOffset = sComment.uiFind(L"имеется");
+    if (ecNotFound == uiOffset)
+    {
+        return H_FALSE;
+    }
+
+    for (auto sNext : vecContinuations)
+    {
+        if (sComment.uiFind(sNext, uiOffset + 1) != ecNotFound)
+        {
+            break;
+        }
+    }
+    return H_NO_ERROR;
+}
+*/
 
 void CDictionary::HandleDbException(CException& ex)
 {

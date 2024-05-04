@@ -64,8 +64,8 @@ public:
     ET_ReturnCode eCountLexemes(int64_t& iLexemes);
 
     int nLexemesFound();
-
     void Clear();
+
     ET_ReturnCode Clear(shared_ptr<CLexeme>);
 
     ET_ReturnCode eCreateLexemeEnumerator(shared_ptr<CLexemeEnumerator>&);
@@ -90,11 +90,8 @@ public:
     ET_ReturnCode eSaveDescriptorInfo(CLexeme*);
     ET_ReturnCode eSaveCommonDeviation(CInflection*);
     ET_ReturnCode eSaveInflectionInfo(CInflection*);
-
     ET_ReturnCode ePopulateHashToDescriptorTable(PROGRESS_CALLBACK_CLR, PROGRESS_CALLBACK_PYTHON=nullptr);
-
     ET_ReturnCode eGetSecondPart(long long llId, shared_ptr<CLexeme>& pLexeme);
-
 
 private:
     CEString m_sDbPath;
@@ -124,8 +121,8 @@ private:
 
 //    ET_ReturnCode eGetP2Data(int64_t llLexemeId, StLexemeProperties& properties);
     ET_ReturnCode eGetWordIdFromLemexeId(int64_t llLexemeId, int64_t& llWordId);
-
     ET_ReturnCode eMarkLexemeAsEdited(shared_ptr<CLexeme> pLexeme);
+    ET_ReturnCode eCheckForExtraForms(const CEString& sComment);
 
     void HandleDbException(CException&);
 };

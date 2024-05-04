@@ -29,6 +29,22 @@ namespace Hlib
         {}
     };
 
+    struct StExtraForms
+    {
+        enum class ET_Type {
+            PASS,
+            PART_PASS,
+            PART_PASS_PRES,
+            ADVERBIAL
+        };
+
+        bool bIsObsolete { false };
+        bool bIsInformal { false };
+        bool bIsDifficult { false };
+
+        CEString sForm;
+    };
+
     class CLexeme;
 
     class CInflectionEnumerator
