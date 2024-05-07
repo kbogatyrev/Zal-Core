@@ -357,7 +357,6 @@ ET_ReturnCode CFormBuilderLongAdj::eBuild()
         }
 
         CGramHasher gram_tmp;
-//        gram_tmp.Initialize(POS_ADJ);
         gram_tmp.Initialize(m_pLexeme->ePartOfSpeech());
         ET_Subparadigm eSubParadigm = SUBPARADIGM_LONG_ADJ;
         if (m_pLexeme->ePartOfSpeech() == POS_NOUN)
@@ -413,6 +412,15 @@ ET_ReturnCode CFormBuilderLongAdj::eBuild()
                 if ((GENDER_M == gram_tmp.m_eGender && NUM_SG == gram_tmp.m_eNumber) || (NUM_PL == gram_tmp.m_eNumber))
                 {
                     eAnimacy = m_pLexeme->ePartOfSpeech() == POS_ADJ ? gram_tmp.m_eAnimacy : m_pLexeme->eMainSymbolToAnimacy();
+                }
+
+                if (NUM_PL == gram_tmp.m_eNumber && (L"мс" == m_pLexeme->sMainSymbol() && m_pLexeme->sComment().uiFind(L"мн. одуш") != ecNotFound))
+                {
+                    if (ANIM_NO == gram_tmp.m_eAnimacy)
+                    {
+                        continue;
+                    }
+                    eAnimacy = ANIM_YES;
                 }
             }
 
