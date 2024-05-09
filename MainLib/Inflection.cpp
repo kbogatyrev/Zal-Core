@@ -2684,10 +2684,10 @@ ET_ReturnCode CInflection::eAlignInflectedParts()
         int iCountRight = 0;
         for (auto& itValueLeft = pairLeftValueRange.first; itValueLeft != pairLeftValueRange.second; ++itValueLeft, ++iCountLeft)
         {
-            if ((*itValueLeft).second->bIrregular())
-            {
-                continue;       // irregular forms don't need alignment, they are stored in the left wf
-            }
+//            if ((*itValueLeft).second->bIrregular())
+//            {
+//                continue;       // irregular forms don't need alignment, they are stored in the left wf
+//            }
 
             auto& itValueRight = pairRightValueRange.first;
             if (0 == (*itValueRight).second->m_spInflection->iType())
