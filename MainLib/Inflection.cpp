@@ -453,6 +453,17 @@ ET_ReturnCode CInflection::eFormExists(const CEString& sFH)
     //    auto sFormHash = const_cast<CEString&> (sFH);
     //    sFormHash.SetBreakChars(L"_");
 
+    if (L"AdjS" == sFormHash.sGetField(0) && m_pLexeme->stGetProperties().bNoLongForms)
+    {
+        if (L"мс-п" == m_pLexeme->sMainSymbol())
+        {
+            if (m_pLexeme->stGetProperties().sComment.bStartsWith(L"формы — как кф ")
+                || m_pLexeme->stGetProperties().sComment.bStartsWith(L"формы см. "))
+
+                return H_TRUE;
+        }
+    }
+
     if (L"AdjS" == sFormHash.sGetField(0) || L"AdjComp" == sFormHash.sGetField(0))
     {
         if (L"мс-п" == m_pLexeme->sMainSymbol() || L"мс" == m_pLexeme->sInflectionType() ||
@@ -983,6 +994,21 @@ ET_ReturnCode CInflection::eGenerateParadigm()
                 {
                     CFormBuilderComparative cfb(m_pLexeme, this);
                     rc = cfb.eBuild();
+                }
+            }
+
+            if (stLexemeProperties.bHasIrregularForms && stLexemeProperties.bNoLongForms)
+            {
+                // Isolated case: каков & таков, мс-п with short forms only
+                if (stLexemeProperties.sComment.bStartsWith(L"формы — как кф ") 
+                    || stLexemeProperties.sComment.bStartsWith(L"формы см. "))
+                {
+                    CFormBuilderShortAdj sfb(m_pLexeme, this);
+                    rc = sfb.eBuild();
+                    if (rc != H_NO_ERROR)
+                    {
+                        return rc;
+                    }
                 }
             }
 
