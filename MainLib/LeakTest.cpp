@@ -33,7 +33,8 @@ int main()
 #else
         spDictionary->eSetDbPath(L"/home/konstantin/Leaks/ZalData_Master.db3");
 #endif
-        rc = spDictionary->eGetLexemesByInitialForm(L"мама");
+        Hlib::CEString sWord{ L"мама" };
+        rc = spDictionary->eGetLexemesByInitialForm(sWord);
         if (rc != Hlib::H_NO_ERROR && rc != Hlib::H_NO_MORE) {
             std::cout << "Error " << rc << std::endl;
         }
