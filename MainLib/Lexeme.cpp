@@ -741,6 +741,12 @@ ET_ReturnCode CLexeme::eGetSourceFormWithDiacritics(CEString& sSourceForm, bool 
 
     map<int, bool> mapStressedVowelPositions;
 
+    if (sRet.uiNSyllables() < 2)
+    {
+        sSourceForm = sRet;
+        return H_NO_ERROR;
+    }
+
     try
     {
         for (auto iSyll : vecStressedSyllables)
@@ -756,16 +762,19 @@ ET_ReturnCode CLexeme::eGetSourceFormWithDiacritics(CEString& sSourceForm, bool 
         }
 
         int iIncrement = 0;
-        for (auto&& pairVowelPos : mapStressedVowelPositions)
+        for (auto[iPos, bPrimary] : mapStressedVowelPositions)
         {
-            if (pairVowelPos.second)
+            if (bPrimary)
             {
-                sRet.sInsert((unsigned int)(pairVowelPos.first + iIncrement), Hlib::CEString::g_chrCombiningAcuteAccent);
-                ++iIncrement;
+                if (sRet[iPos + iIncrement] != L'ё')
+                {
+                    sRet.sInsert((unsigned int)(iPos + iIncrement + 1), Hlib::CEString::g_chrCombiningAcuteAccent);
+                    ++iIncrement;
+                }
             }
             else
             {
-                sRet.sInsert((unsigned int)(pairVowelPos.first + iIncrement), Hlib::CEString::g_chrCombiningGraveAccent);
+                sRet.sInsert((unsigned int)(iPos + iIncrement + 1), Hlib::CEString::g_chrCombiningGraveAccent);
                 ++iIncrement;
             }
         }

@@ -354,6 +354,53 @@ ET_ReturnCode CWordForm::eGetNextStressSyll(int& iSyll, ET_StressType& eType)
     return H_NO_ERROR;
 }
 
+ET_ReturnCode CWordForm::eGetFormWithDiacritics(CEString& sForm)
+{
+    sForm = m_sWordForm;
+
+    if (m_sWordForm.uiNSyllables() < 2)
+    {
+        return H_NO_ERROR;
+    }
+
+    unsigned int uiIncrement{ 0 };
+    for (auto [iSyll, eStressType] : m_mapStress)
+    {
+        try
+        {
+            auto uiVowelPos = sForm.uiGetVowelPos(iSyll);
+            if (eStressType == ET_StressType::STRESS_PRIMARY)
+            {
+                if (sForm[uiVowelPos + uiIncrement] != L'ё')
+                {
+                    sForm.sInsert(uiVowelPos + uiIncrement + 1, Hlib::CEString::g_chrCombiningAcuteAccent);
+                }
+            }
+            else if ((eStressType == ET_StressType::STRESS_SECONDARY))
+            {
+                sForm.sInsert(uiVowelPos + uiIncrement + 1, Hlib::CEString::g_chrCombiningGraveAccent);
+            }
+            else
+            {
+                ERROR_LOG(L"Unknown stress type.");
+                return H_ERROR_UNEXPECTED;
+            }
+        }
+        catch (CException& ex)
+        {
+            ERROR_LOG(ex.szGetDescription());
+            return H_EXCEPTION;
+        }
+        catch (...)
+        {
+            ERROR_LOG(L"Unknown exception.");
+        }
+    }
+
+    return H_NO_ERROR;
+
+}   //  eGetFormWithDiacritics()
+
 //
 // Used in manual editing
 //

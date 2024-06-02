@@ -325,6 +325,7 @@ namespace Hlib
         ET_ReturnCode eRemoveStressPos(int);
         ET_ReturnCode eGetFirstStressSyll(int& iSyll, ET_StressType&);
         ET_ReturnCode eGetNextStressSyll(int& iSyll, ET_StressType&);
+        ET_ReturnCode eGetFormWithDiacritics(CEString& sForm);          // used by the web inteface
 
         const map<int, ET_StressType>& mapGetStressPositions();
         ET_ReturnCode eSetStressPositions(map<int, ET_StressType> mapStress);

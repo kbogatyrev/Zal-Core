@@ -795,8 +795,8 @@ namespace Hlib
 
         bool bFindStandardAlternation(const CEString& sKey, CEString& sValue);
 
-        ET_ReturnCode eGetSourceFormWithStress(CEString& sSourceForm, bool bIsVariant=false);
-        ET_ReturnCode eGetSourceFormWithDiacritics(CEString& sSourceForm, bool bIsVariant = false);
+        ET_ReturnCode eGetSourceFormWithStress(CEString& sSourceForm, bool bIsVariant=false);     // desktop
+        ET_ReturnCode eGetSourceFormWithDiacritics(CEString& sSourceForm, bool bIsVariant=false); // web 
         ET_ReturnCode eGetFirstStemStressPos(int& iPos);
         ET_ReturnCode eGetNextStemStressPos(int& iPos);
         ET_ReturnCode eGetFirstSecondaryStemStressPos(int& iPos);
