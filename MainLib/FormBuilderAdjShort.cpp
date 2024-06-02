@@ -14,7 +14,8 @@ CFormBuilderShortAdj::CFormBuilderShortAdj(CLexeme* pLexeme,
     m_iVerbDeviation(0),
     m_eAccentType1 (m_pInflection->eAccentType1()),
     m_eAccentType2 (m_pInflection->eAccentType2()),
-    m_bFleetingVowel (m_pInflection->bFleetingVowel())
+    m_bFleetingVowel (m_pInflection->bFleetingVowel()),
+    m_eStatus (STATUS_COMMON)
 {
     if (AT_UNDEFINED == m_eAccentType2)
     {
