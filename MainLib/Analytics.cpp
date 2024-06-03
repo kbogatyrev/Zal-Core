@@ -201,17 +201,17 @@ ET_ReturnCode CAnalytics::eParseText(const CEString& sMetadata, const CEString& 
 
         }       // for (int iField ...)
 
-        m_vecTactGroupListHeads.clear();        // TODO -- verify that it is empty first?
+//        m_vecTactGroupListHeads.clear();        // TODO -- verify that it is empty first?
 
-        auto spCurrentTactGroup = make_shared<StTactGroup>();
-        spCurrentTactGroup->llLineId = llLineDbId;
-        eRet = eAddParsesToTactGroup(llLineDbId, iLine, 0, spCurrentTactGroup);
+//        auto spCurrentTactGroup = make_shared<StTactGroup>();
+//        spCurrentTactGroup->llLineId = llLineDbId;
+//        eRet = eAddParsesToTactGroup(sLine, llLineDbId, iLine, 0, spCurrentTactGroup);
 
-        spCurrentTactGroup->iNumOfSyllables = spCurrentTactGroup->sSource.uiNSyllables();
+//        spCurrentTactGroup->iNumOfSyllables = spCurrentTactGroup->sSource.uiNSyllables();
 
-        for (auto spTg : m_vecTactGroupListHeads) {
-            eSaveLineParses(spTg);
-        }
+//        for (auto spTg : m_vecTactGroupListHeads) {
+//            eSaveLineParses(spTg);
+//        }
     }       //  for (int iLine = 0 ...)
 
     m_spDb->CommitTransaction();
@@ -447,6 +447,11 @@ ET_ReturnCode CAnalytics::eGetStress(shared_ptr<StTactGroup> pTg)
 {
     ET_ReturnCode eRet = H_NO_ERROR;
 
+    if (pTg->m_vecParses.size() < 1)
+    {
+        return H_FALSE;
+    }
+
     vector<int> vecPrimary;
     vector<int> vecSecondary;
 
@@ -657,7 +662,10 @@ ET_ReturnCode CAnalytics::eSaveLineParses(shared_ptr<StTactGroup> spTactGroup)
         return H_ERROR_UNEXPECTED;
     }
 
-    rc = eTranscribe(spTactGroup);
+    if (H_NO_ERROR == rc)   // H_FALSE?
+    {
+        rc = eTranscribe(spTactGroup);
+    }
 
     rc = eSaveTactGroup(spTactGroup);
     if (rc != H_NO_ERROR)
@@ -862,7 +870,7 @@ bool CAnalytics::bArePhoneticallyIdentical(shared_ptr<CWordForm> spWf1, shared_p
 }       //  bArePhoneticallyIdentical()
 
 // Recursively create tact groups as a liniked list 
-ET_ReturnCode CAnalytics::eAddParsesToTactGroup(int64_t llLineId, int iLine, int iPos, shared_ptr<StTactGroup> spCurrentTactGroup)
+ET_ReturnCode CAnalytics::eAddParsesToTactGroup(CEString& sLine, int64_t llLineId, int iLine, int iPos, shared_ptr<StTactGroup> spCurrentTactGroup)
 {
     if (iPos >= m_iWordsInCurrentLine)
     {
@@ -887,13 +895,35 @@ ET_ReturnCode CAnalytics::eAddParsesToTactGroup(int64_t llLineId, int iLine, int
         sMsg += CEString::sToString(iLine) + L".";
         ERROR_LOG(sMsg);
 //        return H_ERROR_UNEXPECTED;
-        auto eRc = eAddParsesToTactGroup(llLineId, iLine, iPos + 1, spCurrentTactGroup);
+
+//        auto eRc = eAddParsesToTactGroup(llLineId, iLine, iPos + 1, spCurrentTactGroup);
+//        if (eRc != H_NO_ERROR)
+//        {
+//            CEString sMsg(L"Unable to add parse to the tact group, word position is ");
+//            sMsg += CEString::sToString(iPos) + L".";
+//            ERROR_LOG(sMsg);
+//            return H_FALSE;
+//        }
+
+        // Treat as an autonomous word without a parse
+        shared_ptr<StTactGroup> spNextTactGroup = make_shared<StTactGroup>();
+        spNextTactGroup->llLineId = llLineId;
+        spNextTactGroup->iFirstWordNum = iPos;
+        spNextTactGroup->iMainWordPos = 0;
+        spNextTactGroup->iNumOfWords = 1;
+        spNextTactGroup->iReverseStressedSyllable = -1;
+        spNextTactGroup->iSecondaryStressedSyllable = -1;
+        spNextTactGroup->iStressedSyllable = -1;
+        spNextTactGroup->sSource = sLine.sGetField(iPos);
+//        spNextTactGroup->AddWord(itInvariantSet->second, spWordParse->spWordForm->sWordForm());
+        spCurrentTactGroup->m_vecNext.push_back(spNextTactGroup);
+        spCurrentTactGroup = spNextTactGroup;
+        auto eRc = eAddParsesToTactGroup(sLine, llLineId, iLine, iPos + 1, spCurrentTactGroup);
         if (eRc != H_NO_ERROR)
         {
             CEString sMsg(L"Unable to add parse to the tact group, word position is ");
             sMsg += CEString::sToString(iPos) + L".";
             ERROR_LOG(sMsg);
-            return H_FALSE;
         }
     }
 
@@ -906,7 +936,7 @@ ET_ReturnCode CAnalytics::eAddParsesToTactGroup(int64_t llLineId, int iLine, int
             sMsg += CEString::sToString(iLine) + L".";
             ERROR_LOG(sMsg);
 //            return H_ERROR_UNEXPECTED;
-            auto eRc = eAddParsesToTactGroup(llLineId, iLine, iPos + 1, spCurrentTactGroup);
+            auto eRc = eAddParsesToTactGroup(sLine, llLineId, iLine, iPos + 1, spCurrentTactGroup);
             if (eRc != H_NO_ERROR)
             {
                 CEString sMsg(L"Unable to add parse to the tact group, word position is ");
@@ -943,12 +973,30 @@ ET_ReturnCode CAnalytics::eAddParsesToTactGroup(int64_t llLineId, int iLine, int
             }
             else
             {
-                auto spLastParse = *spCurrentTactGroup->m_vecParses.back().begin();  // nevermind, just take the first 
-                if (spLastParse->eStressType == ET_WordStressType::WORD_STRESS_TYPE_PROCLITIC)
+                bool bWordAdded{ false };
+                if (!spCurrentTactGroup->m_vecParses.empty())
                 {
-                    spCurrentTactGroup->AddWord(itInvariantSet->second, spWordParse->spWordForm->sWordForm());
+                    auto spLastParse = *spCurrentTactGroup->m_vecParses.back().begin();  // nevermind, just take the first 
+                    if (spLastParse->eStressType == ET_WordStressType::WORD_STRESS_TYPE_PROCLITIC)
+                    {
+                        spCurrentTactGroup->AddWord(itInvariantSet->second, spWordParse->spWordForm->sWordForm());
+                    }
+                    bWordAdded = true;
                 }
                 else
+                {
+                    spCurrentTactGroup->llLineId = llLineId;
+                    spCurrentTactGroup->iFirstWordNum = iPos;
+                    spCurrentTactGroup->iMainWordPos = 0;
+                    spCurrentTactGroup->iNumOfWords = 1;
+                    spCurrentTactGroup->iReverseStressedSyllable = -1;
+                    spCurrentTactGroup->iSecondaryStressedSyllable = -1;
+                    spCurrentTactGroup->iStressedSyllable = -1;
+                    spCurrentTactGroup->sSource = sLine.sGetField(iPos);
+                    bWordAdded = true;
+                }
+                
+                if (!bWordAdded)
                 {   // Current word is proclitic preceded by anything other than a proclitic: start a new tact group
                     shared_ptr<StTactGroup> spNextTactGroup = make_shared<StTactGroup>();
                     spNextTactGroup->iFirstWordNum = iPos;
@@ -970,12 +1018,30 @@ ET_ReturnCode CAnalytics::eAddParsesToTactGroup(int64_t llLineId, int iLine, int
             }
             else
             {
-                auto spLastParse = *spCurrentTactGroup->m_vecParses.back().begin();  // nevermind, just take the first 
-                if (spLastParse->eStressType == ET_WordStressType::WORD_STRESS_TYPE_PROCLITIC)
+                bool bWordAdded {false};
+                if (!spCurrentTactGroup->m_vecParses.empty())
                 {
-                    spCurrentTactGroup->AddWord(itInvariantSet->second, spWordParse->spWordForm->sWordForm());
+                    auto spLastParse = *spCurrentTactGroup->m_vecParses.back().begin();  // nevermind, just take the first one
+                    if (spLastParse->eStressType == ET_WordStressType::WORD_STRESS_TYPE_PROCLITIC)
+                    {
+                        spCurrentTactGroup->AddWord(itInvariantSet->second, spWordParse->spWordForm->sWordForm());
+                        bWordAdded = true;
+                    }
                 }
                 else
+                {
+                    spCurrentTactGroup->llLineId = llLineId;
+                    spCurrentTactGroup->iFirstWordNum = iPos;
+                    spCurrentTactGroup->iMainWordPos = 0;
+                    spCurrentTactGroup->iNumOfWords = 1;
+                    spCurrentTactGroup->iReverseStressedSyllable = -1;
+                    spCurrentTactGroup->iSecondaryStressedSyllable = -1;
+                    spCurrentTactGroup->iStressedSyllable = -1;
+                    spCurrentTactGroup->sSource = sLine.sGetField(iPos);
+                    bWordAdded = true;
+                }
+
+                if (!bWordAdded)
                 {   // Current word is autonomous preceded by anything other than a proclitic: start a new tact group
                     shared_ptr<StTactGroup> spNextTactGroup = make_shared<StTactGroup>();
                     spNextTactGroup->llLineId = llLineId;
@@ -996,7 +1062,7 @@ ET_ReturnCode CAnalytics::eAddParsesToTactGroup(int64_t llLineId, int iLine, int
         }       // switch...
 
         // Next word?
-        auto eRc = eAddParsesToTactGroup(llLineId, iLine, iPos + 1, spCurrentTactGroup);
+        auto eRc = eAddParsesToTactGroup(sLine, llLineId, iLine, iPos + 1, spCurrentTactGroup);
         if (eRc != H_NO_ERROR)
         {
             CEString sMsg(L"Unable to add parse to the tact group, word position is ");
@@ -1232,11 +1298,12 @@ ET_ReturnCode CAnalytics::eClearTextData(int64_t llTextId)
 //  Web interface, manual editing
 //
 
-//                                       0         1             2              3         4           5             6               7                 8              9
-static CEString sLineQuery { L"SELECT tmd.title, lit.id, wil.word_position, lit.source, wf.id, sd.gram_hash, wil.word_text, stress.position, stress.is_primary, stress.is_variant \
-                             FROM lines_in_text AS lit INNER JOIN words_in_line AS wil ON wil.line_id = lit.id INNER JOIN word_to_wordform AS wtw ON wtw.word_in_line_id = wil.id \
-                             INNER JOIN wordforms AS wf ON wf.id = wtw.wordform_id INNER JOIN stem_data AS sd ON sd.id = wf.stem_data_id INNER JOIN stress_data AS stress \
-                             ON stress.form_id = wtw.wordform_id INNER JOIN text as t ON lit.text_id = t.id INNER JOIN text_metadata as tmd ON t.id = tmd.text_id; " };
+static CEString sLineQuery { 
+//                 0         1             2              3         4           5             6               7                 8              9
+    L"SELECT tmd.title, lit.id, wil.word_position, lit.source, wf.id, sd.gram_hash, wil.word_text, stress.position, stress.is_primary, stress.is_variant \
+      FROM lines_in_text AS lit INNER JOIN words_in_line AS wil ON wil.line_id = lit.id INNER JOIN word_to_wordform AS wtw ON wtw.word_in_line_id = wil.id \
+      INNER JOIN wordforms AS wf ON wf.id = wtw.wordform_id INNER JOIN stem_data AS sd ON sd.id = wf.stem_data_id INNER JOIN stress_data AS stress \
+      ON stress.form_id = wtw.wordform_id INNER JOIN text as t ON lit.text_id = t.id INNER JOIN text_metadata as tmd ON t.id = tmd.text_id; " };
 
 //                                               0         1           2             3             4             5
 static CEString sIrregularFormsQuery{ L"SELECT f.id, f.gram_hash, f.wordform, f.is_alternative, s.position, s.is_primary \
@@ -1305,6 +1372,63 @@ ET_ReturnCode CAnalytics::eLoadIrregularForms()
 
     return H_NO_ERROR;
 }
+
+static CEString sCliticsQuery{ L"SELECT hw.source, c.is_proclitic, c.is_enclitic, FROM clitics AS c \
+                                 INNER JOIN headword AS hw ON hw.id=c.headword_id \
+                                 ORDER BY hw.source;" };
+
+ET_ReturnCode CAnalytics::eLoadClitics()
+{
+    if (nullptr == m_spDb)
+    {
+        ERROR_LOG(L"No database access.");
+        return H_ERROR_POINTER;
+    }
+
+
+    auto spIrregularForm = make_shared<StIrregularWord>();
+    bool bMore{ true };
+    try
+    {
+        m_spDb->PrepareForSelect(sCliticsQuery);
+        while (bMore)
+        {
+            auto bRc = m_spDb->bGetRow();
+            if (!bRc)
+            {
+                m_spDb->Finalize();
+                bMore = false;
+                continue;
+            }
+
+            CEString sSource;
+            bool bIsProclitic{ false };
+            bool bIsEnclitic{ false };
+            m_spDb->GetData(0, sSource);
+            m_spDb->GetData(1, bIsProclitic);
+            m_spDb->GetData(2, bIsEnclitic);
+
+            if (bIsProclitic)
+            {
+                m_setProclitics.insert(sSource);
+            }
+            if (bIsEnclitic)
+            {
+                m_setEnclitics.insert(sSource);
+            }
+        }
+    }
+    catch (CException& e)
+    {
+        CEString sMsg;
+        eHandleDbException(e, sMsg);
+        ERROR_LOG(sMsg);
+        return H_EXCEPTION;
+    }
+
+    return H_NO_ERROR;
+
+}       //  eLoadClitics()
 
 ET_ReturnCode CAnalytics::eGetFirstSegment(vector<StWordContext>& vecParses, int64_t llStartAt)
 {

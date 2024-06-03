@@ -185,6 +185,7 @@ namespace Hlib
         void SetBookTitle(const CEString sBookTitle);
         ET_ReturnCode eParseText(const CEString& sMetadata, const CEString& sText, int64_t llFirstLineNum, bool bIsProse = false);
         ET_ReturnCode eLoadIrregularForms();
+        ET_ReturnCode eLoadClitics();
         ET_ReturnCode eGetFirstSegment(vector<StWordContext>&, int64_t llStartAt=0);
         ET_ReturnCode eGetNextSegment(vector<StWordContext>&);
 
@@ -206,7 +207,7 @@ namespace Hlib
         ET_ReturnCode eClearTextData(int64_t llText);
         ET_WordStressType eGetStressType(CWordForm&);
         bool bArePhoneticallyIdentical(shared_ptr<CWordForm>, shared_ptr<CWordForm>);
-        ET_ReturnCode eAddParsesToTactGroup(int64_t llLineDbId, int iLineNum, int iWord, shared_ptr<StTactGroup>);
+        ET_ReturnCode eAddParsesToTactGroup(CEString& sLine, int64_t llLineDbId, int iLineNum, int iWord, shared_ptr<StTactGroup>);
 
         ET_ReturnCode eGetSegment(vector<StWordContext>&);
         ET_ReturnCode eAssembleParsedSegment(vector<StWordContext>&);
@@ -241,6 +242,9 @@ namespace Hlib
             }
         };
         multimap<shared_ptr<CEString>, shared_ptr<StIrregularWord>, StCEStringComparator> m_mmapWordToIrregForm;
+
+        set<CEString> m_setProclitics;
+        set<CEString> m_setEnclitics;
 
         multimap<int, int64_t> m_mmapWordPosToFormIds;                              // 1 to many, multiple hypotheses
         multimap<int, int64_t> m_mmapWordPosToIrregIds;                             // 1 to many, multiple hypotheses
