@@ -171,8 +171,8 @@ ET_ReturnCode CDictionary::eSetDbPath(const CEString& sPath)
     }
     catch (CException& ex)
     {
-        ERROR_LOG(ex.szGetDescription());
-        return H_EXCEPTION;
+        HandleDbException(ex);
+        return H_ERROR_DB;
     }
 
     return H_NO_ERROR;
