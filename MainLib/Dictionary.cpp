@@ -164,7 +164,7 @@ ET_ReturnCode CDictionary::eSetDbPath(const CEString& sPath)
     try
     {
         m_spDb = make_shared<CSqlite>(m_sDbPath);
-        if (!m_spDb)
+        if (nullptr == m_spDb)
         {
             return H_ERROR_DB;
         }
@@ -2726,19 +2726,22 @@ void CDictionary::HandleDbException(CException& ex)
 {
     CEString sMsg(ex.szGetDescription());
     CEString sError;
-    try
+    if (m_spDb)
     {
-        m_spDb->GetLastError(sError);
-        sMsg += CEString(L", error description: ");
-        sMsg += sError;
-    }
-    catch (...)
-    {
-        sMsg = L"Apparent DB error ";
+        try
+        {
+            m_spDb->GetLastError(sError);
+            sMsg += CEString(L", error description: ");
+            sMsg += sError;
+        }
+        catch (...)
+        {
+            sMsg = L"Apparent DB error ";
+        }
+        sMsg += L", error code = ";
+        sMsg += CEString::sToString(m_spDb->iGetLastError());
     }
 
-    sMsg += L", error code = ";
-    sMsg += CEString::sToString(m_spDb->iGetLastError());
     ERROR_LOG(sMsg);
 
 }
