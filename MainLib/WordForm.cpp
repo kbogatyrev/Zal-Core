@@ -30,7 +30,7 @@ CWordForm::CWordForm() :
     m_eAspect(ASPECT_UNDEFINED),
     m_eStatus(STATUS_COMMON),
     m_bIrregular(false),
-    m_bIsDifficult(false),
+//    m_bIsDifficult(false),
     m_eStressType(WORD_STRESS_TYPE_UNDEFINED),
     m_bIsEdited(false)
 {
@@ -60,7 +60,7 @@ CWordForm::CWordForm(CInflection* pInflection) :
     m_eAspect(ASPECT_UNDEFINED),
     m_eStatus(STATUS_COMMON),
     m_bIrregular(false),
-    m_bIsDifficult(false),
+//    m_bIsDifficult(false),
     m_eStressType(WORD_STRESS_TYPE_UNDEFINED),
     m_bIsEdited(false)
 {
@@ -90,7 +90,7 @@ CWordForm::CWordForm(const CEString& sHash, CInflection* spInflection) :
     m_eAspect(ASPECT_UNDEFINED),
     m_eStatus(STATUS_COMMON),
     m_bIrregular(false),
-    m_bIsDifficult(false),
+//    m_bIsDifficult(false),
     m_eStressType(WORD_STRESS_TYPE_UNDEFINED),
     m_bIsEdited(false)
 {
@@ -200,7 +200,7 @@ ET_ReturnCode CWordForm::eCloneFrom(const CWordForm* spSource)
     m_eAspect = spSource->m_eAspect;
     m_eStatus = spSource->m_eStatus;
     m_bIrregular = spSource->m_bIrregular;
-    m_bIsDifficult = spSource->m_bIsDifficult;
+//    m_bIsDifficult = spSource->m_bIsDifficult;
     m_eStressType = spSource->m_eStressType;
 
     // Irregular forms only:
@@ -828,7 +828,7 @@ void CWordForm::Copy(const CWordForm& source)
     m_eStatus = source.m_eStatus;
     m_bIrregular = source.m_bIrregular;
     m_bIsEdited = source.m_bIsEdited;
-    m_bIsDifficult = source.m_bIsDifficult;
+//    m_bIsDifficult = source.m_bIsDifficult;
     m_eStressType = source.m_eStressType;
     m_itStressSyll = source.m_itStressSyll;
     m_sLeadComment = source.m_sLeadComment;
