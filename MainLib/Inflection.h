@@ -49,6 +49,12 @@ namespace Hlib
             return m_pLexeme->llLexemeId();
         }
 
+        // alias for the above
+        long long llLexemeId()
+        {
+            return m_pLexeme->llLexemeId();
+        }
+
         ET_ReturnCode eGetLexeme(CLexeme*& spLexeme)
         {
             spLexeme = m_pLexeme;
