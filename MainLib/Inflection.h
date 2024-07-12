@@ -332,6 +332,7 @@ namespace Hlib
         CEString sParadigmHash();
 
         ET_ReturnCode eIsFormDifficult(const CEString& sGramHash);
+        bool bIsFormDifficult(const CEString& sGramHash);           // same logic, different return type
         ET_ReturnCode eSetFormDifficult(const CEString& hash, bool bIsDifficult);
         ET_ReturnCode eDifficultFormsHashes(vector<CEString>&);
         ET_ReturnCode eIsFormAssumed(const CEString& sGramHash);

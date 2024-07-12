@@ -1592,6 +1592,12 @@ ET_ReturnCode CInflection::eIsFormDifficult(const CEString& sFH)
 
 }   //  eIsFormDifficult()
 
+bool CInflection::bIsFormDifficult(const CEString& sGramHash)           // same logic, different return type
+{
+    return eIsFormDifficult(sGramHash) == H_TRUE;
+}
+
+
 ET_ReturnCode CInflection::eSetFormDifficult(const CEString& sGramHash, bool bIsDifficult)
 {
     if (bIsDifficult)
