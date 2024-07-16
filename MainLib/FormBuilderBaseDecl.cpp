@@ -598,7 +598,7 @@ ET_ReturnCode CFormBuilderDecl::eGetStemStressPositions (const CEString& sStem,
     }
 
     if (AT_D != m_pInflection->eAccentType1() && 
-        !m_bIrregularSourceForm && 
+//        !m_bIrregularSourceForm && 
         (H_NO_ERROR == rc || H_NO_MORE == rc) && 
         (iPos < iSyllablesInStem))
     {
