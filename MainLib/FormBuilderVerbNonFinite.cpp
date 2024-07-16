@@ -875,6 +875,10 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastAdverbial()
                 spWordForm->SetEnding(sEnding);
                 spWordForm->SetWordForm(spWordForm->sStem() + sEnding);
                 spWordForm->AssignStress(pPastPart->mapGetStressPositions());
+                if (m_pInflection->bHasCommonDeviation(9))
+                {
+                    spWordForm->SetStatus(ET_Status::STATUS_OBSOLETE);
+                }
 
                 if (L"нсв" == m_pLexeme->sMainSymbol())
                 {
