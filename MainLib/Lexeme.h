@@ -816,6 +816,7 @@ namespace Hlib
             return m_spSecondPart;
         }
 
+        void ClearInflections();
         void AddInflection(shared_ptr<CInflection>);
 
         ET_ReturnCode eGetStemStressPositions(const CEString& sStem, vector<int>& vecPosition);
@@ -835,6 +836,7 @@ namespace Hlib
 
     private:
         void Init();
+        void HandleDbException(CException& ex, shared_ptr<Hlib::CSqlite>);
 
     private:
         shared_ptr<CInflectionEnumerator> m_spInflectionEnumerator;

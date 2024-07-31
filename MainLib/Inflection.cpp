@@ -1142,6 +1142,63 @@ ET_ReturnCode CInflection::eGenerateParadigm()
         }
     }
 
+    if (m_pLexeme->stGetProperties().bSklonSm)
+    {
+        auto& sAdd = m_pLexeme->stGetProperties().sSklonSmAdd;
+        auto& sRemove = m_pLexeme->stGetProperties().sSklonSmRemove;
+
+        for (auto& [sGramHash, spWordForm] : m_mmWordForms)
+        {
+            auto& sRefForm = spWordForm->sWordForm();
+
+            CEString sNewForm(sRefForm);
+            if (!sRemove.bIsEmpty())
+            {
+                if (sRemove.bStartsWith(L"#"))
+                {
+                    sNewForm = sRefForm.sErase(0, sRemove.uiLength() + 1);
+                }
+                else
+                {
+                    // assert # at the end
+                    sNewForm = sNewForm.sErase(sNewForm.uiLength() - sRemove.uiLength() - 2);
+                }
+            }
+
+            //  TODO -- verify sizes etc
+            if (!sAdd.bIsEmpty())
+            {
+                if (sAdd.bStartsWith(L"#"))
+                {
+                    sNewForm += sAdd.sSubstr(1);
+                }
+                else
+                {
+                    // assert # at the end
+                    sNewForm = sAdd.sSubstr(0, sAdd.uiLength() - 1) + sRefForm;
+                }
+            }
+
+            sRefForm.SetVowels(CEString::g_szRusVowels);
+            sNewForm.SetVowels(CEString::g_szRusVowels);
+            int iDiff = (int)sNewForm.uiNSyllables() - (int)sRefForm.uiNSyllables();
+            spWordForm->SetWordForm(sNewForm);
+            map<int, ET_StressType> mapModified;
+            for (auto& [iPos, eType] : spWordForm->m_mapStress)
+            {
+                mapModified.emplace(iPos + iDiff, eType);
+                // TODO -- expect no secondaries?
+            }
+
+            for (auto iSecondaryPos : m_pLexeme->stGetProperties().vecSklonSmSecondaryStressPos)
+            {
+                mapModified.emplace(iSecondaryPos, ET_StressType::STRESS_SECONDARY);
+            }
+
+            spWordForm->m_mapStress = mapModified;
+        }
+    }
+
     m_bFormsGenerated = true;
 
     return H_NO_ERROR;

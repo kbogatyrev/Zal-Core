@@ -11,6 +11,7 @@ namespace Hlib
     struct StInflectionProperties
     {
         // From inflection table:
+        // From inflection table:
         int64_t llInflectionId { -1 };
         bool bPrimaryInflectionGroup { false };
         int iType { -1 };
@@ -28,6 +29,9 @@ namespace Hlib
         bool bSecondPrepositional{ false };
         bool bSecondPrepositionalOptional{ false };
         CEString sP2Preposition;
+
+        int64_t llSklonSmId { -1 };
+        CEString sAddition;
 
         map<int, bool> mapCommonDeviations;     // Number in circle --> is optional
     };

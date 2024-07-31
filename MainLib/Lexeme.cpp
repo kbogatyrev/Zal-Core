@@ -375,6 +375,11 @@ ET_ReturnCode CLexeme::eUpdateDescriptorInfo(CLexeme* spLexeme)
     return m_spDictionary->eUpdateDescriptorInfo(spLexeme);
 }
 
+void CLexeme::ClearInflections() 
+{
+    m_vecInflections.clear();
+}
+
 void CLexeme::AddInflection(shared_ptr<CInflection> spInflection)
 {
     m_vecInflections.emplace_back(spInflection);
@@ -592,66 +597,75 @@ ET_ReturnCode CLexeme::eHandleSpryazhSmEntry()
     sQuery += CEString::sToString(m_stProperties.llDescriptorId);
     sQuery += L";";
 
-    CEString sRefSource;
-    CEString sHeadWordId;
-    auto spDb = m_spDictionary->spGetDb();
-    uiQueryHandle = spDb->uiPrepareForSelect(sQuery);
-    while (spDb->bGetRow(uiQueryHandle))
+    try
     {
-        spDb->GetData(0, sRefSource, uiQueryHandle);
-        spDb->GetData(1, sHeadWordId, uiQueryHandle);
+        CEString sRefSource;
+        CEString sHeadWordId;
+        auto spDb = m_spDictionary->spGetDb();
+        uiQueryHandle = spDb->uiPrepareForSelect(sQuery);
+        while (spDb->bGetRow(uiQueryHandle))
+        {
+            spDb->GetData(0, sRefSource, uiQueryHandle);
+            spDb->GetData(1, sHeadWordId, uiQueryHandle);
+        }
+
+        spDb->Finalize(uiQueryHandle);
+
+        CEString sHomonymsQuery(L"SELECT homonym_number FROM homonyms WHERE headword_id = ");
+        sHomonymsQuery += sHeadWordId;
+        sHomonymsQuery += L";";
+        uiQueryHandle = spDb->uiPrepareForSelect(sHomonymsQuery);
+        CEString sHomonyms;
+        while (spDb->bGetRow(uiQueryHandle))
+        {
+            CEString sNum;
+            spDb->GetData(0, sHomonyms, uiQueryHandle);
+            if (!sHomonyms.bIsEmpty())
+            {
+                sHomonyms += L"-";
+            }
+        }
+
+        sRefSource.SetVowels(CEString::g_szRusVowels);
+        m_stProperties.sSpryazhSmRefSource = sRefSource;
+        m_stProperties.sSpryazhSmRefHomonyms = sHomonyms;
+
+        m_stProperties.iSpryazhSmRefPrefixLength = (int)sRefSource.uiLength();
+        m_stProperties.sSpryazhSmPrefix = m_stProperties.sSourceForm;
+        for (int iAt1 = sRefSource.uiLength() - 1, iAt2 = m_stProperties.sSourceForm.uiLength() - 1; 
+            (iAt1 >= 0) && (iAt2 >= 0);
+            --iAt1, --iAt2)
+        {
+            if (sRefSource[iAt1] == m_stProperties.sSourceForm[iAt2])
+            {
+                --m_stProperties.iSpryazhSmRefPrefixLength;
+                m_stProperties.sSpryazhSmPrefix.sRemoveCharsFromEnd(1);
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        auto& sRefStem = m_stProperties.sGraphicStem;
+        sRefStem.SetVowels(CEString::g_szRusVowels);
+        auto sNewStem = m_stProperties.sSpryazhSmPrefix + 
+            sRefStem.sSubstr(m_stProperties.iSpryazhSmRefPrefixLength);
+        sNewStem.SetVowels(CEString::g_szRusVowels);
+    //    int iDiff = (int)sNewStem.uiNSyllables() - (int)sRefStem.uiNSyllables();
+
+        m_stProperties.sGraphicStem = sNewStem;
     }
-
-    spDb->Finalize(uiQueryHandle);
-
-    CEString sHomonymsQuery(L"SELECT homonym_number FROM homonyms WHERE headword_id = ");
-    sHomonymsQuery += sHeadWordId;
-    sHomonymsQuery += L";";
-    uiQueryHandle = spDb->uiPrepareForSelect(sHomonymsQuery);
-    CEString sHomonyms;
-    while (spDb->bGetRow(uiQueryHandle))
+    catch (CException& ex)
     {
-        CEString sNum;
-        spDb->GetData(0, sHomonyms, uiQueryHandle);
-        if (!sHomonyms.bIsEmpty())
-        {
-            sHomonyms += L"-";
-        }
+        HandleDbException(ex, m_spDictionary->spGetDb());
+        return H_ERROR_DB;
     }
-
-    sRefSource.SetVowels(CEString::g_szRusVowels);
-    m_stProperties.sSpryazhSmRefSource = sRefSource;
-    m_stProperties.sSpryazhSmRefHomonyms = sHomonyms;
-
-    m_stProperties.iSpryazhSmRefPrefixLength = (int)sRefSource.uiLength();
-    m_stProperties.sSpryazhSmPrefix = m_stProperties.sSourceForm;
-    for (int iAt1 = sRefSource.uiLength() - 1, iAt2 = m_stProperties.sSourceForm.uiLength() - 1; 
-        (iAt1 >= 0) && (iAt2 >= 0);
-        --iAt1, --iAt2)
-    {
-        if (sRefSource[iAt1] == m_stProperties.sSourceForm[iAt2])
-        {
-            --m_stProperties.iSpryazhSmRefPrefixLength;
-            m_stProperties.sSpryazhSmPrefix.sRemoveCharsFromEnd(1);
-        }
-        else
-        {
-            break;
-        }
-    }
-
-    auto& sRefStem = m_stProperties.sGraphicStem;
-    sRefStem.SetVowels(CEString::g_szRusVowels);
-    auto sNewStem = m_stProperties.sSpryazhSmPrefix + 
-        sRefStem.sSubstr(m_stProperties.iSpryazhSmRefPrefixLength);
-    sNewStem.SetVowels(CEString::g_szRusVowels);
-//    int iDiff = (int)sNewStem.uiNSyllables() - (int)sRefStem.uiNSyllables();
-
-    m_stProperties.sGraphicStem = sNewStem;
 
     return H_NO_ERROR;
 
 }   //  eHandleSpryazhSmEntry()
+
 
 //ET_ReturnCode CLexeme::eClone(shared_ptr<CLexeme>& spClonedObject)
 //{
@@ -919,4 +933,26 @@ ET_ReturnCode CLexeme::eGetAltAspectPair(CEString& sAltAspectPair, int& iAltStre
     spInflection->eGetAltAspectPair(sAltAspectPair, iAltStressPos);
 
     return H_NO_ERROR;
+}
+
+void CLexeme::HandleDbException(CException& ex, shared_ptr<Hlib::CSqlite> spDb)
+{
+    CEString sMsg(ex.szGetDescription());
+    CEString sError;
+    if (spDb)
+    {
+        try
+        {
+            spDb->GetLastError(sError);
+            sMsg += CEString(L", error description: ");
+            sMsg += sError;
+        }
+        catch (...)
+        {
+            sMsg = L"Apparent DB error ";
+        }
+        sMsg += L", error code = ";
+        sMsg += CEString::sToString(spDb->iGetLastError());
+    }
+    ERROR_LOG(sMsg);
 }
