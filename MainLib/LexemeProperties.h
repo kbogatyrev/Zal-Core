@@ -94,13 +94,21 @@ namespace Hlib
 
         CEString sInfinitive;
 
-        // Spryazh sm. 
+        // Spryazh. sm. 
         CEString sSpryazhSmRefSource;
         CEString sSpryazhSmPrefix;
         CEString sSpryazhSmRefHomonyms;
         CEString sSpryazhSmComment;
         int iSpryazhSmRefPrefixLength{ -1 };
         bool bSpryazhSmNoAspectPair{ false };
+
+        // Sklon. sm.
+        bool bSklonSm{ false };
+        long long llSklonSmInflectionId{ -1 };
+        CEString sSklonSmRemove;
+        CEString sSklonSmAdd;
+        vector<int> vecSklonSmStressPos;
+        vector<int> vecSklonSmSecondaryStressPos;
     };
 
 }       //  namespace Hlib

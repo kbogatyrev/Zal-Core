@@ -700,6 +700,12 @@ ET_ReturnCode CLexeme::eGetSourceFormWithStress(CEString& sSourceForm, bool bIsV
     vector<int> vecStressedSyllables = bIsVariant ? m_stProperties.vecSourceVariantStressPos : m_stProperties.vecSourceStressPos;
     vector<int> vecSecondaryStressedSyllables = bIsVariant ? m_stProperties.vecSecondaryVariantStressPos : m_stProperties.vecSecondaryStressPos;
 
+    if (m_stProperties.bSklonSm)
+    {
+        vecStressedSyllables = m_stProperties.vecSklonSmStressPos;
+        vecSecondaryStressedSyllables = m_stProperties.vecSklonSmSecondaryStressPos;
+    }
+
     map<int, bool> mapStressedVowelPositions;
 
     try

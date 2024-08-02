@@ -582,7 +582,7 @@ ET_ReturnCode CDictionary::eGetLexemesByInitialForm(CEString& sSource)
     if (vecLexemesFound.size() == 1 && vecLexemesFound[0]->stGetProperties().sComment.bStartsWith(L"склон. см."))
     {
         auto spLexeme = vecLexemesFound[0];
-        CEString sSklonSmQuery{ L"SELECT ref_descriptor_id, ref_inflection_id, remove_str, add_str FROM sklon_sm WHERE descriptor_id = " };
+        CEString sSklonSmQuery{ L"SELECT inflection_id, ref_descriptor_id, ref_inflection_id, remove_str, add_str FROM sklon_sm WHERE descriptor_id = " };
         sSklonSmQuery += CEString::sToString(spLexeme->stGetProperties().llDescriptorId) + L";";
         uint64_t uiQueryHandle = 0;
         uiQueryHandle = m_spDb->uiPrepareForSelect(sSklonSmQuery);
@@ -593,53 +593,29 @@ ET_ReturnCode CDictionary::eGetLexemesByInitialForm(CEString& sSource)
             return H_ERROR_DB;
         }
 
+        uint64_t llInflectionId;
+        m_spDb->GetData(0, llInflectionId, uiQueryHandle);
         uint64_t llRefDescriptorId;
-        m_spDb->GetData(0, llRefDescriptorId, uiQueryHandle);
+        m_spDb->GetData(1, llRefDescriptorId, uiQueryHandle);
         uint64_t llRefInflectionId;
-        m_spDb->GetData(1, llRefInflectionId, uiQueryHandle);
+        m_spDb->GetData(2, llRefInflectionId, uiQueryHandle);
         CEString sRemoveStr;
-        m_spDb->GetData(2, sRemoveStr, uiQueryHandle);
+        m_spDb->GetData(3, sRemoveStr, uiQueryHandle);
         CEString sAddStr;
-        m_spDb->GetData(3, sAddStr, uiQueryHandle);
+        m_spDb->GetData(4, sAddStr, uiQueryHandle);
         m_spDb->Finalize(uiQueryHandle);
         shared_ptr<CLexeme> spNewLexeme;
         vecLexemesFound.clear();
         rc = eGetLexemeById(llRefDescriptorId, spNewLexeme);
 
-/*
-        auto sGraphicStem = spNewLexeme->sGraphicStem();
-        if (!sRemoveStr.bIsEmpty())
-        {
-            if (sRemoveStr.bStartsWith(L"#"))
-            {
-                sGraphicStem = sGraphicStem.sErase(0, sRemoveStr.uiLength() + 1);
-            }
-            else
-            {
-                // assert # at the end
-                sGraphicStem = sGraphicStem.sErase(sGraphicStem.uiLength() - sRemoveStr.uiLength() - 2);
-            }
-        }
-
-        if (!sAddStr.bIsEmpty())
-        {
-            if (sAddStr.bStartsWith(L"#"))
-            {
-                sGraphicStem += sAddStr.sSubstr(1);
-            }
-            else
-            {
-                // assert # at the end
-                sGraphicStem = sAddStr.sSubstr(0, sAddStr.uiLength()-1) + sGraphicStem;
-            }
-        }
-
-        spNewLexeme->SetGraphicStem(sGraphicStem);
-*/
+        auto it = std::remove_if(spNewLexeme->m_vecInflections.begin(),
+            spNewLexeme->m_vecInflections.end(),
+            [=](std::shared_ptr<CInflection> spInfl) {return spInfl->llInflectionId() != llRefInflectionId;});
+        spNewLexeme->m_vecInflections.erase(it, spNewLexeme->m_vecInflections.end());
 
         auto& stPropertiesRef = spNewLexeme->stGetPropertiesForWriteAccess();
         stPropertiesRef.bSklonSm = true;
-//        stPropertiesRef.sSourceForm = spLexeme->stGetProperties().sSourceForm;
+        stPropertiesRef.sSourceForm = spLexeme->stGetProperties().sSourceForm;
 //        stPropertiesRef.vecSourceStressPos = spLexeme->stGetProperties().vecSourceStressPos;
 //        stPropertiesRef.vecSecondaryStressPos = spLexeme->stGetProperties().vecSecondaryStressPos;
         stPropertiesRef.sComment = spLexeme->stGetProperties().sComment;
@@ -651,6 +627,7 @@ ET_ReturnCode CDictionary::eGetLexemesByInitialForm(CEString& sSource)
         stPropertiesRef.llSklonSmInflectionId = llRefInflectionId;
         stPropertiesRef.sSklonSmAdd = sAddStr;
         stPropertiesRef.sSklonSmRemove = sRemoveStr;
+        stPropertiesRef.vecSklonSmStressPos = spLexeme->stGetProperties().vecSourceStressPos;
         stPropertiesRef.vecSklonSmSecondaryStressPos = spLexeme->stGetProperties().vecSecondaryStressPos;
     }
 
