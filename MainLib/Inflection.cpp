@@ -1161,7 +1161,7 @@ ET_ReturnCode CInflection::eGenerateParadigm()
                 else
                 {
                     // assert # at the end
-                    sNewForm = sNewForm.sErase(sNewForm.uiLength() - sRemove.uiLength() - 2);
+                    sNewForm = sNewForm.sErase(0, sRemove.uiLength()-1);
                 }
             }
 
@@ -1175,27 +1175,30 @@ ET_ReturnCode CInflection::eGenerateParadigm()
                 else
                 {
                     // assert # at the end
-                    sNewForm = sAdd.sSubstr(0, sAdd.uiLength() - 1) + sRefForm;
+                    sNewForm = sAdd.sSubstr(0, sAdd.uiLength() - 1) + sNewForm;
                 }
             }
 
-            sRefForm.SetVowels(CEString::g_szRusVowels);
-            sNewForm.SetVowels(CEString::g_szRusVowels);
-            int iDiff = (int)sNewForm.uiNSyllables() - (int)sRefForm.uiNSyllables();
             spWordForm->SetWordForm(sNewForm);
-            map<int, ET_StressType> mapModified;
-            for (auto& [iPos, eType] : spWordForm->m_mapStress)
-            {
-                mapModified.emplace(iPos + iDiff, eType);
-                // TODO -- expect no secondaries?
-            }
 
+            if (!sAdd.bStartsWith(L"#"))
+            {
+                sRefForm.SetVowels(CEString::g_szRusVowels);
+                sNewForm.SetVowels(CEString::g_szRusVowels);
+                int iDiff = (int)sNewForm.uiNSyllables() - (int)sRefForm.uiNSyllables();
+                map<int, ET_StressType> mapModified;
+                for (auto& [iPos, eType] : spWordForm->m_mapStress)
+                {
+                    mapModified.emplace(iPos + iDiff, eType);
+                    // TODO -- expect no secondaries?
+                }
+                spWordForm->m_mapStress = mapModified;
+            }
             for (auto iSecondaryPos : m_pLexeme->stGetProperties().vecSklonSmSecondaryStressPos)
             {
-                mapModified.emplace(iSecondaryPos, ET_StressType::STRESS_SECONDARY);
+                spWordForm->m_mapStress.emplace(iSecondaryPos, ET_StressType::STRESS_SECONDARY);
             }
 
-            spWordForm->m_mapStress = mapModified;
         }
     }
 
