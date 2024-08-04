@@ -572,6 +572,68 @@ ET_ReturnCode CDictionary::eGetLexemesByInitialForm(CEString& sSource)
         {
             spLexeme->eHandleSpryazhSmEntry();   // currently, it is always H_NO_ERROR
         }
+
+        if (spLexeme->stGetProperties().sComment.bStartsWith(L"склон. см."))
+        {
+            auto llDescriptorId = spLexeme->stGetProperties().llDescriptorId;
+            CEString sSklonSmQuery{ L"SELECT inflection_id, ref_descriptor_id, ref_inflection_id, remove_str, add_str FROM sklon_sm WHERE descriptor_id = " };
+            sSklonSmQuery += CEString::sToString(llDescriptorId) + L";";
+            uint64_t uiQueryHandle = 0;
+            uiQueryHandle = m_spDb->uiPrepareForSelect(sSklonSmQuery);
+
+            while (m_spDb->bGetRow(uiQueryHandle))
+            {
+                uint64_t llInflectionId;
+                m_spDb->GetData(0, llInflectionId, uiQueryHandle);
+                uint64_t llRefDescriptorId;
+                m_spDb->GetData(1, llRefDescriptorId, uiQueryHandle);
+                uint64_t llRefInflectionId;
+                m_spDb->GetData(2, llRefInflectionId, uiQueryHandle);
+                CEString sRemoveStr;
+                m_spDb->GetData(3, sRemoveStr, uiQueryHandle);
+                CEString sAddStr;
+                m_spDb->GetData(4, sAddStr, uiQueryHandle);
+
+                // Find the referenced entry in the DB 
+                // NB: It will be added directly to m_vecLexemes
+                shared_ptr<CLexeme> spNewLexeme;
+                rc = eGetLexemeById(llRefDescriptorId, spNewLexeme);
+                if (rc != H_NO_ERROR)
+                {
+                    ERROR_LOG(L"Error retrieving lexeme referenced in a \"sklon. sm.\" entry.");
+                    return rc;
+                }
+
+                // Remove inflections not in the sklon. sm. table
+                auto itEraseInfl = std::remove_if(spNewLexeme->m_vecInflections.begin(),
+                    spNewLexeme->m_vecInflections.end(),
+                    [=](std::shared_ptr<CInflection> spInfl) {return spInfl->llInflectionId() != llRefInflectionId;});
+                spNewLexeme->m_vecInflections.erase(itEraseInfl, spNewLexeme->m_vecInflections.end());
+
+                auto& stPropertiesRef = spNewLexeme->stGetPropertiesForWriteAccess();
+                stPropertiesRef.bSklonSm = true;
+                stPropertiesRef.sSourceForm = spLexeme->stGetProperties().sSourceForm;
+                stPropertiesRef.sComment = spLexeme->stGetProperties().sComment;
+                stPropertiesRef.sRestrictedContexts.Erase();
+                stPropertiesRef.sContexts.Erase();
+                stPropertiesRef.sUsage.Erase();
+                stPropertiesRef.sTrailingComment.Erase();
+
+                stPropertiesRef.llSklonSmInflectionId = llRefInflectionId;
+                stPropertiesRef.sSklonSmAdd = sAddStr;
+                stPropertiesRef.sSklonSmRemove = sRemoveStr;
+                stPropertiesRef.vecSklonSmStressPos = spLexeme->stGetProperties().vecSourceStressPos;
+                stPropertiesRef.vecSklonSmSecondaryStressPos = spLexeme->stGetProperties().vecSecondaryStressPos;
+
+            }   //  while (m_spDb->bGetRow(uiQueryHandle))
+
+            m_spDb->Finalize(uiQueryHandle);
+
+            auto itOldLexeme = std::remove_if(vecLexemesFound.begin(),
+                vecLexemesFound.end(),
+                [=](std::shared_ptr<CLexeme> spL) {return spL->llLexemeId() == llDescriptorId;});
+            vecLexemesFound.erase(itOldLexeme, vecLexemesFound.end());
+        }
     }
 
     if (H_NO_MORE == rc && !bFound)
@@ -579,6 +641,7 @@ ET_ReturnCode CDictionary::eGetLexemesByInitialForm(CEString& sSource)
         return H_FALSE;
     }
 
+/*
     // Sklon sm.
     if (vecLexemesFound.size() == 1 && vecLexemesFound[0]->stGetProperties().sComment.bStartsWith(L"склон. см."))
     {
@@ -627,6 +690,7 @@ ET_ReturnCode CDictionary::eGetLexemesByInitialForm(CEString& sSource)
         }   //  while (m_spDb->bGetRow(uiQueryHandle))
         m_spDb->Finalize(uiQueryHandle);
     }    // Sklon sm
+    */
 
     m_vecLexemes.insert(m_vecLexemes.end(), make_move_iterator(vecLexemesFound.begin()),
         make_move_iterator(vecLexemesFound.end()));
