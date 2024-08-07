@@ -251,10 +251,10 @@ ET_ReturnCode CDictionary::eGetLexemeById(long long llId, shared_ptr<CLexeme>& s
 //    while (H_NO_ERROR == rc)
 //    {
         rc = eReadDescriptorData(spLexeme, uiQueryHandle);
-        if (H_NO_ERROR == rc)
-        {
-            m_vecLexemes.push_back(spLexeme);
-        }
+//        if (H_NO_ERROR == rc)
+//        {
+//            m_vecLexemes.push_back(spLexeme);
+//        }
         if (H_NO_ERROR != rc && H_NO_MORE != rc)
         {
             Clear();
@@ -629,12 +629,6 @@ ET_ReturnCode CDictionary::eGetLexemesByInitialForm(CEString& sSource)
             }   //  while (m_spDb->bGetRow(uiQueryHandle))
 
             m_spDb->Finalize(uiQueryHandle);
-
-
-//            auto itOldLexeme = std::remove_if(vecLexemesFound.begin(),
-//                vecLexemesFound.end(),
-//                [=](std::shared_ptr<CLexeme> spL) {return spL->llLexemeId() == llDescriptorId;});
-//            vecLexemesFound.erase(itOldLexeme, vecLexemesFound.end());
 
         }     // sklon. sm.
     }     // for (auto& spLexeme : vecLexemesFound)
