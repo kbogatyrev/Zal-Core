@@ -307,7 +307,10 @@ void CInflection::AddWordForm(shared_ptr<CWordForm> spWordForm)
         throw CException(H_ERROR_POINTER, L"Invalid wordform: inflection instance is NULL");
     }
 
-    m_pLexeme->AssignSecondaryStress(spWordForm);
+    if (!spWordForm->bIrregular())
+    {
+        m_pLexeme->AssignSecondaryStress(spWordForm);
+    }
 
     pair<CEString, shared_ptr<CWordForm>> pairHW(spWordForm->sGramHash(), spWordForm);
     m_mmWordForms.insert(pairHW);
@@ -1091,10 +1094,10 @@ ET_ReturnCode CInflection::eGenerateParadigm()
             }
         }
 
-        if (1 == stLexemeProperties.iSection || 2 == stLexemeProperties.iSection)
-        {
-            stLexemeProperties.ePartOfSpeech = POS_NULL;
-        }
+//        if (1 == stLexemeProperties.iSection || 2 == stLexemeProperties.iSection)
+//        {
+//            stLexemeProperties.ePartOfSpeech = POS_NULL;
+//        }
 
         if (POS_ADV == stLexemeProperties.ePartOfSpeech
             || POS_COMPAR == stLexemeProperties.ePartOfSpeech || POS_PREDIC == stLexemeProperties.ePartOfSpeech
@@ -1149,7 +1152,7 @@ ET_ReturnCode CInflection::eGenerateParadigm()
 
         for (auto& [sGramHash, spWordForm] : m_mmWordForms)
         {
-            auto& sRefForm = spWordForm->sWordForm();
+            auto sRefForm = spWordForm->sWordForm();
 
             CEString sNewForm(sRefForm);
             if (!sRemove.bIsEmpty())
