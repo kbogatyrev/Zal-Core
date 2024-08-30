@@ -748,15 +748,15 @@ namespace Hlib
 //            m_stProperties.iInflectedParts = iValue;
 //        }
 
-        bool bHasPresPassParticiple()
-        {
-            return m_stProperties.bHasPresPassParticiple;
-        }
+//        bool bHasPresPassParticiple()
+//        {
+//            return m_stProperties.bHasPresPassParticiple;
+//        }
 
-        void SetHasPresPassParticiple(bool bValue)
-        {
-            m_stProperties.bHasPresPassParticiple = bValue;
-        }
+//        void SetHasPresPassParticiple(bool bValue)
+//        {
+//            m_stProperties.bHasPresPassParticiple = bValue;
+//        }
 
         bool bSpryazhSm()
         {

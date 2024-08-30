@@ -148,6 +148,66 @@ namespace Hlib
             m_stProperties.eAccentType2 = eValue;
         }
 
+        bool bFleetingVowel()
+        {
+            return m_stProperties.bFleetingVowel;
+        }
+
+        void SetFleetingVowel(bool bValue)
+        {
+            m_stProperties.bFleetingVowel = bValue;
+        }
+
+        int iStemAugment()
+        {
+            return m_stProperties.iStemAugment;
+        }
+
+        void SetStemAugment(int iValue)
+        {
+            m_stProperties.iStemAugment = iValue;
+        }
+
+        bool bSecondGenitive()
+        {
+            return m_stProperties.bSecondGenitive;
+        }
+
+        void SetSecondGenitive(bool bValue)
+        {
+            m_stProperties.bSecondGenitive = bValue;
+        }
+
+        bool bSecondPrepositional()
+        {
+            return m_stProperties.bSecondPrepositional;
+        }
+
+        void SetSecondPrepositional(bool bValue)
+        {
+            m_stProperties.bSecondPrepositional = bValue;
+        }
+
+        bool bSecondPrepositionalOptional()
+        {
+            return m_stProperties.bSecondPrepositionalOptional;
+        }
+
+        void SetSecondPrepositionalOptional(bool bValue)
+        {
+            m_stProperties.bSecondPrepositionalOptional = bValue;
+        }
+
+        CEString sP2Preposition()
+        {
+            return m_stProperties.sP2Preposition;
+        }
+
+        void SetP2Preposition(const CEString& sValue)
+        {
+            m_stProperties.sP2Preposition = sValue;
+        }
+
         bool bShortFormsRestricted()
         {
             return m_stProperties.bShortFormsRestricted;
@@ -198,34 +258,14 @@ namespace Hlib
             m_stProperties.bNoPassivePastParticiple = bValue;
         }
 
-        bool bFleetingVowel()
+        bool bHasPresPassParticiple()
         {
-            return m_stProperties.bFleetingVowel;
+            return m_stProperties.bHasPresPassParticiple;
         }
 
-        void SetFleetingVowel(bool bValue)
+        void SetHasPresPassParticiple(bool bValue)
         {
-            m_stProperties.bFleetingVowel = bValue;
-        }
-
-        int iStemAugment()
-        {
-            return m_stProperties.iStemAugment;
-        }
-
-        void SetStemAugment(int iValue)
-        {
-            m_stProperties.iStemAugment = iValue;
-        }
-
-        bool bSecondGenitive()
-        {
-            return m_stProperties.bSecondGenitive;
-        }
-
-        void SetSecondGenitive(bool bValue)
-        {
-            m_stProperties.bSecondGenitive = bValue;
+            m_stProperties.bHasPresPassParticiple = bValue;
         }
 
         CEString sComment()
@@ -236,36 +276,6 @@ namespace Hlib
         void SetComment(const CEString& sValue)
         {
             m_stProperties.sComment = sValue;
-        }
-
-        bool bSecondPrepositional()
-        {
-            return m_stProperties.bSecondPrepositional;
-        }
-
-        void SetSecondPrepositional(bool bValue)
-        {
-            m_stProperties.bSecondPrepositional = bValue;
-        }
-
-        bool bSecondPrepositionalOptional()
-        {
-            return m_stProperties.bSecondPrepositionalOptional;
-        }
-
-        void SetSecondPrepositionalOptional(bool bValue)
-        {
-            m_stProperties.bSecondPrepositionalOptional = bValue;
-        }
-
-        CEString sP2Preposition()
-        {
-            return m_stProperties.sP2Preposition;
-        }
-
-        void SetP2Preposition(const CEString& sValue)
-        {
-            m_stProperties.sP2Preposition = sValue;
         }
 
         void ClearCommonDeviations()

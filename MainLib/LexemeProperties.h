@@ -80,7 +80,7 @@ namespace Hlib
         CEString sCognate;
         CEString sTrailingComment;
         ET_Subparadigm eSubparadigm { SUBPARADIGM_UNDEFINED };    // currently only used with numerals
-        bool bHasPresPassParticiple { false };
+//        bool bHasPresPassParticiple { false };
 
         bool bNoLongForms { false };
         bool bSecondPart { false };

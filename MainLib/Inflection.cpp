@@ -526,7 +526,7 @@ ET_ReturnCode CInflection::eFormExists(const CEString& sFH)
         }
     }
 
-    if (sFormHash.bStartsWith(L"PPresP") && !m_pLexeme->bHasPresPassParticiple())
+    if (sFormHash.bStartsWith(L"PPresP") && !bHasPresPassParticiple())
     {
         return H_FALSE;
     }

@@ -1043,7 +1043,7 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPresentPassiveParticiple()
 
     ET_ReturnCode rc = H_NO_ERROR;
 
-    m_pLexeme->SetHasPresPassParticiple(false);
+    m_pInflection->SetHasPresPassParticiple(false);
 
     //
     // Irregular participle
@@ -1831,7 +1831,8 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPresPassPartFromSourceForm(CWordForm*
         rc = shortAdj.eBuild();
     }
 
-    m_pLexeme->SetHasPresPassParticiple(true);
+//    m_pLexeme->SetHasPresPassParticiple(true);
+    m_pInflection->SetHasPresPassParticiple(true);
 
     return H_NO_ERROR;
 
@@ -2510,7 +2511,8 @@ ET_ReturnCode CFormBuilderNonFinite::eDeriveIrregPresPassiveParticiple()
     
     if (H_NO_ERROR == rc)
     {
-        m_pLexeme->SetHasPresPassParticiple(true);
+//        m_pLexeme->SetHasPresPassParticiple(true);
+        m_pInflection->SetHasPresPassParticiple(true);
     }
 
     return rc;

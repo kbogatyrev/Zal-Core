@@ -17,18 +17,22 @@ namespace Hlib
         int iType { -1 };
         ET_AccentType eAccentType1 { AT_UNDEFINED };
         ET_AccentType eAccentType2 { AT_UNDEFINED };
+        bool bFleetingVowel{ false };
+        int iStemAugment{ -1 };
+
+        bool bSecondGenitive{ false };
+        bool bSecondPrepositional{ false };
+        bool bSecondPrepositionalOptional{ false };
+        CEString sP2Preposition;
+
         bool bShortFormsRestricted { false };
         bool bPastParticipleRestricted { false };
 //        bool bNoLongForms { false };
         bool bShortFormsIncomplete { false };
         bool bNoPassivePastParticiple { false };
-        bool bFleetingVowel { false };
-        int iStemAugment { -1 };
-        bool bSecondGenitive{ false };
+        bool bHasPresPassParticiple{ false };
+
         CEString sComment;
-        bool bSecondPrepositional{ false };
-        bool bSecondPrepositionalOptional{ false };
-        CEString sP2Preposition;
 
         int64_t llSklonSmId { -1 };
         CEString sAddition;
