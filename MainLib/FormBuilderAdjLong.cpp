@@ -628,7 +628,7 @@ ET_ReturnCode CFormBuilderLongAdj::eBuildParticiple()
                 if (!m_bIrregular)
                 {
                     if (SUBPARADIGM_PART_PAST_ACT == m_eSubparadigm && m_pLexeme->sTrailingComment().bStartsWith(L"но прич. прош. "))
-                    {
+                    {       // е instead of ё: ведший, цветший
                         int iChr = m_sStem.uiLength() - 1;
                         while (iChr >= 0 && m_sStem[iChr] != L'е' && m_sStem[iChr] != L'ё')
                         {
@@ -642,10 +642,13 @@ ET_ReturnCode CFormBuilderLongAdj::eBuildParticiple()
                     }
                     else
                     {
-                        rc = eHandleYoAlternation(STRESS_LOCATION_STEM, m_iStemStressPos, m_sStem, sEnding);
-                        if (rc != H_NO_ERROR)
+                        if (SUBPARADIGM_PART_PAST_PASS_LONG == m_eSubparadigm || SUBPARADIGM_PART_PAST_ACT == m_eSubparadigm)
                         {
-                            return rc;
+                            rc = eHandleYoAlternation(STRESS_LOCATION_STEM, m_iStemStressPos, m_sStem, sEnding);
+                            if (rc != H_NO_ERROR)
+                            {
+                                return rc;
+                            }
                         }
                     }
                 }
