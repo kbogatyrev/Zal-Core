@@ -606,7 +606,7 @@ ET_ReturnCode CDictionary::eGetLexemesByInitialForm(CEString& sSource)
                 // Remove inflections not in the sklon. sm. table
                 auto itEraseInfl = std::remove_if(spNewLexeme->m_vecInflections.begin(),
                     spNewLexeme->m_vecInflections.end(),
-                    [=](std::shared_ptr<CInflection> spInfl) {return spInfl->llInflectionId() != llRefInflectionId;});
+                    [=](std::shared_ptr<CInflection> spInfl) {return (uint64_t)spInfl->llInflectionId() != llRefInflectionId;});
                 spNewLexeme->m_vecInflections.erase(itEraseInfl, spNewLexeme->m_vecInflections.end());
 
                 auto& stPropertiesRef = spNewLexeme->stGetPropertiesForWriteAccess();
