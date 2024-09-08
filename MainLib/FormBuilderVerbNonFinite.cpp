@@ -1050,7 +1050,8 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPresentPassiveParticiple()
     //
     rc = eBuildIrregParticipialFormsLong (SUBPARADIGM_PART_PRES_PASS_LONG);
 
-    if (L"св" == m_pLexeme->sMainSymbol() || !m_pLexeme->bTransitive() || REFL_YES == m_pLexeme->eIsReflexive())
+    if ((L"св" == m_pLexeme->sMainSymbol() || !m_pLexeme->bTransitive() || REFL_YES == m_pLexeme->eIsReflexive()) &&
+        !m_pLexeme->sComment().bStartsWith(L"имеется прич. страд. наст."))
     {
         return H_NO_ERROR;
     }
