@@ -141,7 +141,6 @@ ET_ReturnCode CFormBuilderLongAdj::eHandleCommonDeviations (CWordForm* pWordForm
             if (m_pInflection->bDeviationOptional(4))
             {
                 auto spVariant = make_shared<CWordForm>();
-//                CloneWordForm (spWordForm, spVariant);
                 spVariant->eCloneFrom(pWordForm);
                 m_pInflection->AddWordForm (spVariant);    // store both versions
                 pWordForm = spVariant.get();
@@ -149,9 +148,7 @@ ET_ReturnCode CFormBuilderLongAdj::eHandleCommonDeviations (CWordForm* pWordForm
 
             map<int, ET_StressType> mapCorrectedStress;
 
-//            int iPos = -1;
             ET_StressType eType = ET_StressType::STRESS_TYPE_UNDEFINED;
-//            auto rc = spWordForm->eGetFirstStressPos(iPos, eType);
             auto& mapStressSylls = pWordForm->mapGetStressPositions();
             for (auto itStressSyll = mapStressSylls.begin(); itStressSyll != mapStressSylls.end(); ++itStressSyll)            
             {
@@ -181,7 +178,6 @@ ET_ReturnCode CFormBuilderLongAdj::eHandleCommonDeviations (CWordForm* pWordForm
             if (m_pInflection->bDeviationOptional(6))
             {
                 auto spVariant = make_shared<CWordForm>();
-//                CloneWordForm (spWordForm, spVariant);
                 spVariant->eCloneFrom(pWordForm);
                 m_pInflection->AddWordForm (spVariant);    // store both versions
                 pWordForm = spVariant.get();
@@ -251,16 +247,12 @@ ET_ReturnCode CFormBuilderLongAdj::eHandleCommonDeviations (CWordForm* pWordForm
             {
                 auto  spVariant = make_shared<CWordForm>();
                 spVariant->eCloneFrom(pWordForm);
-//                CloneWordForm (spWordForm, spVariant);
                 m_pInflection->AddWordForm(spVariant);    // store both versions
                 pWordForm = spVariant.get();
             }
 
             map<int, ET_StressType> mapCorrectedStress;
             int iNewStressPos = -1;
-//            ET_StressType eType = ET_StressType::STRESS_TYPE_UNDEFINED;
-//            auto rc = spWordForm->eGetFirstStressPos(iNewStressPos, eType);
-//            while (H_NO_ERROR == rc)
             auto& mapStressSylls = pWordForm->mapGetStressPositions();
             for (auto itStressSyll = mapStressSylls.begin(); itStressSyll != mapStressSylls.end(); ++itStressSyll)
             {
@@ -486,7 +478,6 @@ ET_ReturnCode CFormBuilderLongAdj::eBuild()
                         vector<int>::iterator itStressPos = vecStress.begin();
                         for (; itStressPos != vecStress.end(); ++itStressPos)
                         {
-//                            spWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;
                             spWordForm->SetStressPos(*itStressPos, STRESS_PRIMARY);
                         }
                         m_pInflection->AddWordForm(spWordForm);
@@ -500,10 +491,9 @@ ET_ReturnCode CFormBuilderLongAdj::eBuild()
                             {
                                 auto spWfVariant = make_shared<CWordForm>();
                                 spWfVariant->eCloneFrom(spWordForm.get());
-//                                CloneWordForm(spWordForm, spWfVariant);
                                 spWordForm = spWfVariant;
+                                spWordForm->ClearStress();
                             }
-//                            spWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;
                             spWordForm->SetStressPos(*itStressPos, STRESS_PRIMARY);
                             m_pInflection->AddWordForm(spWordForm);
                         }
@@ -555,7 +545,6 @@ ET_ReturnCode CFormBuilderLongAdj::eBuild()
                         if (itStressPos != vecStress.begin())
                         {
                             auto spWfVariant = make_shared<CWordForm>();
-//                            CloneWordForm (spWordForm, spWfVariant);
                             spWfVariant->eCloneFrom(spWordForm.get());
                             spWfVariant->ClearStress();
                             spWordForm = spWfVariant;

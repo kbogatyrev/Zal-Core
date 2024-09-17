@@ -197,6 +197,7 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildInfinitive()
                         auto spWfVariant = make_shared<CWordForm>();
                         spWfVariant->eCloneFrom(spWordForm.get());
                         spWordForm = spWfVariant;
+                        spWordForm->ClearStress();
                     }
                     spWordForm->SetStressPos(*itStressedSyll, STRESS_PRIMARY);
                     m_pInflection->AddWordForm(spWordForm);
@@ -2325,7 +2326,6 @@ ET_ReturnCode CFormBuilderNonFinite::eDeriveIrregPresAdverbial()
             for (; itSg1Form != vecSg1Forms.end(); ++itSg1Form)
             {
                 auto spNewWordForm = make_shared<CWordForm>();
-//                CloneWordForm(spWordForm, spNewWordForm);
                 spNewWordForm->eCloneFrom(spWordForm.get());
                 spWordForm->AssignStress((*itSg1Form)->mapGetStressPositions());
                 m_pInflection->AddWordForm (spWordForm);

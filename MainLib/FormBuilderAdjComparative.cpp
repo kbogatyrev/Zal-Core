@@ -47,7 +47,6 @@ ET_ReturnCode CFormBuilderComparative::eHandleStressAndAdd(shared_ptr<CWordForm>
             vector<int>::iterator itStressPos = vecStress.begin();
             for (; itStressPos != vecStress.end(); ++itStressPos)
             {
-//                spWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;
                 spWordForm->SetStressPos(*itStressPos, STRESS_PRIMARY);
                 rc = eHandleYoAlternation(eStressType, *itStressPos, sStem, sEnding);
                 if (rc != H_NO_ERROR)
@@ -72,10 +71,9 @@ ET_ReturnCode CFormBuilderComparative::eHandleStressAndAdd(shared_ptr<CWordForm>
                 {
                     auto spWfVariant = make_shared<CWordForm>();
                     spWfVariant->eCloneFrom(spWordForm.get());
-//                    CloneWordForm (spWordForm, spWfVariant);
                     spWordForm = spWfVariant;
+                    spWordForm->ClearStress();
                 }
-//                spWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;
                 spWordForm->SetStressPos(*itStressPos, STRESS_PRIMARY);
                 rc = eHandleYoAlternation(eStressType, *itStressPos, sStem, sEnding);
                 if (rc != H_NO_ERROR)
@@ -216,7 +214,6 @@ ET_ReturnCode CFormBuilderComparative::eBuild()
             if (ecNotFound != uiLastStemVowel)
             {
                 unsigned int uiStressedSyllable = sStem.uiGetSyllableFromVowelPos(uiLastStemVowel);
-//                spWordForm->m_mapStress[uiStressedSyllable] = STRESS_PRIMARY;
                 spWordForm->SetStressPos(uiStressedSyllable, STRESS_PRIMARY);
             }
             else

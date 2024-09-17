@@ -169,7 +169,6 @@ ET_ReturnCode CFormBuilderPersonal::eCreateFormTemplate (ET_Number eNumber, ET_P
         return H_ERROR_POINTER;
     }
 
-//    spWordForm->m_pLexeme = m_pLexeme;
     spWordForm->SetInflection(m_pInflection);
     spWordForm->SetPos(POS_VERB);
     spWordForm->SetSubparadigm(SUBPARADIGM_PRESENT_TENSE);
@@ -177,7 +176,6 @@ ET_ReturnCode CFormBuilderPersonal::eCreateFormTemplate (ET_Number eNumber, ET_P
     spWordForm->SetNumber(eNumber);
     spWordForm->SetPerson(ePerson);
     spWordForm->SetAspect(m_pLexeme->eAspect());
-//    spWordForm->m_llLexemeId = m_pLexeme->llLexemeId();
     spWordForm->SetInflectionId(m_pInflection->llInflectionId());
 
     return rc;
@@ -368,7 +366,6 @@ ET_ReturnCode CFormBuilderPersonal::eBuild()
                         vector<int>::iterator itStressPos = vecStress.begin();
                         for (; itStressPos != vecStress.end(); ++itStressPos)
                         {
-//                            spWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;
                             spWordForm->SetStressPos(*itStressPos, STRESS_PRIMARY);
                         }
                         m_pInflection->AddWordForm (spWordForm);
@@ -381,11 +378,10 @@ ET_ReturnCode CFormBuilderPersonal::eBuild()
                             if (itStressPos != vecStress.begin())
                             {
                                 shared_ptr<CWordForm> spWfVariant = make_shared<CWordForm>();
-//                                CloneWordForm (spWordForm, spWfVariant);
                                 spWfVariant->eCloneFrom(spWordForm.get());
                                 spWordForm = spWfVariant;
+                                spWordForm->ClearStress();
                             }
-//                            spWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;
                             spWordForm->SetStressPos(*itStressPos, STRESS_PRIMARY);
                             m_pInflection->AddWordForm(spWordForm);
                         }

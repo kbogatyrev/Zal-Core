@@ -476,7 +476,6 @@ ET_ReturnCode CFormBuilderImperative::eBuild()
                     vector<int>::iterator itStressPos = vecStress.begin();
                     for (; itStressPos != vecStress.end(); ++itStressPos)
                     {
-//                        m_spWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;  // primary
                         m_spWordForm->SetStressPos(*itStressPos, STRESS_PRIMARY);
                     }
 
@@ -490,11 +489,10 @@ ET_ReturnCode CFormBuilderImperative::eBuild()
                         if (itStressPos != vecStress.begin())
                         {
                             auto spWfVariant = make_shared<CWordForm>();
-//                            CloneWordForm(m_spWordForm, spWfVariant);
                             spWfVariant->eCloneFrom(m_spWordForm.get());
                             m_spWordForm = spWfVariant;
+                            m_spWordForm->ClearStress();
                         }
-//                        m_spWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;
                         m_spWordForm->SetStressPos(*itStressPos, STRESS_PRIMARY);
                         m_pInflection->AddWordForm(m_spWordForm);
                     

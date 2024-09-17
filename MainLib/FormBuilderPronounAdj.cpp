@@ -367,7 +367,6 @@ ET_ReturnCode CFormBuilderPronounAdj::eBuild()
                 vector<int>::iterator itStressPos = vecStress.begin();
                 for (; itStressPos != vecStress.end(); ++itStressPos)
                 {
-//                    spWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;
                     spWordForm->SetStressPos(*itStressPos, STRESS_PRIMARY);
                 }
                 m_pInflection->AddWordForm (spWordForm);
@@ -380,11 +379,10 @@ ET_ReturnCode CFormBuilderPronounAdj::eBuild()
                     if (itStressPos != vecStress.begin())
                     {
                         auto spWfVariant = make_shared<CWordForm>();
-//                        CloneWordForm(spWordForm, spWfVariant);
                         spWfVariant->eCloneFrom(spWordForm.get());
                         spWordForm = spWfVariant;
+                        spWordForm->ClearStress();
                     }
-                    // spWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;
                     spWordForm->SetStressPos(*itStressPos, STRESS_PRIMARY);
                     m_pInflection->AddWordForm (spWordForm);
                 }
