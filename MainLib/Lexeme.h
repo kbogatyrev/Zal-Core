@@ -558,7 +558,7 @@ namespace Hlib
             {
                 return false;
             }
-            return m_stProperties.iAltAspectPairType != 0;
+            return m_stProperties.iAltAspectPairType != 0 || !m_stProperties.sAltAspectPairData.bIsEmpty();
         }
         
         int iAspectPairType()
