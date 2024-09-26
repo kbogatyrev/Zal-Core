@@ -58,10 +58,6 @@ namespace Hlib
         long long llSourceEntryId { -1 };
         CEString sGraphicStem;
         ET_PartOfSpeech ePartOfSpeech { POS_UNDEFINED };
-//        bool bSecondGenitive { false };
-//        bool bSecondPrepositional { false };
-//        bool bSecondPrepositionalOptional { false };
-//        CEString sP2Preposition;
         bool bIsImpersonal { false };
         bool bIsIterative { false };
         bool bHasAspectPair { false };
@@ -80,7 +76,6 @@ namespace Hlib
         CEString sCognate;
         CEString sTrailingComment;
         ET_Subparadigm eSubparadigm { SUBPARADIGM_UNDEFINED };    // currently only used with numerals
-//        bool bHasPresPassParticiple { false };
 
         bool bNoLongForms { false };
         bool bSecondPart { false };

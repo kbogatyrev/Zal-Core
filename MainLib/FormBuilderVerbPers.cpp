@@ -190,8 +190,6 @@ ET_ReturnCode CFormBuilderPersonal::eBuild()
 
     try
     {
-//        bool bNoRegularStems = false;
-
         if (m_pLexeme->bHasIrregularForms())
         {
             rc = eHandleIrregularForms();
@@ -230,7 +228,6 @@ ET_ReturnCode CFormBuilderPersonal::eBuild()
                                     CASE_UNDEFINED, 
                                     m_pLexeme->eIsReflexive());
 
-//                if (m_pLexeme->bHasMissingForms() || m_pLexeme->bImpersonal() || m_pLexeme->bIterative())
                 if (m_pLexeme->bImpersonal() || m_pLexeme->bIterative())
                     {
                     if (m_pInflection->eFormExists(hasher.sGramHash()) != H_TRUE)
@@ -545,10 +542,8 @@ ET_ReturnCode CFormBuilderPersonal::eBuildIrregularForms (ET_Number eNumber, ET_
                 return H_ERROR_POINTER;
             }
             
-//            spWordForm->m_pLexeme = m_pLexeme;
             spWordForm->AssignStress((*itSg3Irreg)->mapGetStressPositions());
             spWordForm->SetWordForm(sWordForm);
-//            pWordForm->m_llLexemeId;
 
             try
             {
@@ -653,10 +648,8 @@ ET_ReturnCode CFormBuilderPersonal::eBuildIrregularForms (ET_Number eNumber, ET_
             return H_ERROR_POINTER;
         }
 
-//        spWordForm->m_pLexeme = m_pLexeme;
         spWordForm->AssignStress((*itSg3Irreg)->mapGetStressPositions());
         spWordForm->SetWordForm(sWordForm);
-//        spWordForm->m_llLexemeId = m_pLexeme->llLexemeId();
         spWordForm->SetInflectionId(m_pInflection->llInflectionId());
 
         try

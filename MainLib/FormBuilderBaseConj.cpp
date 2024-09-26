@@ -207,7 +207,19 @@ ET_ReturnCode CFormBuilderConj::eBuildVerbStems()
 
             if (L"н" != sVerbStemAlternation && L"м" != sVerbStemAlternation && L"им" != sVerbStemAlternation)
             {
-                s1SgStem = s3SgStem = sVerbStemAlternation;
+                if (m_pLexeme->stGetProperties().bSpryazhSm)
+                {
+                    auto& sRefStem = sVerbStemAlternation;
+                    sRefStem.SetVowels(CEString::g_szRusVowels);
+                    auto sNewStem = m_pLexeme->stGetProperties().sSpryazhSmPrefix +
+                        sRefStem.sSubstr(m_pLexeme->stGetProperties().iSpryazhSmRefPrefixLength);
+                    sNewStem.SetVowels(CEString::g_szRusVowels);
+                    s1SgStem = s3SgStem = sNewStem;
+                }
+                else
+                {
+                    s1SgStem = s3SgStem = sVerbStemAlternation;
+                }
             }
             else
             {
@@ -227,9 +239,6 @@ ET_ReturnCode CFormBuilderConj::eBuildVerbStems()
         }
         default:
         {
-//            assert(0);
-//            ERROR_LOG (L"Unrecognized conjugation type.");
-//            return H_ERROR_GENERAL;
             return H_NO_MORE;     // this is possible for some irregular verbs
         }
     }

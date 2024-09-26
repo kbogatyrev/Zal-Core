@@ -1,4 +1,5 @@
 #include "Dictionary.h"
+#include "Dictionary.h"
 #include "FormBuilderNouns.h"
 #include "FormBuilderAdjLong.h"
 #include "FormBuilderAdjShort.h"
@@ -584,8 +585,6 @@ ET_ReturnCode CLexeme::eInitializeFromProperties()
         break;
     }               //  switch (eMainSymbol)
 
-    //eRet = eMakeGraphicStem();
-
     return eRet;
 
 }       //  eInitializeFromProperties()
@@ -652,7 +651,6 @@ ET_ReturnCode CLexeme::eHandleSpryazhSmEntry()
         auto sNewStem = m_stProperties.sSpryazhSmPrefix + 
             sRefStem.sSubstr(m_stProperties.iSpryazhSmRefPrefixLength);
         sNewStem.SetVowels(CEString::g_szRusVowels);
-    //    int iDiff = (int)sNewStem.uiNSyllables() - (int)sRefStem.uiNSyllables();
 
         m_stProperties.sGraphicStem = sNewStem;
     }
@@ -665,13 +663,6 @@ ET_ReturnCode CLexeme::eHandleSpryazhSmEntry()
     return H_NO_ERROR;
 
 }   //  eHandleSpryazhSmEntry()
-
-
-//ET_ReturnCode CLexeme::eClone(shared_ptr<CLexeme>& spClonedObject)
-//{
-//    spClonedObject = make_shared<CLexeme>(const_cast<const CLexeme&>(*this));
-//    return H_NO_ERROR;
-//}
 
 ET_ReturnCode CLexeme::eCheckLexemeProperties()
 {

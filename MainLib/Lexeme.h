@@ -462,66 +462,6 @@ namespace Hlib
             m_stProperties.bAssumedForms = bValue;
         }
         
-//        virtual bool bYoAlternation()
-//        {
-//            return m_stProperties.bYoAlternation;
-//        }
-
-//        virtual void SetYoAlternation(bool bValue)
-//        {
-//            m_stProperties.bYoAlternation = bValue;
-//        }
-        
-//        virtual bool bOAlternation()
-//        {
-//            return m_stProperties.bOAlternation;
-//        }
-
-//        virtual void SetOAlternation(bool bValue)
-//        {
-//            m_stProperties.bOAlternation = bValue;
-//        }
-        
-        //bool bSecondGenitive()
-        //{
-        //    return m_stProperties.bSecondGenitive;
-        //}
-
-        //void SetSecondGenitive(bool bValue)
-        //{
-        //    m_stProperties.bSecondGenitive = bValue;
-        //}
-        //
-        //bool bSecondPrepositional()
-        //{
-        //    return m_stProperties.bSecondPrepositional;
-        //}
-
-        //void SetSecondPrepositional(bool bValue)
-        //{
-        //    m_stProperties.bSecondPrepositional = bValue;
-        //}
-        //
-        //bool bSecondPrepositionalOptional()
-        //{
-        //    return m_stProperties.bSecondPrepositionalOptional;
-        //}
-
-        //void SetSecondPrepositionalOptional(bool bValue)
-        //{
-        //    m_stProperties.bSecondPrepositionalOptional = bValue;
-        //}
-        //
-        //CEString sP2Preposition()
-        //{
-        //    return m_stProperties.sP2Preposition;
-        //}
-
-        //void SetP2Preposition(const CEString& sValue)
-        //{
-        //    m_stProperties.sP2Preposition = sValue;
-        //}
-        
         bool bImpersonal()
         {
             return m_stProperties.bIsImpersonal;
