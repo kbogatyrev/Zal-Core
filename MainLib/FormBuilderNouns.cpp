@@ -450,7 +450,6 @@ ET_ReturnCode CFormBuilderNouns::eCreateFormTemplate (ET_Number eNumber,
         return H_ERROR_POINTER;
     }
 
-//    spWordForm-> m_pLexeme = m_pLexeme;
     spWordForm->SetInflection(m_pInflection);
     spWordForm->SetInflectionId(m_pInflection->llInflectionId());
     spWordForm->SetPos(POS_NOUN);
@@ -464,12 +463,6 @@ ET_ReturnCode CFormBuilderNouns::eCreateFormTemplate (ET_Number eNumber,
     {
         spWordForm->SetStatus(STATUS_ASSUMED);
     }
-//    spWordForm->m_llLexemeId = m_pLexeme->llLexemeId();
-    //rc = eAssignSecondaryStress (pWordForm);
-    //if (rc != H_NO_ERROR)
-    //{
-    //    return rc;
-    //}
 
     return H_NO_ERROR;
 
@@ -490,11 +483,6 @@ ET_ReturnCode CFormBuilderNouns::eCheckIrregularForms (ET_Gender eoGender,
     {
         return H_FALSE;
     }
-
-//    if (m_pLexeme->iInflectedParts() == 2 && m_pLexeme->bIsSecondPart())
-//    {
-//        return H_NO_ERROR;     // both parts are kept together, no need to repeat
-//    }
 
     bHandled = false;
 
@@ -694,7 +682,6 @@ ET_ReturnCode CFormBuilderNouns::eBuild()
 
                     eStress = ET_StressLocation::STRESS_LOCATION_STEM;
                     int64_t llEndingKey = -1;
-//                    sStem = m_pLexeme->sSourceForm();
                     CEString sEnding;
                     CreateWordForm(vecStress, eStress, sStem, sEnding, llEndingKey, spWordForm);
                 }
@@ -739,7 +726,6 @@ ET_ReturnCode CFormBuilderNouns::eBuild()
                     }
                 }
 
-//                bool bHasFleetingVowel = false;
                 rc = eFleetingVowelCheck(gramIterator.m_eNumber,
                     eEndingCase,
                     gramIterator.m_eGender,
@@ -819,21 +805,18 @@ void CFormBuilderNouns::CreateWordForm(vector<int>& vecStressPositions,
 
     for (; itStressPos != vecStressPositions.end(); ++itStressPos)
     {
-        if (itStressPos != vecStressPositions.begin() && m_pInflection->bIsMultistressedCompound())
+        if (itStressPos != vecStressPositions.begin() && !m_pInflection->bIsMultistressedCompound())
         {
             auto spwfVariant = make_shared<CWordForm>();
-//            CloneWordForm(spWordForm, spwfVariant);
             spwfVariant->eCloneFrom(spWordForm.get());
             spwfVariant->ClearStress();
             spWordForm = spwfVariant;
         }
 
         spWordForm->SetStressPos(*itStressPos, STRESS_PRIMARY);
-//        spWordForm->m_mapStress[*itStressPos] = STRESS_PRIMARY;  // primary
 
         if (m_pInflection->iType() == 0)
         {
-//            pWordForm->m_sWordForm = m_pLexeme->sSourceForm();
             spWordForm->SetWordForm(m_pLexeme->sGraphicStem());
         }
         else
