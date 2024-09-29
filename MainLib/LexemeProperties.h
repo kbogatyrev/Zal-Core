@@ -61,7 +61,7 @@ namespace Hlib
         bool bIsImpersonal { false };
         bool bIsIterative { false };
         bool bHasAspectPair { false };
-        int iAspectPairType { -1 };
+        int iAspectPairType { 0 };
         int iAltAspectPairType { 0 };       // NB: -1 is a valid aspect pair type, 0 means 'undefined'
         CEString sAspectPairData;
         CEString sAltAspectPairData;
