@@ -445,7 +445,6 @@ ET_ReturnCode CFormBuilderNonFinite::ePresAdvGeneral(ET_Subparadigm eSubparadigm
 
     ET_ReturnCode rc = H_NO_ERROR;
 
-//    auto spInfWf = make_shared<CWordForm>();  // needed for type 13 verbs only;
     CWordForm* pInfWf = nullptr;  // needed for type 13 verbs only;
 
     CEString sStem;
@@ -469,7 +468,6 @@ ET_ReturnCode CFormBuilderNonFinite::ePresAdvGeneral(ET_Subparadigm eSubparadigm
                 rc = m_pInflection->eWordFormFromHash(infHasher.sGramHash(), 0, pInfWf);
                 if (rc != H_NO_ERROR || nullptr == pInfWf)
                 {
-//                    assert(0);
                     CEString sMsg(L"Failed to obtain word form: ");
                     sMsg += sGramHash + L" ";
                     sMsg += m_pLexeme->sInfinitive();
@@ -488,7 +486,6 @@ ET_ReturnCode CFormBuilderNonFinite::ePresAdvGeneral(ET_Subparadigm eSubparadigm
             auto nForms = m_pInflection->iFormCount(sGramHash);
             if (nForms < 1)
             {
-//                assert(0);
                 CEString sMsg(L"No regular forms: ");
                 sMsg += m_pLexeme->sSourceForm();
                 ERROR_LOG(sMsg);
@@ -497,7 +494,6 @@ ET_ReturnCode CFormBuilderNonFinite::ePresAdvGeneral(ET_Subparadigm eSubparadigm
 
             if (nForms > 1)
             {
-//                assert(0);
                 CEString sMsg(L"Warning: multiple forms for  ");
                 sMsg += sGramHash + L" ";
                 sMsg += m_pLexeme->sSourceForm();
@@ -546,7 +542,6 @@ ET_ReturnCode CFormBuilderNonFinite::ePresAdvGeneral(ET_Subparadigm eSubparadigm
             {
                 if (nullptr == pInfWf)
                 {
-//                    assert(0);
                     CEString sMsg(L"No word form ");
                     sMsg += m_pLexeme->sSourceForm();
                     sMsg += L".";
@@ -753,7 +748,6 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastAdverbial()
         auto nForms = m_pInflection->iFormCount(sGramHash);
         if (nForms < 1)
         {
-//            assert(0);
             CEString sMsg(L"No regular forms: ");
             sMsg += m_pLexeme->sSourceForm();
             ERROR_LOG(sMsg);
@@ -762,7 +756,6 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastAdverbial()
 
         if (nForms > 1)
         {
-//            assert(0);
             CEString sMsg(L"Warning: multiple forms for  ");
             sMsg += sGramHash + L" ";
             sMsg += m_pLexeme->sSourceForm();
@@ -775,7 +768,6 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastAdverbial()
         rc = m_pInflection->eWordFormFromHash(sGramHash, 0, pPastPart);
         if (rc != H_NO_ERROR || nullptr == pPastPart)
         {
-//            assert(0);
             CEString sMsg(L"Failed to obtain word form from hash; lexeme = ");
             sMsg += m_pLexeme->sSourceForm();
             ERROR_LOG(sMsg);
@@ -898,7 +890,6 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastAdverbial()
             if (!bNuPreserving && m_pInflection->bHasCommonDeviation(6) && m_pInflection->bDeviationOptional(6))
             {
                 bNuPreserving = true;
-//                bIsVariant = true;
                 bRepeat = true;
             }
         
@@ -913,11 +904,9 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastAdverbial()
                 PERSON_UNDEFINED, ANIM_UNDEFINED, m_pLexeme->eAspect(), REFL_NO);
 
             auto nInfForms = m_pInflection->iFormCount(inf.sGramHash());
-            //            assert(m_pInflection->iFormCount(inf.sGramHash()) == 1);
 
             if (nInfForms < 1)
             {
-                //                assert(0);
                 CEString sMsg(L"No infinitive; lexeme =  ");
                 sMsg += m_pLexeme->sSourceForm();
                 ERROR_LOG(sMsg);
@@ -926,7 +915,6 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastAdverbial()
 
             if (nForms > 1)
             {
-                //                assert(0);
                 CEString sMsg(L"Warning: multiple forms for  ");
                 sMsg += sGramHash + L" ";
                 sMsg += m_pLexeme->sSourceForm();
@@ -970,9 +958,6 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastAdverbial()
                 return H_ERROR_POINTER;
             }
 
-//            bool bIsReflexive = m_pLexeme->eIsReflexive() ? true : false;
-//            bool bHusher = false;
-//            bool bVStem = true;
             bool bIsVariant = false;
             static_pointer_cast<CAdverbialEndings>(m_spEndings)->eSelectPastAdvAugmentedEndings(SUBPARADIGM_ADVERBIAL_PAST, bIsVariant);
 
@@ -1095,7 +1080,6 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPresentPassiveParticiple()
     auto n1PlForms = m_pInflection->iFormCount(sourceHasher.sGramHash());
     if (n1PlForms < 1)
     {
-//        assert(0);
         CEString sMsg(L"Unable to acquire 1 Pl form; lexeme = ");
         sMsg += m_pLexeme->sSourceForm();
         ERROR_LOG(sMsg);
@@ -1116,8 +1100,6 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPresentPassiveParticiple()
             ERROR_LOG(L"Failed to obtain infinitive.");
             return H_ERROR_POINTER;
         }
-
-        //        CEString& s1Pl = p1Pl->m_sWordForm;
 
         rc = eBuildPresPassPartFromSourceForm(p1Pl);
     }
@@ -1213,7 +1195,6 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastActiveParticiple()
         auto nPastM = m_pInflection->iFormCount(hasher.sGramHash());
         if (nPastM < 1)
         {
-//            assert(0);
             ERROR_LOG(L"Failed to obtain past tense m. form.");
             return H_ERROR_UNEXPECTED;
         }
@@ -1322,7 +1303,10 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastPassiveParticiple()
 
     ET_Status eStatus = STATUS_COMMON;
 
-    if (!m_pLexeme->bTransitive() || REFL_YES == m_pLexeme->eIsReflexive())
+    auto bOverride = (m_pLexeme->sComment().bStartsWith(L"имеется прич. страд.") && 
+                     !m_pLexeme->sComment().bStartsWith(L"имеется прич. страд. наст."));
+
+    if ((!m_pLexeme->bTransitive() || REFL_YES == m_pLexeme->eIsReflexive()) && !bOverride)
     {
         return H_NO_ERROR;
     }
@@ -1332,7 +1316,7 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastPassiveParticiple()
         return H_NO_ERROR;
     }
 
-    if (L"нсв" == m_pLexeme->sMainSymbol())
+    if (L"нсв" == m_pLexeme->sMainSymbol() && !bOverride)
     {
         if (m_pLexeme->bHasAspectPair())
         {
@@ -1445,7 +1429,6 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastPassiveParticiple()
     rc = eGetParticipleStressPos (eSp, vecStress);
     if (rc != H_NO_ERROR || vecStress.empty())
     {
-//        assert(0);
         CEString sMsg(L"Failed to obtain part pass past stress positions; lexeme = ");
         sMsg += m_pLexeme->sSourceForm();
         ERROR_LOG(sMsg);
@@ -1833,7 +1816,6 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPresPassPartFromSourceForm(CWordForm*
         rc = shortAdj.eBuild();
     }
 
-//    m_pLexeme->SetHasPresPassParticiple(true);
     m_pInflection->SetHasPresPassParticiple(true);
 
     return H_NO_ERROR;
@@ -2387,7 +2369,6 @@ ET_ReturnCode CFormBuilderNonFinite::eDeriveIrregPresActiveParticiple()
 
         if (!sStem.bEndsWith (L"т"))
         {
-//            assert(0);
             CEString sMsg (L"Unexpected 3 Pl ending: ");
             sMsg += itWf->first->sWordForm();
             ERROR_LOG (sMsg);
@@ -2403,8 +2384,6 @@ ET_ReturnCode CFormBuilderNonFinite::eDeriveIrregPresActiveParticiple()
         {
             auto rcStress = itWf->first->eGetFirstStressSyll(iPos, eType);
             while (H_NO_ERROR == rcStress)
-//            map<int, ET_StressType>::iterator itStressPos = itWf->first->m_mapStress.begin();
-//            for (; itStressPos != itWf->first->m_mapStress.end(); ++itStressPos)
             {
                 if (STRESS_PRIMARY == eType)
                 {
@@ -2436,8 +2415,6 @@ ET_ReturnCode CFormBuilderNonFinite::eDeriveIrregPresActiveParticiple()
             auto it = mapSg1Irreg.begin();
             for (; it != mapSg1Irreg.end(); ++it)
             {
-//                map<int, ET_StressType>::iterator itStressPos = (*it).first->m_mapStress.begin();
-//                for (; itStressPos != (*it).first->m_mapStress.end(); ++itStressPos)
                 auto rcStress = (*it).first->eGetFirstStressSyll(iPos, eType);
                 while (H_NO_ERROR == rcStress)
                 {
@@ -2512,7 +2489,6 @@ ET_ReturnCode CFormBuilderNonFinite::eDeriveIrregPresPassiveParticiple()
     
     if (H_NO_ERROR == rc)
     {
-//        m_pLexeme->SetHasPresPassParticiple(true);
         m_pInflection->SetHasPresPassParticiple(true);
     }
 
@@ -2572,8 +2548,6 @@ ET_ReturnCode CFormBuilderNonFinite::eDeriveIrregPastActPartAndAdverbial()
         auto it = mapMSgIrreg.begin();
         for (; it != mapMSgIrreg.end(); ++it)
         {
-//            map<int, ET_StressType>::iterator itStress = (*it).first->m_mapStress.begin();
-//            for (; itStress != (*it).first->m_mapStress.end(); ++itStress)
             auto rcStress = (*it).first->eGetFirstStressSyll(iPos, eType);
             if (rcStress != H_NO_ERROR)
             {
@@ -2660,12 +2634,9 @@ ET_ReturnCode CFormBuilderNonFinite::eDeriveIrregPastActPartAndAdverbial()
             }
         }
 
-//        sStem.sErase (sStem.uiLength() - iCharsToRemove);
         sStem.sRemoveCharsFromEnd(iCharsToRemove);
         sStem += sSuffix;
     
-//        map<int, ET_StressType>::iterator itStress = (*it).first->m_mapStress.begin();
-//        for (; itStress != (*it).first->m_mapStress.end(); ++itStress)
         auto rcStress = (*it).first->eGetFirstStressSyll(iPos, eType);
         while (H_NO_ERROR == rcStress)
         {
@@ -2743,8 +2714,6 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildIrregParticipialFormsLong (ET_Subpara
 
         auto rcStress = spWf->eGetFirstStressSyll(iPos, eType);
         while (H_NO_ERROR == rcStress)
-//        auto itStressPos = spWf->m_mapStress.begin();
-//        for (; itStressPos != spWf->m_mapStress.end(); ++itStressPos)
         {
             if (STRESS_PRIMARY == eType)
             {
@@ -2762,6 +2731,10 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildIrregParticipialFormsLong (ET_Subpara
         }
     
     }   //  for (; it != mapIrregForms.end(); ++it)
+
+    if (H_NO_ERROR == rc) {
+        m_pInflection->SetHasPresPassParticiple(true);
+    }
 
     return rc;
 
@@ -2877,14 +2850,12 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildIrregPartPastPassShort ([[maybe_unuse
                 return H_ERROR_POINTER;
             }
 
-//            spWordForm->m_pLexeme = m_pLexeme;
             spWordForm->SetPos(POS_VERB);
             spWordForm->SetSubparadigm(SUBPARADIGM_PART_PAST_PASS_SHORT);
             spWordForm->SetAspect(m_pLexeme->eAspect());
             spWordForm->SetReflexivity(m_pLexeme->eIsReflexive());
             spWordForm->SetGender(eGender);
             spWordForm->SetNumber(eNumber);
-//            spWordForm->m_llLexemeId = m_pLexeme->llLexemeId();
             spWordForm->SetInflectionId(m_pInflection->llInflectionId());
 
             bool bIsOptional = false;

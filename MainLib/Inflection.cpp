@@ -533,12 +533,22 @@ ET_ReturnCode CInflection::eFormExists(const CEString& sFH)
 
     if (sFormHash.bStartsWith(L"PPastP") && (!m_pLexeme->bTransitive() || REFL_YES == m_pLexeme->eIsReflexive()))
     {
-        return H_FALSE;
+        auto bOverride = (m_pLexeme->sComment().bStartsWith(L"имеется прич. страд.") &&
+            !m_pLexeme->sComment().bStartsWith(L"имеется прич. страд. наст."));
+
+        if (!bOverride) {
+            return H_FALSE;
+        }
     }
 
     if (sFormHash.bStartsWith(L"PPastP") && L"нсв" == m_pLexeme->sMainSymbol() && m_pLexeme->bHasAspectPair())
     {
-        return H_FALSE;
+        auto bOverride = (m_pLexeme->sComment().bStartsWith(L"имеется прич. страд.") &&
+            !m_pLexeme->sComment().bStartsWith(L"имеется прич. страд. наст."));
+
+        if (!bOverride) {
+            return H_FALSE;
+        }
     }
 
     if (!m_pLexeme->stGetProperties().bHasMissingForms)

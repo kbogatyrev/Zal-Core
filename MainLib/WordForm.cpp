@@ -413,8 +413,6 @@ ET_ReturnCode CWordForm::eSaveIrregularForm()
         return H_ERROR_DB;
     }
 
-//    const StLexemeProperties& stProps = pLexeme()->stGetProperties();
-
     if (m_llDbKey >= 0)
     {
         try
@@ -512,8 +510,6 @@ ET_ReturnCode CWordForm::eSaveIrregularForm()
             spDbHandle->InsertRow();
             spDbHandle->Finalize();
         }
-
-//        long long llFormKey = pDbHandle->llGetLastKey();
     }
     catch (CException& exc)
     {
@@ -678,9 +674,7 @@ bool CWordForm::bSaveToDb()
 
 bool CWordForm::bSaveIrregularForm() // currently intended for spryazh. sm verbs only
 {
-//    long long llStemDataId = -1;
     shared_ptr<CSqlite> spDbHandle;
-//    const StLexemeProperties& stLexemeProperties = pLexeme()->stGetProperties();
 
     try
     {
