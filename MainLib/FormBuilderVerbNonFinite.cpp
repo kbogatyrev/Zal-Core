@@ -23,6 +23,11 @@ ET_ReturnCode CFormBuilderNonFinite::eBuild()
 //        return rc;
     }
 
+    if (m_pLexeme->stGetProperties().bIsImpersonal)
+    {
+        return rc;
+    }
+
     rc = eBuildPresentActiveParticiple();
     if (rc != H_NO_ERROR)
     {
