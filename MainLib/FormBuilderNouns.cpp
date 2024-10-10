@@ -486,7 +486,15 @@ ET_ReturnCode CFormBuilderNouns::eCheckIrregularForms (ET_Gender eoGender,
 
     bHandled = false;
 
-    CEString sHash = sGramHash (eoGender, eAnimacy, eEndingsCase, eNumber);
+    CEString sHash;
+    if (CASE_LOC == eCase)
+    {
+        sHash = sGramHash(eoGender, eAnimacy, CASE_LOC, eNumber);
+    }
+    else
+    {
+        sHash = sGramHash(eoGender, eAnimacy, eEndingsCase, eNumber);
+    }
 
     map<CWordForm*, bool> mapIrreg;
     rc = m_pInflection->eGetIrregularForms(sHash, mapIrreg);
