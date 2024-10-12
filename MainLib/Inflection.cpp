@@ -417,7 +417,7 @@ ET_ReturnCode CInflection::eFormExists(const CEString& sFH)
     }
 
     if (L"мн." == m_pLexeme->sMainSymbol() || L"мн. неод." == m_pLexeme->sMainSymbol() || 
-        L"мн. неод." == m_pLexeme->sMainSymbol() || m_pLexeme->bIsPluralOf() )
+        L"мн. одуш." == m_pLexeme->sMainSymbol() || m_pLexeme->bIsPluralOf() )
     {
         if (sFH.bStartsWith(L"Noun_Sg_"))
         {
