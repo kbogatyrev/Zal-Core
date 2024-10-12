@@ -363,18 +363,21 @@ ET_ReturnCode CFormBuilderLongAdj::eBuild()
         }
         gram_tmp.SetParadigm(eSubParadigm);
 
-/*      // TODO why?
         bool bPluralNoun = false;
-        if (m_pLexeme->sInflectionType() == L"мн." || m_pLexeme->sInflectionType() == L"мн. неод." ||
-            m_pLexeme->sInflectionType() == L"мн. одуш." || m_pLexeme->sInflectionType() == L"мн. от")
+        if (m_pLexeme->ePartOfSpeech() == POS_NOUN)
         {
-            bPluralNoun = true;
+            if (m_pLexeme->bIsPluralOf() || // are the the infl. types below relevant for adjectives?
+                m_pLexeme->sInflectionType() == L"мн." || m_pLexeme->sInflectionType() == L"мн. неод." ||
+                m_pLexeme->sInflectionType() == L"мн. одуш." || m_pLexeme->sInflectionType() == L"мн. от")
+            {
+                bPluralNoun = true;
+            }
         }
-*/
+
         do
         {
             ET_StressLocation eStressType = STRESS_LOCATION_UNDEFINED;
-            if (AT_A == m_eAccentType|| AT_A1 == m_eAccentType)
+            if (AT_A == m_eAccentType || AT_A1 == m_eAccentType)
             {
                 eStressType = STRESS_LOCATION_STEM;
             }
@@ -429,6 +432,11 @@ ET_ReturnCode CFormBuilderLongAdj::eBuild()
             }
 
             if (m_pLexeme->bHasMissingForms() && m_pInflection->eFormExists(gram_tmp.sGramHash()) != H_TRUE)
+            {
+                continue;
+            }
+
+            if ((m_pLexeme->ePartOfSpeech() == POS_NOUN) && m_pLexeme->bIsPluralOf() && (NUM_SG == gram_tmp.m_eNumber))
             {
                 continue;
             }
