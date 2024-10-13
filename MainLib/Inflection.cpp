@@ -517,6 +517,14 @@ ET_ReturnCode CInflection::eFormExists(const CEString& sFH)
         return H_TRUE;
     }
 
+    if (L"VAdv_Pres" == sFormHash)
+    {
+        if (m_pLexeme->sComment().bStartsWith(L"имеется деепр."))
+        {
+            return H_TRUE;
+        }
+    }
+
     if (sFormHash.bStartsWith(L"VAdv_Pres"))
     {
         int aNoAdvTypes[] = { 3, 8, 9, 11, 14, 15 };
