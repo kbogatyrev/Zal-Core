@@ -398,7 +398,14 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPresentAdverbial()
     }
 
     int iType = m_pInflection->iType();
-    if (3 == iType || 8 == iType || 9 == iType || 11 == iType || 
+    if (3 == iType)
+    {
+        if (!m_pLexeme->sComment().bStartsWith(L"имеется деепр."))
+        {
+            return H_NO_ERROR;
+        }
+    }
+    if (8 == iType || 9 == iType || 11 == iType || 
         (14 == iType && m_pLexeme->stGetProperties().iSection != 17) || 15 == iType)
     {
         return H_NO_ERROR;
