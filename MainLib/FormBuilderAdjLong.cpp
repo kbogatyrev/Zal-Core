@@ -367,8 +367,8 @@ ET_ReturnCode CFormBuilderLongAdj::eBuild()
         if (m_pLexeme->ePartOfSpeech() == POS_NOUN)
         {
             if (m_pLexeme->bIsPluralOf() || // are the the infl. types below relevant for adjectives?
-                m_pLexeme->sInflectionType() == L"мн." || m_pLexeme->sInflectionType() == L"мн. неод." ||
-                m_pLexeme->sInflectionType() == L"мн. одуш." || m_pLexeme->sInflectionType() == L"мн. от")
+                m_pLexeme->sMainSymbol() == L"мн." || m_pLexeme->sMainSymbol() == L"мн. неод." ||
+                m_pLexeme->sMainSymbol() == L"мн. одуш." || m_pLexeme->sMainSymbol() == L"мн. от")
             {
                 bPluralNoun = true;
             }
@@ -376,6 +376,11 @@ ET_ReturnCode CFormBuilderLongAdj::eBuild()
 
         do
         {
+            if (bPluralNoun && NUM_SG == gram_tmp.m_eNumber)
+            {
+                continue;
+            }
+
             ET_StressLocation eStressType = STRESS_LOCATION_UNDEFINED;
             if (AT_A == m_eAccentType || AT_A1 == m_eAccentType)
             {
