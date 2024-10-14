@@ -1260,8 +1260,12 @@ ET_ReturnCode CFormBuilderAspectPair::eNsvToSvTypes3(bool bIsVariant)
     if (-2 == iDerivationType)
     {
         CEString sInfinitive = m_pInfWordForm->sWordForm();
+        if (sInfinitive.bEndsWith(L"ся"))
+        {
+            sInfinitive.sRemoveCharsFromEnd(2);
+        }
         int iStressedSyllable = m_pInfWordForm->sWordForm().uiGetSyllableFromVowelPos(iInfStressPos);
-        if (m_pInfWordForm->sWordForm().uiNSyllables()-1 == iStressedSyllable) // end-stressed?
+        if (sInfinitive.uiNSyllables()-1 == iStressedSyllable) // end-stressed?
         {
             CEString sStem(sInfinitive);
             sStem.sRemoveCharsFromEnd(3);
