@@ -135,7 +135,7 @@ ET_ReturnCode CFormBuilderComparative::eBuild()
         {
             if ((*it).second)   // optional?  TODO: needs work; this DOES NOT indicate that a regular variant exists
             {
-                bNoRegularForms = false;
+//                bNoRegularForms = false;
             }
 
             auto spSource = it->first;
