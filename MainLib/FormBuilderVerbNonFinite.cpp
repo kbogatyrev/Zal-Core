@@ -2744,7 +2744,7 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildIrregParticipialFormsLong (ET_Subpara
     
     }   //  for (; it != mapIrregForms.end(); ++it)
 
-    if (H_NO_ERROR == rc) {
+    if (H_NO_ERROR == rc && SUBPARADIGM_PART_PRES_PASS_LONG == eSp) {
         m_pInflection->SetHasPresPassParticiple(true);
     }
 
