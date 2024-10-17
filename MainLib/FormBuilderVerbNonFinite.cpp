@@ -1348,7 +1348,7 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastPassiveParticiple()
     CEString sStem;
     if ((m_pLexeme->sSourceForm().bEndsWith (L"ать") || 
          m_pLexeme->sSourceForm().bEndsWith (L"ять")) &&
-        14 != m_pInflection->iType())
+         14 != m_pInflection->iType())
     {
         sStem = m_pLexeme->sInfStem();
         if (2 == m_pInflection->iType() && m_pLexeme->bHasOAlternation())
@@ -1376,6 +1376,13 @@ ET_ReturnCode CFormBuilderNonFinite::eBuildPastPassiveParticiple()
             assert(sStem.bEndsWith(L"ж"));
             sStem += L"д";
         }
+        sStem += L"енн";
+    }
+
+    if (m_pLexeme->iSection() == 16)
+    {
+        sStem = m_pLexeme->sInfStem();
+        sStem = sStem.sRemoveCharsFromEnd(1);
         sStem += L"енн";
     }
 
@@ -1943,7 +1950,7 @@ ET_ReturnCode CFormBuilderNonFinite::eGetParticipleStressPos (ET_Subparadigm eSu
                     }
                 }
 
-                if (4 == m_pInflection->iType())    // same syllable (counting from right) as in 3 Sg Praes
+                if (4 == m_pInflection->iType() || m_pLexeme->iSection() == 16)    // same syllable (counting from right) as in 3 Sg Praes
                 {
                     CGramHasher sg3Pres (POS_VERB, SUBPARADIGM_PRESENT_TENSE, CASE_UNDEFINED, NUM_SG, 
                                          GENDER_UNDEFINED, PERSON_3, ANIM_UNDEFINED, 

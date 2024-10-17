@@ -26,6 +26,10 @@ ET_ReturnCode CFormBuilderConj::eBuildVerbStems()
         case 1:         // делать, читать(ся), верстать, терять, жалеть, читать, стараться
         {
             s1SgStem = s3SgStem = sGraphicStem;
+            if (m_pLexeme->iSection() == 16)
+            {
+                s1SgStem = s3SgStem = CEString(sGraphicStem).sErase(sInfStem.uiLength() - 1, 1) + L"я";
+            }
             break;
         }
 
